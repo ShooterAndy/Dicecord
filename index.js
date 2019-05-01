@@ -10,5 +10,5 @@ fs.readdir('./events/', (err, files) => {
         client.on(eventName, arg => eventHandler(client, arg));
     });
 });
-console.log('--> Trying to log in with token ' + process.env.BOT_TOKEN);
+
 client.login(process.env.BOT_TOKEN);
