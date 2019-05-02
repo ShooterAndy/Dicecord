@@ -11,6 +11,9 @@ fs.readdir('./commands/', (err, files) => {
 });
 
 module.exports = (client, message) => {
+    if(message.client.user.bot) { // Do not reply to bots!
+        return;
+    }
     if (message.content.startsWith('!')) {
         const commandName = message.content.split(' ')[0].slice(1);
         if(commandName && commandName.length && commands[commandName.toLowerCase()]) {
