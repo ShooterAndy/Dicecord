@@ -11,7 +11,7 @@ fs.readdir('./commands/', (err, files) => {
 });
 
 module.exports = (client, message) => {
-    if(message.client.user.bot) { // Do not reply to bots!
+    if(!message.member || message.member.user.bot) { // Do not reply to bots and other weird things!
         return;
     }
     if (message.content.startsWith('!')) {
