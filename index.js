@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
+
 fs.readdir('./events/', (err, files) => {
     files.forEach(file => {
         const eventHandler = require(`./events/${file}`);

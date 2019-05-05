@@ -9,10 +9,11 @@ module.exports = args => {
 
     fs.readFile('./help/' + helpFileName, 'utf8', function (err, data) {
         if (err) {
-            return args.message.reply('ERROR: Couldn\'t find help for "' + args.commandText.trim() + '"');
+            return args.message.reply('ERROR: Couldn\'t find help for "' + args.commandText.trim() + '"')
+                .catch(console.error);
         }
         else {
-            args.message.reply(data);
+            args.message.reply(data).catch(console.error);
         }
     });
 };

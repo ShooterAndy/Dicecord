@@ -24,7 +24,7 @@ const processRollMessages = function (message, rollMessages) {
         return;
     }
 
-    return message.reply(replyText);
+    return message.reply(replyText).catch(console.error);
 };
 
 

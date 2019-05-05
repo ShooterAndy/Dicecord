@@ -19,11 +19,11 @@ module.exports = args => {
 
 const processMessage = function(args, lastMessage) {
     if(!lastMessage || !lastMessage.content) {
-        return args.message.reply('ERROR: No last message found');
+        return args.message.reply('ERROR: No last message found').catch(console.error);
     }
     const indexOfComma = lastMessage.content.indexOf(',');
     if(indexOfComma < 1) {
-        return args.message.reply('ERROR: The last message has non-typical format');
+        return args.message.reply('ERROR: The last message has non-typical format').catch(console.error);
     }
     let message = lastMessage.content.slice(indexOfComma + 2);
 
@@ -94,5 +94,5 @@ const processMessage = function(args, lastMessage) {
         message += '[/li][/ul]';
     }
 
-    return args.message.reply('Last message bb-code-ified:\n```' + message + '```');
+    return args.message.reply('Last message bb-code-ified:\n```' + message + '```').catch(console.error);
 };

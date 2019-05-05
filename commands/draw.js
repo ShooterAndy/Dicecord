@@ -12,7 +12,7 @@ module.exports = args => {
 const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
     let text = '';
     if (isNaN(numberOfCardsToDraw)) {
-        return message.reply('ERROR: "' + numberOfCardsToDraw + '" is not a valid number.');
+        return message.reply('ERROR: "' + numberOfCardsToDraw + '" is not a valid number.').catch(console.error);
     }
     else {
         numberOfCardsToDraw = parseInt(numberOfCardsToDraw);
@@ -22,7 +22,8 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
 
                 if (deck.length < numberOfCardsToDraw) {
                     return message.reply('ERROR: Not enough cards left in the deck (requested ' + numberOfCardsToDraw +
-                        ', but only ' + deck.length + ' cards left). Reshuffle or draw fewer cards.');
+                        ', but only ' + deck.length + ' cards left). Reshuffle or draw fewer cards.')
+                        .catch(console.error);
                 }
                 else {
                     let drawnCards = deck.slice(0, numberOfCardsToDraw);
@@ -36,14 +37,15 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
                     });
                     text = text.slice(0, -2) + '.';
                     saveDeck({ deck: deck, message: message });
-                    return message.reply(text);
+                    return message.reply(text).catch(console.error);
                 }
             }
             else {
-                return message.reply('ERROR: No deck found for this channel. Shuffle the deck first!');
+                return message.reply('ERROR: No deck found for this channel. Shuffle the deck first!')
+                    .catch(console.error);
             }
         }, (error) => {
-            return message.reply(error);
+            return message.reply(error).catch(console.error);
         });
     }
 };
