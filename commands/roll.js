@@ -2,7 +2,19 @@ const random = require('random');
 const _ = require('underscore');
 
 module.exports = args => {
-    const rollMessages = args.commandText.split(';');
+    const separatedRollMessages = args.commandText.split(';');
+    let rollMessages = [];
+    _.each(separatedRollMessages, (rollMessage) => {
+        const rollMessageParts = rollMessage.split('=>');
+        _.each(rollMessageParts, (rollMessagePart, i) => {
+            if(i > 0) {
+                rollMessages.push({ message: rollMessagePart, onSuccess: true });
+            }
+            else {
+                rollMessages.push({ message: rollMessagePart, onSuccess: false });
+            }
+        });
+    });
     processRollMessages(args.message, rollMessages);
 };
 
@@ -12,10 +24,23 @@ const processRollMessages = function (message, rollMessages) {
         replyText = 'No roll';
     }
     else {
+        let previousSuccess = true;
         for (let i = 0; i < rollMessages.length; i++) {
-            replyText += processRoll(rollMessages[i]);
-            if (i < (rollMessages.length - 1)) {
-                replyText += '\n';
+            const rollResults = processRoll(rollMessages[i].message);
+            if(previousSuccess || !rollMessages[i].onSuccess) {
+                if(rollMessages[i].onSuccess) {
+                    replyText += ', ';
+                }
+                else {
+                    replyText += '\n';
+                }
+                if(rollResults.text) {
+                    replyText += rollResults.text;
+                    previousSuccess = rollResults.success;
+                }
+                else {
+                    replyText += 'ERROR: Roll part is invalid: "' + rollMessages[i].message + '"';
+                }
             }
         }
     }
@@ -33,9 +58,15 @@ const processRoll = function(roll) {
     let result = '';
 
     let comment = '';
+    let prependComment = true;
     let indexOfCommentSymbol = roll.indexOf('?');
     if (indexOfCommentSymbol > 0) {
-        comment = roll.slice(indexOfCommentSymbol + 1).trim();
+        comment = roll.slice(indexOfCommentSymbol + 1);
+        if(comment.startsWith('!')) {
+            prependComment = false;
+            comment = comment.slice(1);
+        }
+        comment = comment.trim();
         roll = roll.slice(0, indexOfCommentSymbol);
     }
 
@@ -44,6 +75,7 @@ const processRoll = function(roll) {
     roll = roll.toLowerCase();
     roll = roll.replace(/\s/g, '');
 
+    let success = true;
     let vsValues = [];
     roll = roll.replace(/\u043c\u044b/gi, 'vs');
     let indexOfVsSymbol = roll.indexOf('vs');
@@ -171,7 +203,7 @@ const processRoll = function(roll) {
         rollInstances.push(newRollParts);
     }
 
-    if (comment) {
+    if (comment && prependComment) {
         result = '`' + comment + ':` ';
     }
 
@@ -352,11 +384,16 @@ const processRoll = function(roll) {
             }
             else {
                 result += '_failure_';
+                success = false;
             }
         }
     }
 
-    return result;
+    if (comment && !prependComment) {
+        result += ' `' + comment + '`';
+    }
+
+    return { text: result, success: success };
 };
 
 const processRollPart = function (rollPart, isNegative) {

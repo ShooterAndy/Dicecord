@@ -30,35 +30,8 @@ const processMessage = function(args, lastMessage) {
     message = message.replace(/ {2}/gm, ' ');
     message = message.replace(/`/gm, '');
 
-    let messageParts = message.split('**');
-    if(messageParts.length > 1) {
-        message = '';
-        _.each(messageParts, function (messagePart, i) {
-            if(messagePart.trim().length > 0) {
-                if(i % 2 === 0) {
-                    message += messagePart + (i < messageParts.length - 1 ? '[b]' : '');
-                }
-                else {
-                    message += messagePart + '[/b]';
-                }
-            }
-        });
-    }
-
-    messageParts = message.split('_');
-    if(messageParts.length > 1) {
-        message = '';
-        _.each(messageParts, function (messagePart, i) {
-            if(messagePart.trim().length > 0) {
-                if(i % 2 === 0) {
-                    message += messagePart + (i < messageParts.length - 1 ? '[i]' : '');
-                }
-                else {
-                    message += messagePart + '[/i]';
-                }
-            }
-        });
-    }
+    message = message.replace(/_(.*?(?:_|$))/gm, '[i]$1').replace(/_/gm, '[/i]');
+    message = message.replace(/\*\*(.*?(?:\*\*|$))/gm, '[b]$1').replace(/\*\*/gm, '[/b]');
 
     const indexOfListStart = message.indexOf('\n > Roll ');
     if(indexOfListStart > 0) {
