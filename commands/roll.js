@@ -237,10 +237,10 @@ const processRoll = function(roll) {
                     intermediateResultString += rollParts[i].resultText;
                 }
                 else if(rollParts[i].type === 'die') {
-                    diceRollText += rollParts[i].resultText;
+                    intermediateResultString += rollParts[i].resultText;
                 }
                 else {
-                    diceRollText += rollParts[i].text;
+                    intermediateResultString += rollParts[i].text;
                 }
                 dicePartsNum++;
             }
@@ -249,9 +249,9 @@ const processRoll = function(roll) {
         }
         endResult += currentMultiplierSum;
 
-        if(bonusesSum !== 0 || doWeNeedIntermediateResult) {
+        /*if(bonusesSum !== 0 || dicePartsNum > 1 || doWeNeedIntermediateResult) {
             intermediateResultString += diceRollText;
-        }
+        }*/
 
         if (bonusesSum !== 0) {
             if(!isFudgeRoll) {
