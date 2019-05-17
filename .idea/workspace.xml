@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/help/!.txt" afterPath="$PROJECT_DIR$/help/!.txt" />
+      <change beforePath="$PROJECT_DIR$/events/error.js" afterPath="$PROJECT_DIR$/events/error.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -57,11 +57,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="error.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="error.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/events/error.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="34">
-              <caret line="2" column="64" lean-forward="false" selection-start-line="2" selection-start-column="64" selection-end-line="2" selection-end-column="64" />
+              <caret line="2" column="2" lean-forward="true" selection-start-line="2" selection-start-column="2" selection-end-line="2" selection-end-column="2" />
               <folding />
             </state>
           </provider>
@@ -97,7 +97,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="!.txt" pinned="false" current-in-tab="true">
+      <file leaf-file-name="!.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/help/!.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="170">
@@ -184,11 +184,11 @@
         <option value="$PROJECT_DIR$/commands/roll.js" />
         <option value="$PROJECT_DIR$/commands/bbcode.js" />
         <option value="$PROJECT_DIR$/help/roll.txt" />
-        <option value="$PROJECT_DIR$/events/error.js" />
         <option value="$PROJECT_DIR$/.env" />
         <option value="$PROJECT_DIR$/commands/disconnect.js" />
         <option value="$PROJECT_DIR$/version" />
         <option value="$PROJECT_DIR$/help/!.txt" />
+        <option value="$PROJECT_DIR$/events/error.js" />
       </list>
     </option>
   </component>
@@ -323,7 +323,7 @@
       <workItem from="1556787756745" duration="1761000" />
       <workItem from="1557018453619" duration="16506000" />
       <workItem from="1557220619399" duration="2296000" />
-      <workItem from="1558001349057" duration="9809000" />
+      <workItem from="1558001349057" duration="10483000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -409,11 +409,18 @@
       <option name="project" value="LOCAL" />
       <updated>1558081969360</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Updated the help file to include the information about the discordbots page and the support channel.">
+      <created>1558082407173</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1558082407173</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="71367000" />
+    <option name="totallyTimeSpent" value="72041000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -423,7 +430,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.5252898" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.47471023" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.47471023" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.48103267" order="9" side_tool="false" content_ui="tabs" />
@@ -463,7 +470,8 @@
     <MESSAGE value="Updated to 1.1.0, added conditional rolls, posterior comments (hehe), and optimized !bbcode" />
     <MESSAGE value="Updated to 1.1.1, improved error handling again?" />
     <MESSAGE value="Updated to 1.1.2, fixed the disconnect command." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated to 1.1.2, fixed the disconnect command." />
+    <MESSAGE value="Updated the help file to include the information about the discordbots page and the support channel." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated the help file to include the information about the discordbots page and the support channel." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -785,14 +793,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/events/error.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="2" column="64" lean-forward="false" selection-start-line="2" selection-start-column="64" selection-end-line="2" selection-end-column="64" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/.env">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
@@ -845,6 +845,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
           <caret line="10" column="53" lean-forward="false" selection-start-line="10" selection-start-column="53" selection-end-line="10" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/error.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="2" lean-forward="true" selection-start-line="2" selection-start-column="2" selection-end-line="2" selection-end-column="2" />
           <folding />
         </state>
       </provider>
