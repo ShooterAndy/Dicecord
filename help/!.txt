@@ -1,3 +1,7 @@
+**Dicecord** is a bot made to help with elements of randomness in roleplaying and tabletop games, such as dice rolls and card draws.
+For help and testing you can visit its Discord channel here: https://discord.gg/8AxDtyC
+DiscordBots page: https://discordbots.org/bot/572698679618568193
+
 **List of commands:**
  > **!help** (!h) — provides information about this bot. Add a command name to learn more about it, like !help roll.
  > **!roll** (!r) — rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
