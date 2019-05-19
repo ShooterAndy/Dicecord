@@ -1,7 +1,7 @@
 **roll** command is very versatile and allows you to:
  > Roll a custom number of dice with a custom number of sides, for example `!roll 3d8` will roll three eight-sided dice;
  > Roll a fudge dice by using `!roll fudge`, or `!roll f`, or `!roll 4dF`;
- > Roll Ronn'n'Keep dice, for example `!roll 4k2e9` will roll four ten-sided dice which will explode on 9 and 10, and sum up the 2 highest results.
+ > Roll Roll'n'Keep dice, for example `!roll 4k2e9` will roll four ten-sided dice which will explode on 9 and 10, and sum up the 2 highest results.
 
 All these commands are also modifiable with additional parameters:
  > You can add a bonus (or a penalty) to a dice roll, such as `!roll 1d20 + 5 - 3` will add 2 to the result of the roll;
@@ -12,6 +12,6 @@ All these commands are also modifiable with additional parameters:
  > Alternatively, if you want your comment to appear after the roll, you can use "?!" instead of "?".
 
 Lastly, you can request several rolls in one message by separating them with a semicolon, like so:
-`!roll 1d20+8aoe3vs14,15,20 ? Attack rolls; 2d4+5 ? Damage rolls`
+`!roll 1d20+8 aoe 3 vs 14, 15, 20 ? Attack rolls; 2d4+5 ? Damage rolls`
 Or you can make rolls rely on the success or failure of the previous roll, like so:
 `!roll 1d20+8 vs 21 ? Attack roll => 1d8+4+1d6 ?! damage to enemy`
