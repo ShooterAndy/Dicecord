@@ -17,7 +17,12 @@ module.exports = args => {
     });
     if(!rollMessages || !rollMessages.length ||
         (rollMessages.length === 1 && rollMessages[0].message.trim() === '')) {
-        return args.message.reply('ERROR: No dice specified, please input something like:\n`!roll 1d6+2`');
+        return args.message.reply('ERROR: No dice specified, please input something like:\n`!roll 1d6+2`, or check ' +
+            'out `!help roll` for more info.');
+    }
+    if(rollMessages.length > 100) {
+        return args.message.reply('ERROR: No more than 100 rolls are allowed per one command, please put them into ' +
+            'several separate commands.');
     }
     processRollMessages(args.message, rollMessages);
 };
@@ -166,7 +171,7 @@ const processRoll = function(roll) {
         if (currentPart) {
             processedPart = processRollPart(currentPart, isNegative);
             if(processedPart.type === 'error') {
-                return 'ERROR: a roll part is invalid: ' + processedPart.text;
+                return { text: 'ERROR: a roll part is invalid: ' + processedPart.text, success: success };
             }
             isFudgeRoll = processedPart.type === 'fudgeDie' ? true : isFudgeRoll;
             doWeNeedIntermediateResult = processedPart.doWeNeedIntermediateResult ? true : doWeNeedIntermediateResult;
@@ -206,7 +211,7 @@ const processRoll = function(roll) {
         for (let i = 0; i < rollParts.length; i++) {
             processedPart = processRollPart(rollParts[i].text, rollParts[i].isNegative);
             if(processedPart.type === 'error') {
-                return 'ERROR: a roll part is invalid: ' + processedPart.text;
+                return { text: 'ERROR: a roll part is invalid: ' + processedPart.text, success: success };
             }
             newRollParts.push(processedPart);
         }
@@ -238,7 +243,6 @@ const processRoll = function(roll) {
 
         let bonusesSum = 0;
         let currentMultiplierSum = 0;
-        let diceRollText = '';
 
         for (let i = 0; i < rollParts.length; i++) {
             if (rollParts[i].type === 'bonus') {
@@ -463,6 +467,18 @@ const processDie = function (die, isNegative) {
     let resultText = '';
     let totalResult = 0;
 
+    if(diceNum > 100) {
+        return {
+            type: 'error',
+            text: 'No more than 100 dice allowed per one roll, you requested "' + text + '"'
+        };
+    }
+    if(dieSidesNum > 1000) {
+        return {
+            type: 'error',
+            text: 'No more than 1000-sided dice allowed, you requested "' + text + '"'
+        };
+    }
     if (diceNum > 1) {
         //resultText += '(';
         doWeNeedIntermediateResult = true;
@@ -494,6 +510,12 @@ const processRnKDie = function (die, isNegative, explodeOn) {
     const diceNum = die[0] === '' ? 1 : parseInt(die[0]);
     const diceKeepNum = parseInt(die[1]);
     const text = diceNum + 'k' + diceKeepNum;
+    if(diceNum > 100) {
+        return {
+            type: 'error',
+            text: 'No more than 100 dice allowed per one roll, you requested "' + text + '"'
+        };
+    }
     if(diceNum < diceKeepNum) {
         return {
             type: 'error',

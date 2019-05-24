@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="Updated help texts.">
+    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="Updated to version 1.1.4, added some precautions to limit the number of options for commands.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/commands/bbcode.js" afterPath="$PROJECT_DIR$/commands/bbcode.js" />
+      <change beforePath="$PROJECT_DIR$/commands/draw.js" afterPath="$PROJECT_DIR$/commands/draw.js" />
+      <change beforePath="$PROJECT_DIR$/commands/pick.js" afterPath="$PROJECT_DIR$/commands/pick.js" />
       <change beforePath="$PROJECT_DIR$/commands/roll.js" afterPath="$PROJECT_DIR$/commands/roll.js" />
       <change beforePath="$PROJECT_DIR$/version" afterPath="$PROJECT_DIR$/version" />
     </list>
@@ -52,18 +53,28 @@
       <file leaf-file-name="roll.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/commands/roll.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="222">
-              <caret line="16" column="7" lean-forward="false" selection-start-line="16" selection-start-column="7" selection-end-line="16" selection-end-column="7" />
+            <state relative-caret-position="340">
+              <caret line="20" column="44" lean-forward="false" selection-start-line="20" selection-start-column="44" selection-end-line="20" selection-end-column="44" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="error.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/events/error.js">
+      <file leaf-file-name="pick.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/commands/pick.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="2" column="2" lean-forward="false" selection-start-line="2" selection-start-column="2" selection-end-line="2" selection-end-column="2" />
+            <state relative-caret-position="102">
+              <caret line="6" column="51" lean-forward="false" selection-start-line="6" selection-start-column="51" selection-end-line="6" selection-end-column="51" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="draw.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/commands/draw.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="15" column="12" lean-forward="false" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
               <folding />
             </state>
           </provider>
@@ -79,17 +90,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="disconnect.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/commands/disconnect.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="11" column="67" lean-forward="true" selection-start-line="11" selection-start-column="67" selection-end-line="11" selection-end-column="67" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="version" pinned="false" current-in-tab="true">
+      <file leaf-file-name="version" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/version">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
@@ -112,7 +113,7 @@
       <file leaf-file-name="message.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/events/message.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
+            <state relative-caret-position="223">
               <caret line="14" column="46" lean-forward="false" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
               <folding />
             </state>
@@ -143,6 +144,10 @@
       <find>vsValues</find>
       <find>comment</find>
       <find>'\n</find>
+      <find>roll</find>
+      <find>roll part is invalid</find>
+      <find>finishPart</find>
+      <find>aoe</find>
     </findStrings>
     <replaceStrings>
       <replace>'</replace>
@@ -177,8 +182,6 @@
         <option value="$PROJECT_DIR$/events/posted.js" />
         <option value="$PROJECT_DIR$/dblevents/posted.js" />
         <option value="$PROJECT_DIR$/commands/help.js" />
-        <option value="$PROJECT_DIR$/commands/draw.js" />
-        <option value="$PROJECT_DIR$/commands/pick.js" />
         <option value="$PROJECT_DIR$/helpers/saveDeck.js" />
         <option value="$PROJECT_DIR$/dblevents/error.js" />
         <option value="$PROJECT_DIR$/events/message.js" />
@@ -189,9 +192,11 @@
         <option value="$PROJECT_DIR$/events/error.js" />
         <option value="$PROJECT_DIR$/help/!.txt" />
         <option value="$PROJECT_DIR$/help/roll.txt" />
-        <option value="$PROJECT_DIR$/commands/roll.js" />
         <option value="$PROJECT_DIR$/commands/bbcode.js" />
         <option value="$PROJECT_DIR$/version" />
+        <option value="$PROJECT_DIR$/commands/roll.js" />
+        <option value="$PROJECT_DIR$/commands/pick.js" />
+        <option value="$PROJECT_DIR$/commands/draw.js" />
       </list>
     </option>
   </component>
@@ -328,7 +333,7 @@
       <workItem from="1557220619399" duration="2296000" />
       <workItem from="1558001349057" duration="11097000" />
       <workItem from="1558290894582" duration="684000" />
-      <workItem from="1558692935827" duration="2903000" />
+      <workItem from="1558692935827" duration="3886000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -435,11 +440,18 @@
       <option name="project" value="LOCAL" />
       <updated>1558290970917</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Updated to version 1.1.3, fixed !bbcode, added a more helpful error message for the empty !roll command.">
+      <created>1558711847033</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1558711847033</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="76242000" />
+    <option name="totallyTimeSpent" value="77225000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -492,7 +504,8 @@
     <MESSAGE value="Updated the help file to include the information about the discordbots page and the support channel." />
     <MESSAGE value="Updated the error handling? I hope?" />
     <MESSAGE value="Updated help texts." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated help texts." />
+    <MESSAGE value="Updated to version 1.1.3, fixed !bbcode, added a more helpful error message for the empty !roll command." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated to version 1.1.3, fixed !bbcode, added a more helpful error message for the empty !roll command." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -722,20 +735,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/commands/draw.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="321">
-          <caret line="43" column="23" lean-forward="false" selection-start-line="43" selection-start-column="23" selection-end-line="43" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/commands/pick.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="22" column="98" lean-forward="false" selection-start-line="22" selection-start-column="98" selection-end-line="22" selection-end-column="98" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/snekfetch/src/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3638">
@@ -817,22 +816,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/help/!.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="1" column="87" lean-forward="false" selection-start-line="1" selection-start-column="87" selection-end-line="1" selection-end-column="87" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/events/message.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="46" lean-forward="false" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/help/roll.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
@@ -849,14 +832,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/commands/roll.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="222">
-          <caret line="16" column="7" lean-forward="false" selection-start-line="16" selection-start-column="7" selection-end-line="16" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/commands/bbcode.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="440">
@@ -865,10 +840,50 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/help/!.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" column="87" lean-forward="false" selection-start-line="1" selection-start-column="87" selection-end-line="1" selection-end-column="87" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/message.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="223">
+          <caret line="14" column="46" lean-forward="false" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/version">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/commands/roll.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="20" column="44" lean-forward="false" selection-start-line="20" selection-start-column="44" selection-end-line="20" selection-end-column="44" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/commands/pick.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="51" lean-forward="false" selection-start-line="6" selection-start-column="51" selection-end-line="6" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/commands/draw.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="15" column="12" lean-forward="false" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
           <folding />
         </state>
       </provider>

@@ -12,7 +12,8 @@ module.exports = args => {
 const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
     let text = '';
     if (isNaN(numberOfCardsToDraw)) {
-        return message.reply('ERROR: "' + numberOfCardsToDraw + '" is not a valid number.').catch(console.error);
+        return message.reply('ERROR: "' + numberOfCardsToDraw + '" is not a valid number of cards to draw.')
+            .catch(console.error);
     }
     else {
         numberOfCardsToDraw = parseInt(numberOfCardsToDraw);
