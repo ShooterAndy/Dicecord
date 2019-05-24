@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="">
+    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="Updated the invite link (again)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/help/!.txt" afterPath="$PROJECT_DIR$/help/!.txt" />
+      <change beforePath="$PROJECT_DIR$/events/message.js" afterPath="$PROJECT_DIR$/events/message.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -87,7 +87,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="version" pinned="false" current-in-tab="false">
+      <file leaf-file-name="version" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/version">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
@@ -97,7 +97,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="!.txt" pinned="false" current-in-tab="true">
+      <file leaf-file-name="!.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/help/!.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="17">
@@ -110,8 +110,8 @@
       <file leaf-file-name="message.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/events/message.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="14" column="46" lean-forward="false" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
+            <state relative-caret-position="287">
+              <caret line="30" column="9" lean-forward="false" selection-start-line="30" selection-start-column="9" selection-end-line="30" selection-end-column="9" />
               <folding />
             </state>
           </provider>
@@ -145,6 +145,7 @@
       <find>roll part is invalid</find>
       <find>finishPart</find>
       <find>aoe</find>
+      <find>.reply</find>
     </findStrings>
     <replaceStrings>
       <replace>'</replace>
@@ -181,7 +182,6 @@
         <option value="$PROJECT_DIR$/commands/help.js" />
         <option value="$PROJECT_DIR$/helpers/saveDeck.js" />
         <option value="$PROJECT_DIR$/dblevents/error.js" />
-        <option value="$PROJECT_DIR$/events/message.js" />
         <option value="$PROJECT_DIR$/events/ready.js" />
         <option value="$PROJECT_DIR$/commands/servers.js" />
         <option value="$PROJECT_DIR$/.env" />
@@ -189,11 +189,12 @@
         <option value="$PROJECT_DIR$/events/error.js" />
         <option value="$PROJECT_DIR$/help/roll.txt" />
         <option value="$PROJECT_DIR$/commands/bbcode.js" />
-        <option value="$PROJECT_DIR$/version" />
         <option value="$PROJECT_DIR$/commands/roll.js" />
         <option value="$PROJECT_DIR$/commands/pick.js" />
         <option value="$PROJECT_DIR$/commands/draw.js" />
         <option value="$PROJECT_DIR$/help/!.txt" />
+        <option value="$PROJECT_DIR$/events/message.js" />
+        <option value="$PROJECT_DIR$/version" />
       </list>
     </option>
   </component>
@@ -331,7 +332,8 @@
       <workItem from="1558001349057" duration="11097000" />
       <workItem from="1558290894582" duration="684000" />
       <workItem from="1558692935827" duration="4491000" />
-      <workItem from="1558715431148" duration="18000" />
+      <workItem from="1558715431148" duration="42000" />
+      <workItem from="1558723340506" duration="136000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -452,11 +454,18 @@
       <option name="project" value="LOCAL" />
       <updated>1558712803987</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Updated the invite link (again)">
+      <created>1558715458709</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1558715458709</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="77848000" />
+    <option name="totallyTimeSpent" value="78008000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -465,7 +474,8 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24973656" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.5273973" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.50632244" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.49367756" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.47260273" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -480,7 +490,6 @@
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.49578503" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -511,7 +520,8 @@
     <MESSAGE value="Updated help texts." />
     <MESSAGE value="Updated to version 1.1.3, fixed !bbcode, added a more helpful error message for the empty !roll command." />
     <MESSAGE value="Updated to version 1.1.4, added some precautions to limit the number of options for commands." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated to version 1.1.4, added some precautions to limit the number of options for commands." />
+    <MESSAGE value="Updated the invite link (again)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated the invite link (again)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -835,22 +845,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/events/message.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="46" lean-forward="false" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/version">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/commands/roll.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="340">
@@ -887,6 +881,22 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
           <caret line="1" column="87" lean-forward="false" selection-start-line="1" selection-start-column="87" selection-end-line="1" selection-end-column="87" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/events/message.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="287">
+          <caret line="30" column="9" lean-forward="false" selection-start-line="30" selection-start-column="9" selection-end-line="30" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/version">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
           <folding />
         </state>
       </provider>
