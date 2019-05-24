@@ -34,24 +34,23 @@ const processMessage = function(args, lastMessage) {
     message = message.replace(/\*\*(.*?(?:\*\*|$))/gm, '[b]$1').replace(/\*\*/gm, '[/b]');
 
     const indexOfListStart = message.indexOf('\n > Roll ');
-    if(indexOfListStart > 0) {
+    if(indexOfListStart >= 0) {
         message = message.slice(0, indexOfListStart) + '[ul]' + message.slice(indexOfListStart + 1);
-        messageParts = message.split(' > Roll');
-        console.log(JSON.stringify(messageParts));
+        const messageParts = message.split(' > Roll');
         if(messageParts.length > 1) {
             message = '';
             _.each(messageParts, function (messagePart, i) {
                 if(messagePart.trim().length > 0) {
                     if(i > 0) {
                         const indexOfLineEnd = messagePart.indexOf('\n');
-                        message += '[li]Roll' + messagePart.slice(0, indexOfLineEnd);
+                        message += '[li]Roll' +
+                            (indexOfLineEnd === -1 ? messagePart : messagePart.slice(0, indexOfLineEnd));
                         if(i === messageParts.length - 1) {
                             message += '.[/li][/ul]';
                         }
                         else {
                             message += ';[/li]';
                         }
-                        message += messagePart.slice(indexOfLineEnd + 1);
                     }
                     else {
                         message += messagePart;
@@ -61,7 +60,8 @@ const processMessage = function(args, lastMessage) {
         }
     }
 
-    if(message.indexOf('\n') > 0) {
+    if(message.lastIndexOf('\n') > 0) {
+        message = message.slice(1);
         message = '[ul][li]' + message;
         message = message.replace(/\n/gm, '[/li][li]');
         message += '[/li][/ul]';

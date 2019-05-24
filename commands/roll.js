@@ -15,6 +15,10 @@ module.exports = args => {
             }
         });
     });
+    if(!rollMessages || !rollMessages.length ||
+        (rollMessages.length === 1 && rollMessages[0].message.trim() === '')) {
+        return args.message.reply('ERROR: No dice specified, please input something like:\n`!roll 1d6+2`');
+    }
     processRollMessages(args.message, rollMessages);
 };
 
@@ -36,6 +40,12 @@ const processRollMessages = function (message, rollMessages) {
                 }
                 if(rollResults.text) {
                     replyText += rollResults.text;
+                    if(i < rollMessages.length - 1) {
+                        replyText += ';';
+                    }
+                    else {
+                        replyText += '.';
+                    }
                     previousSuccess = rollResults.success;
                 }
                 else {
