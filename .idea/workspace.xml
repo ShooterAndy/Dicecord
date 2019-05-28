@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="Potentially fixed the missing permissions error (re-organized the code a bit)?">
+    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/commands/roll.js" afterPath="$PROJECT_DIR$/commands/roll.js" />
-      <change beforePath="$PROJECT_DIR$/version" afterPath="$PROJECT_DIR$/version" />
+      <change beforePath="$PROJECT_DIR$/help/!.txt" afterPath="$PROJECT_DIR$/help/!.txt" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -88,7 +87,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="version" pinned="false" current-in-tab="true">
+      <file leaf-file-name="version" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/version">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
@@ -98,11 +97,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="!.txt" pinned="false" current-in-tab="false">
+      <file leaf-file-name="!.txt" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/help/!.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="1" column="87" lean-forward="false" selection-start-line="1" selection-start-column="87" selection-end-line="1" selection-end-column="87" />
+            <state relative-caret-position="51">
+              <caret line="3" column="115" lean-forward="false" selection-start-line="3" selection-start-column="115" selection-end-line="3" selection-end-column="115" />
               <folding />
             </state>
           </provider>
@@ -194,10 +193,10 @@
         <option value="$PROJECT_DIR$/commands/bbcode.js" />
         <option value="$PROJECT_DIR$/commands/pick.js" />
         <option value="$PROJECT_DIR$/commands/draw.js" />
-        <option value="$PROJECT_DIR$/help/!.txt" />
         <option value="$PROJECT_DIR$/events/message.js" />
         <option value="$PROJECT_DIR$/commands/roll.js" />
         <option value="$PROJECT_DIR$/version" />
+        <option value="$PROJECT_DIR$/help/!.txt" />
       </list>
     </option>
   </component>
@@ -338,7 +337,7 @@
       <workItem from="1558715431148" duration="42000" />
       <workItem from="1558723340506" duration="515000" />
       <workItem from="1558939206396" duration="66000" />
-      <workItem from="1559056959023" duration="3900000" />
+      <workItem from="1559056959023" duration="4537000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -480,11 +479,18 @@
       <option name="project" value="LOCAL" />
       <updated>1558723780737</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Updated the version number to 1.1.5, fixed some issues with AoE rolls.">
+      <created>1559060879816</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1559060879816</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="82353000" />
+    <option name="totallyTimeSpent" value="82990000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -542,7 +548,8 @@
     <MESSAGE value="Updated the invite link (again)" />
     <MESSAGE value="Potentially fixed the missing permissions error?" />
     <MESSAGE value="Potentially fixed the missing permissions error (re-organized the code a bit)?" />
-    <option name="LAST_COMMIT_MESSAGE" value="Potentially fixed the missing permissions error (re-organized the code a bit)?" />
+    <MESSAGE value="Updated the version number to 1.1.5, fixed some issues with AoE rolls." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated the version number to 1.1.5, fixed some issues with AoE rolls." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -890,14 +897,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/help/!.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="1" column="87" lean-forward="false" selection-start-line="1" selection-start-column="87" selection-end-line="1" selection-end-column="87" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/events/message.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="372">
@@ -918,6 +917,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help/!.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="115" lean-forward="false" selection-start-line="3" selection-start-column="115" selection-end-line="3" selection-end-column="115" />
           <folding />
         </state>
       </provider>
