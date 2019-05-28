@@ -37,24 +37,30 @@ const processRollMessages = function (message, rollMessages) {
         for (let i = 0; i < rollMessages.length; i++) {
             const rollResults = processRoll(rollMessages[i].message);
             if(previousSuccess || !rollMessages[i].onSuccess) {
-                if(rollMessages[i].onSuccess) {
-                    replyText += ', ';
-                }
-                else {
-                    replyText += '\n';
-                }
                 if(rollResults.text) {
-                    replyText += rollResults.text;
-                    if(i < rollMessages.length - 1) {
-                        replyText += ';';
+                    if(i !== 0) {
+                        if(rollMessages[i].onSuccess) {
+                            replyText += ', ';
+                        }
+                        else {
+                            if(i < rollMessages.length - 1) {
+                                replyText += ';\n';
+                            }
+                        }
                     }
                     else {
+                        replyText += '\n';
+                    }
+                    replyText += rollResults.text;
+                    previousSuccess = rollResults.success;
+                    if(i === rollMessages.length - 1) {
                         replyText += '.';
                     }
-                    previousSuccess = rollResults.success;
                 }
                 else {
-                    replyText += 'ERROR: Roll part is invalid: "' + rollMessages[i].message + '"';
+                    if(rollMessages[i].message.trim() !== '') {
+                        replyText += 'ERROR: Roll part is invalid: "' + rollMessages[i].message + '"';
+                    }
                 }
             }
         }
@@ -232,12 +238,15 @@ const processRoll = function(roll) {
     for (let j = 0; j < rollInstances.length; j++) {
         rollParts = rollInstances[j];
         inputString = '';
+        let aoeDicePartsNum = 0;
+        let aoeRollResult = '';
         if (timesText && !isAoE) {
             intermediateResultString += '(';
             inputString = '(';
         }
 
         if (isAoE) {
+            endResult = 0;
             intermediateResultString += ' > Roll ' + (j + 1) + ': ';
         }
 
@@ -266,29 +275,38 @@ const processRoll = function(roll) {
                 }
             }
             else {
+                let text = '';
                 if ((i === 0) && (rollParts[i].isNegative)) {
                     inputString += '-';
-                    intermediateResultString += '-';
+                    text += '-';
                 }
 
                 if (i > 0) {
                     inputString += rollParts[i].isNegative ? ' - ' : ' + ';
                     if (dicePartsNum > 0) {
-                        intermediateResultString += rollParts[i].isNegative ? ' - ' : ' + ';
+                        text += rollParts[i].isNegative ? ' - ' : ' + ';
                     }
                 }
 
                 inputString += rollParts[i].text;
                 if(rollParts[i].type === 'fudgeDie') {
-                    intermediateResultString += rollParts[i].resultText;
+                    text += rollParts[i].resultText;
                 }
                 else if(rollParts[i].type === 'die') {
-                    intermediateResultString += rollParts[i].resultText;
+                    text += rollParts[i].resultText;
                 }
                 else {
-                    intermediateResultString += rollParts[i].text;
+                    text += rollParts[i].text;
                 }
+                aoeDicePartsNum++;
                 dicePartsNum++;
+
+                if(isAoE) {
+                    aoeRollResult += text;
+                }
+                else {
+                    intermediateResultString += text;
+                }
             }
 
             currentMultiplierSum += rollParts[i].isNegative ? (-1 * rollParts[i].value) : rollParts[i].value;
@@ -301,21 +319,34 @@ const processRoll = function(roll) {
 
         if (bonusesSum !== 0) {
             if(!isFudgeRoll) {
-                intermediateResultString += bonusesSum < 0 ? ' - ' : ' + ';
-                intermediateResultString += '_' + Math.abs(bonusesSum) + '_';
+                if(isAoE) {
+                    aoeRollResult += bonusesSum < 0 ? ' - ' : ' + ';
+                    aoeRollResult += '_' + Math.abs(bonusesSum) + '_';
+                }
+                else {
+                    intermediateResultString += bonusesSum < 0 ? ' - ' : ' + ';
+                    intermediateResultString += '_' + Math.abs(bonusesSum) + '_';
+                }
             }
             else {
-                intermediateResultString += ' + ' + translateNumberToFudgeRoll(bonusesSum);
+                if(isAoE) {
+                    aoeRollResult += ' + ' + translateNumberToFudgeRoll(bonusesSum);
+                }
+                else {
+                    intermediateResultString += ' + ' + translateNumberToFudgeRoll(bonusesSum);
+                }
             }
+            doWeNeedIntermediateResult = true;
+        }
+        else if(aoeDicePartsNum > 1) {
             doWeNeedIntermediateResult = true;
         }
 
         if (timesText) {
             if (isAoE) {
                 inputString += ' (AoE, ' + times + ' targets):\n';
-                intermediateResultString += ' ';
                 if(doWeNeedIntermediateResult) {
-                    intermediateResultString += '= ';
+                    intermediateResultString += aoeRollResult + ' = ';
                 }
                 if(!isFudgeRoll) {
                     intermediateResultString += '**' + currentMultiplierSum + '**';
@@ -336,7 +367,9 @@ const processRoll = function(roll) {
                         intermediateResultString += '_failure_';
                     }
                 }
-                intermediateResultString += '\n';
+                if(j < rollInstances.length - 1) {
+                    intermediateResultString += ';\n';
+                }
             }
             else {
                 intermediateResultString += ')';
