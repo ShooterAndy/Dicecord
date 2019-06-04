@@ -2,14 +2,9 @@ const fs = require('fs');
 
 module.exports = client => {
     console.log('-- > Logged in as ' + client.user.tag + '!');
-    fs.readFile('./version', 'utf8', function (err, data) {
-        if (err) {
-            console.error('-- > ERROR: couldn\'t open the version file: ' + err);
-        }
-        else {
-            client.user.setActivity('v' + data + ', type !help').catch(console.error);
-        }
-    });
+
+    const pjson = require('../package.json');
+    client.user.setActivity('v' + pjson.version + ', type !help').catch(console.error);
 
     /*const weirdChannel = client.channels.find('id', '265156361791209475');
     if(weirdChannel) {
