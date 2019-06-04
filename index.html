@@ -1,9 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Example Static Site</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Dicecord</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
+<style>
+    html {
+        background: #1e545a; /* For browsers that do not support gradients */
+        background: -webkit-linear-gradient(45deg, #020816, #61c6b3); /* For Safari 5.1 to 6.0 */
+        background: -o-linear-gradient(45deg, #020816, #61c6b3); /* For Opera 11.1 to 12.0 */
+        background: -moz-linear-gradient(45deg, #020816, #61c6b3); /* For Firefox 3.6 to 15 */
+        background: linear-gradient(45deg, #020816, #61c6b3); /* Standard syntax */
+        height: 100%;
+    }
+    .separator {
+        height: 2px;
+        width: 100%;
+        margin: 8px 0;
+        background: #123d5c; /* Old browsers */
+        background: -moz-linear-gradient(left,  #123d5c 0%, #1b5a86 33%, #7e1a61 34%, #8c02ad 50%, #ff887d 50%, #ff887d 50%, #ff887d 50%, #f14a68 66%, #3299b2 67%, #3dd0ff 100%); /* FF3.6-15 */
+        background: -webkit-linear-gradient(left,  #123d5c 0%,#1b5a86 33%,#7e1a61 34%,#8c02ad 50%,#ff887d 50%,#ff887d 50%,#ff887d 50%,#f14a68 66%,#3299b2 67%,#3dd0ff 100%); /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to right,  #123d5c 0%,#1b5a86 33%,#7e1a61 34%,#8c02ad 50%,#ff887d 50%,#ff887d 50%,#ff887d 50%,#f14a68 66%,#3299b2 67%,#3dd0ff 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#123d5c', endColorstr='#3dd0ff',GradientType=1 ); /* IE6-9 */
+    }
+    body {
+        color: #cdffff;
+        font-family: "Lucida Console", Arial, sans-serif;
+    }
+    a, a:visited {
+        color: #ff51aa;
+    }
+    a:hover, a:focus {
+        color: #ff843f;
+    }
+    a:active {
+        color: #ffe99a;
+    }
+    footer {
+        position: absolute;
+        width: 100%;
+        bottom: 8px;
+        left: 0;
+        right: 0;
+        color: #1f678e;
+        text-align: center;
+    }
+</style>
 <body>
-    <h1>Hello World!</h1>
+<div style="text-align: center">
+    <div style="width: 100%; height: 64px"></div>
+    <img src="http://orig06.deviantart.net/1347/f/2016/042/d/7/diceogram_o_by_shooter__andy-d9rbmbb.png" alt="Dice!">
+    <div class="separator"></div>
+    <h1>Dicecord</h1>
+    <p>
+        <b>Dicecord</b> is a <a href="https://discordapp.com">Discord</a> bot made for processing various
+        randomness-related commands, such as rolling dice, drawing cards, etc.
+    </p>
+    <div class="separator"></div>
+    <p>
+        You can see the full description of what this bot can do
+        <a href="https://github.com/ShooterAndy/Dicecord/blob/master/README.md">here</a>.
+    </p>
+    <p>
+        You can invite this bot and see some of its statistics
+        <a href="https://discordbots.org/bot/572698679618568193">here</a>.
+    </p>
+    <p>
+        You can join the Discord support server for this bot <a href="https://discord.gg/UPRHn2m">here</a>.
+    </p>
+    <p>
+        Encountered a bug or have a suggestion? Mention it <a href="https://github.com/ShooterAndy/Dicecord/issues">here</a>.
+    </p>
+</div>
+<footer>
+<span>Copyright &copy; 2019 Andrey Larionov</span>
+</footer>
 </body>
 </html>
