@@ -25,6 +25,7 @@ All the commands this bot responds to should be prefixed with the ```!``` symbol
 * ```!help``` &mdash; provides information about this bot. Add a command name to learn more about it, like 
 ```!help roll```.
 * [!roll (!r)](help/roll.txt) &mdash; rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
+* [!order (!o)](help/order.txt) — randomly re-orders a comma-separated list.
 * [!pick (!p)](help/pick.txt) &mdash; picks a random item from a comma-separated list.
 * [!shuffle (!s)](help/shuffle.txt) &mdash; shuffles a standard deck of 54 cards.
 * [!draw (!d)](help/draw.txt) &mdash; draws the requested amount of cards from the deck.

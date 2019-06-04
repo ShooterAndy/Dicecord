@@ -6,6 +6,7 @@ Encountered a bug or have a suggestion? Please create an issue here: https://git
 **List of commands:**
  > **!help** (!h) — provides information about this bot. Add a command name to learn more about it, like !help roll.
  > **!roll** (!r) — rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
+ > **!order** (!o) — randomly re-orders a comma-separated list.
  > **!pick** (!p) — picks a random item from a comma-separated list.
  > **!shuffle** (!sh) — shuffles a standard deck of 54 cards.
  > **!draw** (!dr) — draws the requested amount of cards from the deck.
