@@ -43,7 +43,7 @@ const processRollMessages = function (message, rollMessages) {
                             replyText += ', ';
                         }
                         else {
-                            if(i < rollMessages.length - 1) {
+                            if(i <= rollMessages.length - 1) {
                                 replyText += ';\n';
                             }
                         }
