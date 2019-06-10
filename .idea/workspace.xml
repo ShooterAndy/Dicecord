@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="Updated the .gitignore">
-      <change beforePath="" afterPath="$PROJECT_DIR$/commands/lasterror.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/lastError" />
+    <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="Added a &gt;X roll modifier (brutal die)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/commands/roll.js" afterPath="$PROJECT_DIR$/commands/roll.js" />
-      <change beforePath="$PROJECT_DIR$/events/error.js" afterPath="$PROJECT_DIR$/events/error.js" />
+      <change beforePath="$PROJECT_DIR$/help/roll.txt" afterPath="$PROJECT_DIR$/help/roll.txt" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -60,11 +58,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="error.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="error.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/events/error.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="51">
               <caret line="3" column="20" lean-forward="false" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="roll.txt" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/help/roll.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="153">
+              <caret line="9" column="91" lean-forward="false" selection-start-line="9" selection-start-column="91" selection-end-line="9" selection-end-column="91" />
               <folding />
             </state>
           </provider>
@@ -178,7 +186,6 @@
         <option value="$PROJECT_DIR$/commands/servers.js" />
         <option value="$PROJECT_DIR$/.env" />
         <option value="$PROJECT_DIR$/commands/disconnect.js" />
-        <option value="$PROJECT_DIR$/help/roll.txt" />
         <option value="$PROJECT_DIR$/commands/bbcode.js" />
         <option value="$PROJECT_DIR$/commands/pick.js" />
         <option value="$PROJECT_DIR$/commands/draw.js" />
@@ -198,6 +205,7 @@
         <option value="$PROJECT_DIR$/events/error.js" />
         <option value="$PROJECT_DIR$/commands/lastError.js" />
         <option value="$PROJECT_DIR$/commands/roll.js" />
+        <option value="$PROJECT_DIR$/help/roll.txt" />
       </list>
     </option>
   </component>
@@ -347,7 +355,7 @@
       <workItem from="1559629578874" duration="12004000" />
       <workItem from="1559716369274" duration="6000" />
       <workItem from="1560010638370" duration="465000" />
-      <workItem from="1560141562515" duration="6459000" />
+      <workItem from="1560141562515" duration="6597000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -573,16 +581,24 @@
       <option name="project" value="LOCAL" />
       <updated>1560148036185</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Added the !lastError command (admin-only)">
+      <created>1560148064782</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1560148064782</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="103797000" />
+    <option name="totallyTimeSpent" value="103935000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24973656" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24973656" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.5252898" order="7" side_tool="true" content_ui="tabs" />
@@ -613,7 +629,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Updated to 1.0.2, possibly improved error handling" />
     <MESSAGE value="Updated to 1.0.3, fixed a bug with intermediate roll results for rolls with multiple separate dice in them." />
     <MESSAGE value="Updated to 1.1.0, added conditional rolls, posterior comments (hehe), and optimized !bbcode" />
     <MESSAGE value="Updated to 1.1.1, improved error handling again?" />
@@ -638,7 +653,8 @@
     <MESSAGE value="Fixed the penultimate roll in a multiple rolls command not having a proper semicolon+linebreak after it." />
     <MESSAGE value="Updated the .gitignore" />
     <MESSAGE value="Removed some now pointless files." />
-    <option name="LAST_COMMIT_MESSAGE" value="Removed some now pointless files." />
+    <MESSAGE value="Added the !lastError command (admin-only)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added the !lastError command (admin-only)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -780,13 +796,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="187">
           <caret line="11" column="67" lean-forward="true" selection-start-line="11" selection-start-column="67" selection-end-line="11" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/help/roll.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="31" lean-forward="false" selection-start-line="14" selection-start-column="31" selection-end-line="14" selection-end-column="31" />
         </state>
       </provider>
     </entry>
@@ -1027,6 +1036,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
           <caret line="3" column="20" lean-forward="false" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help/roll.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="9" column="91" lean-forward="false" selection-start-line="9" selection-start-column="91" selection-end-line="9" selection-end-column="91" />
           <folding />
         </state>
       </provider>

@@ -443,11 +443,41 @@ const processRoll = function(roll) {
     return { text: result, success: success };
 };
 
+const getNumberAfterParameterAndCleanString = function(string, parameter) {
+    let numberString = '';
+    let index = string.indexOf(parameter);
+    if(index > 0) {
+        let i = index + parameter.length;
+        while (!isNaN(string[i])) {
+            numberString += string[i];
+            i++;
+        }
+        let cleanedString = string;
+        if (i - index > 0) {
+            cleanedString = string.slice(0, index) + string.slice(i);
+        }
+        return { number: parseInt(numberString), cleanedString: cleanedString };
+    }
+    else {
+        return null;
+    }
+};
+
 const processRollPart = function (rollPart, isNegative) {
     if (isNaN(rollPart)) {
+        // Test for rerolls
+        let brutalDie = null;
+        const res = getNumberAfterParameterAndCleanString(rollPart, '>');
+        if(res && res.number && !isNaN(res.number)) {
+            brutalDie = res.number;
+            rollPart = res.cleanedString;
+        }
+
+        let rollFunction = null;
+        let explodeOn = 10;
+
         // Test for roll'n'keep die
         if (rollPart.indexOf('k') > 0) {
-            let explodeOn = 10;
             const explodeOnSymbolIndex = rollPart.indexOf('e');
             if (explodeOnSymbolIndex > 0) {
                 const explodeOnString = rollPart.split('e')[1];
@@ -460,25 +490,65 @@ const processRollPart = function (rollPart, isNegative) {
             }
             const regexedDie = rollPart.match(/\d{0,2}([kK])\d{1,4}/);
             if (regexedDie && (regexedDie.length > 0)) {
-                return processRnKDie(rollPart, isNegative, explodeOn);
+                rollFunction = processRnKDie;
             }
         }
         // Test for normal die
         const regexedDie = rollPart.match(/\d{0,2}([dD])\d{1,4}/);
         if (regexedDie && (regexedDie.length > 0)) {
-            return processDie(rollPart, isNegative);
+            rollFunction = processDie;
         }
         // Test for fudge die
         if ((rollPart.toLowerCase().trim() === 'f') || (rollPart.toLowerCase().trim() === '4df') ||
             (rollPart.toLowerCase().trim() === 'fudge')) {
-            return processFudgeDie(rollPart, isNegative);
+            rollFunction = processFudgeDie;
         }
 
-        // Else, return error
-        return {
-            type: 'error',
-            text: rollPart
-        };
+        if(!rollFunction) {
+            return {
+                type: 'error',
+                text: rollPart
+            };
+        }
+
+        let rollFinalResult = null;
+
+        if(brutalDie !== null) {
+            let rollResult = rollFunction(rollPart, isNegative, explodeOn);
+            if(rollResult.maxResult < brutalDie) {
+                return {
+                    type: 'error',
+                    text: rollPart + ' has higher requested re-roll than possible'
+                };
+            }
+            else {
+                let counter = 0;
+                rollFinalResult = JSON.parse(JSON.stringify(rollResult));
+                rollFinalResult.resultText = '';
+                while (rollResult.value < brutalDie && counter < 100) {
+                    rollFinalResult.resultText += '~~' + rollResult.resultText + '~~, ';
+                    rollResult = rollFunction(rollPart, isNegative, explodeOn);
+                    counter++;
+                }
+                if(counter === 100) {
+                    rollFinalResult = {
+                        type: 'error',
+                        text: rollPart + ' produced more than 100 re-rolls'
+                    };
+                }
+                else {
+                    rollFinalResult.value = rollResult.value;
+                    rollFinalResult.resultText += rollResult.resultText;
+                    rollFinalResult.doWeNeedIntermediateResult = rollFinalResult.doWeNeedIntermediateResult ||
+                        (counter >= 1);
+                }
+            }
+        }
+        else {
+            rollFinalResult = rollFunction(rollPart, isNegative, explodeOn);
+        }
+
+        return rollFinalResult;
     }
     else {
         return {
@@ -534,7 +604,8 @@ const processDie = function (die, isNegative) {
         text: text,
         resultText: resultText,
         value: totalResult,
-        doWeNeedIntermediateResult: doWeNeedIntermediateResult
+        doWeNeedIntermediateResult: doWeNeedIntermediateResult,
+        maxResult: diceNum * dieSidesNum
     };
 };
 
@@ -610,7 +681,8 @@ const processRnKDie = function (die, isNegative, explodeOn) {
         text: text,
         resultText: resultText,
         value: totalResult,
-        doWeNeedIntermediateResult: true
+        doWeNeedIntermediateResult: true,
+        maxResult: diceNum * 10
     };
 };
 
@@ -631,7 +703,8 @@ const processFudgeDie = function (die, isNegative) {
         text: text,
         resultText: resultText,
         value: totalResult,
-        doWeNeedIntermediateResult: true
+        doWeNeedIntermediateResult: true,
+        maxResult: 4
     };
 };
 
