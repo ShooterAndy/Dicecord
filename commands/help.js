@@ -5,7 +5,7 @@ module.exports = args => {
     if(args.commandText.trim().length > 0) {
         helpFileName = args.commandText.trim();
     }
-    helpFileName += '.txt';
+    helpFileName += '.md';
 
     fs.readFile('./help/' + helpFileName, 'utf8', function (err, data) {
         if (err) {
