@@ -1,7 +1,7 @@
 const formatMessage = require('../helpers/formatMessage');
 
 module.exports = args => {
-    args.formatting = 'bbcode';
+    args.formatting = 'markdown';
     formatMessage(args);
 };
 
