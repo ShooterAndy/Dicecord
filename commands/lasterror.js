@@ -16,7 +16,7 @@ module.exports = (args) => {
                 }
                 else {
                     if(data.length) {
-                        return message.reply(data).catch(console.error);
+                        return message.reply('\n' + data).catch(console.error);
                     }
                     else {
                         return message.reply('lastError file is empty.').catch(console.error);
