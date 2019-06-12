@@ -1,6 +1,13 @@
 const random = require('random');
 const _ = require('underscore');
 
+const maxRolls = 10;
+const maxMultipleRolls = 25;
+const maxMultiplyRolls = 5;
+const maxDiceNum = 100;
+const maxDieSides = 1000;
+const maxRerolls = 100;
+
 module.exports = args => {
     const separatedRollMessages = args.commandText.split(';');
     let rollMessages = [];
@@ -20,9 +27,9 @@ module.exports = args => {
         return args.message.reply('ERROR: No dice specified, please input something like:\n`!roll 1d6+2`, or check ' +
             'out `!help roll` for more info.');
     }
-    if(rollMessages.length > 100) {
-        return args.message.reply('ERROR: No more than 100 rolls are allowed per one command, please put them into ' +
-            'several separate commands.');
+    if(rollMessages.length > maxRolls) {
+        return args.message.reply('ERROR: No more than ' + maxRolls +
+            ' rolls are allowed per one command, please put them into several separate commands.');
     }
     processRollMessages(args.message, rollMessages);
 };
@@ -37,9 +44,9 @@ const processRollMessages = function (message, rollMessages) {
         for (let i = 0; i < rollMessages.length; i++) {
             const rollResults = processRoll(rollMessages[i].message);
             if(previousSuccess || !rollMessages[i].onSuccess) {
-                if(rollResults.text) {
+                if(rollResults && rollResults.text) {
                     if(i !== 0) {
-                        if(rollMessages[i].onSuccess) {
+                        if(rollMessages[i].onSuccess && rollMessages[i].isAoE) {
                             replyText += ', ';
                         }
                         else {
@@ -63,6 +70,14 @@ const processRollMessages = function (message, rollMessages) {
                     }
                 }
             }
+            else {
+                if(i === rollMessages.length - 1) {
+                    replyText += '.';
+                }
+                else {
+                    replyText += ';\n';
+                }
+            }
         }
     }
 
@@ -73,11 +88,30 @@ const processRollMessages = function (message, rollMessages) {
     return message.reply(replyText).catch(console.error);
 };
 
+const getNumberAfterParameterAndCleanString = function(string, parameter) {
+    let numberString = '';
+    let index = string.indexOf(parameter);
+    let stringAfterParameter = '';
+    if(index > 0) {
+        stringAfterParameter = string.slice(index + parameter.length).trim();
+        let i = 0;
+        while (!isNaN(stringAfterParameter[i])) {
+            numberString += stringAfterParameter[i];
+            i++;
+        }
+        let cleanedString = string;
+        if (i > 0) {
+            cleanedString = string.slice(0, index).trim() + stringAfterParameter.slice(i).trim();
+        }
+        return { number: parseInt(numberString), cleanedString: cleanedString };
+    }
+    else {
+        return null;
+    }
+};
 
 const processRoll = function(roll) {
-    let doWeNeedIntermediateResult = false;
-    let result = '';
-
+    // First of all, let's get a comment for the roll, if it exists
     let comment = '';
     let prependComment = true;
     let indexOfCommentSymbol = roll.indexOf('?');
@@ -95,8 +129,10 @@ const processRoll = function(roll) {
     // making it lowercase and removing any and all whitespace symbols
     roll = roll.toLowerCase();
     roll = roll.replace(/\s/g, '');
+    roll = roll.replace(/[{}]/g, '');
 
-    let success = true;
+    // Now let's check for a versus part (it can have multiple comma-separated values)
+    let success = true; // we assume success just in case
     let vsValues = [];
     roll = roll.replace(/\u043c\u044b/gi, 'vs');
     let indexOfVsSymbol = roll.indexOf('vs');
@@ -123,344 +159,404 @@ const processRoll = function(roll) {
             return 'ERROR: "versus" part is empty';
         }
     }
-
-    roll = roll.replace(/([\u0414\u0434\u0412\u0432])/g, 'd');
-    roll = roll.replace(/([\u0424\u0444\u0410\u0430])/g, 'f');
-    roll = roll.replace(/AOE|\u0430\u043E\u0435|\u0424\u0429\u0423/gi, 'aoe');
-    roll = roll.replace(/([\u041a\u043a\u041b\u043b])/g, 'k');
-
-    let times = 1;
-    let timesText = '';
-    let isAoE = false;
-    let indexOfMultipleRollsSymbol = roll.indexOf('aoe');
-    if (indexOfMultipleRollsSymbol > 0) {
-        isAoE = true;
-        timesText = roll.slice(indexOfMultipleRollsSymbol + 3);
-        roll = roll.slice(0, indexOfMultipleRollsSymbol);
-        if (isNaN(timesText)) {
-            return 'ERROR: AoE roll multiplier is not a number: ' + timesText;
-        }
-        times = parseInt(timesText);
-        if ((times < 1) || (times > 20)) {
-            return 'ERROR: wrong AoE roll multiplier (it should be between 1 and 20): ' + times;
-        }
-    }
-    else {
-        indexOfMultipleRollsSymbol = roll.indexOf('*');
-        if (indexOfMultipleRollsSymbol > 0) {
-            timesText = roll.slice(indexOfMultipleRollsSymbol + 1);
-            roll = roll.slice(0, indexOfMultipleRollsSymbol);
-            if (isNaN(timesText)) {
-                return 'ERROR: roll multiplier is not a number: ' + timesText;
-            }
-            times = parseInt(timesText);
-            if ((times < 1) || (times > 20)) {
-                return 'ERROR: wrong roll multiplier (it should be between 1 and 20): ' + times;
-            }
-        }
+    if(vsValues.length) {
+        success = false; // now the success actually needs to be earned
     }
 
-    if (!roll) {
-        return '';
+    // Now let's see if we're dealing with an "AoE" roll (rolls the same thing multiple times, but doesn't add the
+    // results)
+    let aoeNumber = 0;
+    let res = getNumberAfterParameterAndCleanString(roll, 'aoe');
+    if(res && res.number && !isNaN(res.number)) {
+        aoeNumber = res.number;
+        roll = res.cleanedString;
+    }
+    else { // Let's check for a synonym
+        res = getNumberAfterParameterAndCleanString(roll, 'x');
+        if(res && res.number && !isNaN(res.number)) {
+            aoeNumber = res.number;
+            roll = res.cleanedString;
+        }
+    }
+    if(aoeNumber > maxMultipleRolls) {
+        return 'ERROR: the number of rolls specified (' + aoeNumber + ') is too high, no more than ' +
+            maxMultipleRolls + ' are allowed.';
     }
 
-    let rollInstances = [];
-    let rollParts = [];
-    let currentPart = '';
-    let isNegative = false;
-    let processedPart;
-    let isFudgeRoll = false;
+    // Now let's see if we're dealing with a roll  that rolls the same thing multiple times and sums the results up
+    let multiplyNumber = 0;
+    res = getNumberAfterParameterAndCleanString(roll, '*');
+    if(res && res.number && !isNaN(res.number)) {
+        multiplyNumber = res.number;
+        roll = res.cleanedString;
+    }
+    if(multiplyNumber > maxMultiplyRolls) {
+        return 'ERROR: the multiplication specified (' + multiplyNumber + ') is too high, no more than ' +
+            maxMultiplyRolls + ' are allowed.';
+    }
 
-    let characters = roll.split('');
+    // Let's check for parentheses
+    let parenthesisParts = {};
+    let currentPath = [];
+    let transformedText = '';
 
-    const finishPart = function() {
-        if (currentPart) {
-            processedPart = processRollPart(currentPart, isNegative);
-            if(processedPart.type === 'error') {
-                return { text: 'ERROR: a roll part is invalid: ' + processedPart.text, success: success };
-            }
-            isFudgeRoll = processedPart.type === 'fudgeDie' ? true : isFudgeRoll;
-            doWeNeedIntermediateResult = processedPart.doWeNeedIntermediateResult ? true : doWeNeedIntermediateResult;
-            rollParts.push(processedPart);
-            currentPart = '';
+    const getPartFromPath = function(path) {
+        if(!path || !path.length) {
+            return null;
         }
+        let part = parenthesisParts[path[0]];
+        if(path.length > 1) {
+            for (let i = 1; i < path.length; i++) {
+                part = part.children[path[i]];
+            }
+        }
+        return part;
     };
 
-    _.each(characters, function (char) {
-        if (char === '+') {
-            let error = finishPart();
-            if(error) {
-                return error;
+    for(let i = 0; i < roll.length; i++) {
+        if(roll[i] === '(') {
+            let currentPart = getPartFromPath(currentPath);
+            let newChildPart = { text: '', children: {} };
+            if(!currentPart) {
+                if(_.keys(parenthesisParts).length > 5) {
+                    return 'ERROR: too many parenthesis parts';
+                }
+                let newName = 'pp' + _.keys(parenthesisParts).length;
+                parenthesisParts[newName] = newChildPart;
+                currentPath.push(newName);
             }
-            isNegative = false;
+            else {
+                if(_.keys(currentPart.children).length > 5) {
+                    return 'ERROR: too many parenthesis parts';
+                }
+                let newName = currentPath[currentPath.length - 1] + '_' + _.keys(currentPart.children).length;
+                currentPart.children[newName] = newChildPart;
+                currentPath.push(newName);
+            }
+            if(currentPath.length > 5) {
+                return 'ERROR: too many parenthesis levels';
+            }
         }
-        else if (char === '-') {
-            let error = finishPart();
-            if(error) {
-                return error;
+        else if(roll[i] === ')') {
+            if(currentPath.length > 0) {
+                let currentPartName = currentPath[currentPath.length - 1];
+                currentPath.pop();
+                if(currentPath.length) {
+                    getPartFromPath(currentPath).text += '{' + currentPartName + '}';
+                }
+                else {
+                    transformedText += '{' + currentPartName + '}';
+                }
             }
-            isNegative = true;
+            else {
+                return 'ERROR: found a closing parenthesis without a previous opening one.'
+            }
         }
         else {
-            currentPart += char;
-        }
-    });
-
-    let error = finishPart();
-    if(error) {
-        return error;
-    }
-
-    rollInstances.push(rollParts);
-    for (let j = 1; j < times; j++) {
-        let newRollParts = [];
-        for (let i = 0; i < rollParts.length; i++) {
-            processedPart = processRollPart(rollParts[i].text, rollParts[i].isNegative);
-            if(processedPart.type === 'error') {
-                return { text: 'ERROR: a roll part is invalid: ' + processedPart.text, success: success };
-            }
-            newRollParts.push(processedPart);
-        }
-        rollInstances.push(newRollParts);
-    }
-
-    if (comment && prependComment) {
-        result = '`' + comment + ':` ';
-    }
-
-    let intermediateResultString = '';
-    let secondIntermediateResultString = '';
-    let endResult = 0;
-    let dicePartsNum = 0;
-    let inputString = '';
-
-
-    for (let j = 0; j < rollInstances.length; j++) {
-        rollParts = rollInstances[j];
-        inputString = '';
-        let aoeDicePartsNum = 0;
-        let aoeRollResult = '';
-        if (timesText && !isAoE) {
-            intermediateResultString += '(';
-            inputString = '(';
-        }
-
-        if (isAoE) {
-            endResult = 0;
-            intermediateResultString += ' > Roll ' + (j + 1) + ': ';
-        }
-
-        let bonusesSum = 0;
-        let currentMultiplierSum = 0;
-
-        for (let i = 0; i < rollParts.length; i++) {
-            if (rollParts[i].type === 'bonus') {
-                bonusesSum += rollParts[i].isNegative ? (-1 * rollParts[i].value) : rollParts[i].value;
-                if ((i === 0) && (rollParts[i].isNegative)) {
-                    inputString += '-';
-                }
-
-                if(!isFudgeRoll) {
-                    if (i > 0) {
-                        inputString += rollParts[i].isNegative ? ' - ' : ' + ';
-                    }
-                    inputString += rollParts[i].text;
-                }
-                else {
-                    if (i > 0) {
-                        inputString += ' + ';
-                    }
-                    let fudgeValue = rollParts[i].isNegative ? rollParts[i].value * -1 : rollParts[i].value;
-                    inputString += translateNumberToFudgeRoll(fudgeValue);
-                }
+            if(currentPath.length) {
+                getPartFromPath(currentPath).text += roll[i];
             }
             else {
-                let text = '';
-                if ((i === 0) && (rollParts[i].isNegative)) {
-                    inputString += '-';
-                    text += '-';
-                }
+                transformedText += roll[i];
+            }
+        }
+    }
 
-                if (i > 0) {
-                    inputString += rollParts[i].isNegative ? ' - ' : ' + ';
-                    if (dicePartsNum > 0) {
-                        text += rollParts[i].isNegative ? ' - ' : ' + ';
-                    }
+    const getParenthesisPartByName = function(name) {
+        const cycleThroughParenthesisParts = function(currentParts) {
+            let part = null;
+            _.every(_.keys(currentParts), (parenthesisPartName) => {
+                if(parenthesisPartName === name) {
+                    part = currentParts[parenthesisPartName];
+                    return false;
                 }
+                part = cycleThroughParenthesisParts(currentParts[parenthesisPartName].children);
+                return true;
+            });
+            return part;
+        };
+        return cycleThroughParenthesisParts(parenthesisParts);
+    };
 
-                inputString += rollParts[i].text;
-                if(rollParts[i].type === 'fudgeDie') {
-                    text += rollParts[i].resultText;
-                }
-                else if(rollParts[i].type === 'die') {
-                    text += rollParts[i].resultText;
-                }
-                else {
-                    text += rollParts[i].text;
-                }
-                aoeDicePartsNum++;
-                dicePartsNum++;
+    let results = [];
+    let nextPartIsNegative = false;
 
-                if(isAoE) {
-                    aoeRollResult += text;
-                }
-                else {
-                    intermediateResultString += text;
+    const processParenthesisPartText = function (parenthesisPartText) {
+        // First, let's process the mathematical signs and merge the redundant ones
+        let currentSign = null;
+        let fixedParenthesisPartText = '';
+        _.each(parenthesisPartText.split(/(\+|-)/g), (splitPart, i) => {
+            if(splitPart === '+') {
+                if(!currentSign) {
+                    currentSign = '+';
                 }
             }
-
-            currentMultiplierSum += rollParts[i].isNegative ? (-1 * rollParts[i].value) : rollParts[i].value;
-        }
-        endResult += currentMultiplierSum;
-
-        /*if(bonusesSum !== 0 || dicePartsNum > 1 || doWeNeedIntermediateResult) {
-            intermediateResultString += diceRollText;
-        }*/
-
-        if (bonusesSum !== 0) {
-            if(!isFudgeRoll) {
-                if(isAoE) {
-                    aoeRollResult += bonusesSum < 0 ? ' - ' : ' + ';
-                    aoeRollResult += '_' + Math.abs(bonusesSum) + '_';
-                }
-                else {
-                    intermediateResultString += bonusesSum < 0 ? ' - ' : ' + ';
-                    intermediateResultString += '_' + Math.abs(bonusesSum) + '_';
-                }
+            else if(splitPart === '-') {
+                currentSign = '-';
             }
-            else {
-                if(isAoE) {
-                    aoeRollResult += ' + ' + translateNumberToFudgeRoll(bonusesSum);
-                }
-                else {
-                    intermediateResultString += ' + ' + translateNumberToFudgeRoll(bonusesSum);
-                }
-            }
-            doWeNeedIntermediateResult = true;
-        }
-        else if(aoeDicePartsNum > 1) {
-            doWeNeedIntermediateResult = true;
-        }
-
-        if (timesText) {
-            if (isAoE) {
-                inputString += ' (AoE, ' + times + ' targets):\n';
-                if(doWeNeedIntermediateResult) {
-                    intermediateResultString += aoeRollResult + ' = ';
-                }
-                if(!isFudgeRoll) {
-                    intermediateResultString += '**' + currentMultiplierSum + '**';
-                }
-                else {
-                    intermediateResultString += translateNumberToFudgeRoll(currentMultiplierSum);
-                    if (currentMultiplierSum !== 0) {
-                        intermediateResultString += ' (' + ((currentMultiplierSum > 0) ? '+' : '-') +
-                            Math.abs(currentMultiplierSum) + ')';
-                    }
-                }
-                if(vsValues[j] !== undefined) {
-                    intermediateResultString += ' vs ' + vsValues[j] + ', ';
-                    if(endResult >= vsValues[j]) {
-                        intermediateResultString += '**success**';
+            else if(splitPart !== '') {
+                if(i === 1) {
+                    if(currentSign === '-') {
+                        fixedParenthesisPartText = '-' + splitPart;
                     }
                     else {
-                        intermediateResultString += '_failure_';
+                        fixedParenthesisPartText = splitPart;
                     }
-                }
-                if(j < rollInstances.length - 1) {
-                    intermediateResultString += ';\n';
-                }
-            }
-            else {
-                intermediateResultString += ')';
-                if(!isFudgeRoll) {
-                    secondIntermediateResultString += currentMultiplierSum;
                 }
                 else {
-                    secondIntermediateResultString += translateNumberToFudgeRoll(currentMultiplierSum);
-                    if (currentMultiplierSum !== 0) {
-                        secondIntermediateResultString += ' (' + ((currentMultiplierSum > 0) ? '+' : '-') +
-                            Math.abs(currentMultiplierSum) + ')';
+                    if(currentSign) {
+                        fixedParenthesisPartText += currentSign + splitPart;
+                    }
+                    else {
+                        fixedParenthesisPartText = splitPart;
                     }
                 }
-                inputString += ') x' + times;
+                currentSign = null;
+            }
+        });
 
-                if (j < rollInstances.length - 1) {
-                    secondIntermediateResultString += ' + ';
-                    intermediateResultString += ' + ';
+        // Second, we look for other parenthesis parts that are marked as {NAME}
+        let currentParenthesisPartName = '';
+        let partType = null;
+        let formattedText = '';
+        let currentPartText = '';
+        let error = '';
+
+        const getPartResultsIfNeeded = function() {
+            let rollPartResult = null;
+            if(partType === null && currentPartText !== '') { // not a special type
+                rollPartResult = processRollPart(currentPartText);
+                currentPartText = '';
+            }
+            if(rollPartResult) {
+                if(nextPartIsNegative) {
+                    rollPartResult.isNegative = true;
+                }
+                results.push(rollPartResult);
+            }
+        };
+
+        _.every(fixedParenthesisPartText, (symbol, i) => {
+            if(symbol === '{') {
+                getPartResultsIfNeeded();
+                partType = 'parenthesisPart';
+            }
+            else if(symbol === '}') {
+                nextPartIsNegative = false;
+                getPartResultsIfNeeded();
+                if(!getParenthesisPartByName(currentParenthesisPartName)) {
+                    console.error('ERROR:' + currentParenthesisPartName);
+                }
+                formattedText += '(' +
+                    processParenthesisPartText(getParenthesisPartByName(currentParenthesisPartName).text) + ')';
+                partType = null;
+                currentParenthesisPartName = '';
+            }
+            else if(symbol === '+') {
+                getPartResultsIfNeeded();
+                formattedText += ' + ';
+            }
+            else if(symbol === '-') {
+                nextPartIsNegative = !nextPartIsNegative;
+                getPartResultsIfNeeded();
+                if(i === 0) {
+                    formattedText += '-';
+                }
+                else {
+                    formattedText += ' - ';
                 }
             }
-        }
-        if (!isAoE) {
-            inputString += '  =  ';
-        }
-    }
+            else {
+                if(partType === 'parenthesisPart') {
+                    currentParenthesisPartName += symbol;
+                }
+                else {
+                    formattedText += symbol;
+                    currentPartText += symbol;
+                    partType = null;
+                }
+            }
+            return true;
+        });
 
-    if (dicePartsNum > 1) {
-        doWeNeedIntermediateResult = true;
-    }
+        // Last check for any remaining symbols
+        getPartResultsIfNeeded();
 
-    if (secondIntermediateResultString) {
-        intermediateResultString += ' = ' + secondIntermediateResultString;
-    }
+        return error || formattedText;
+    };
 
-    if ((doWeNeedIntermediateResult) && (dicePartsNum >= 1)) {
-        if (!isAoE) {
-            intermediateResultString += '  =  ';
-        }
-        result += inputString + intermediateResultString;
-    }
-    else {
-        result += inputString;
-    }
+    const processParenthesisParts = function (aoeRollNumber) {
+        let text =  processParenthesisPartText(transformedText);
 
-    if (!isAoE) {
-        if(!isFudgeRoll) {
-            result += '**' + endResult + '**';
-        }
-        else {
-            result += translateNumberToFudgeRoll(endResult);
-            if (endResult !== 0) {
-                result += ' (' + ((endResult > 0) ? '+' : '-') + Math.abs(endResult) + ')';
+        if(multiplyNumber > 1) {
+            text = '(' + text + ') * ' + multiplyNumber;
+
+            const originalResults = JSON.parse(JSON.stringify(results));
+            for(let i = 0; i < multiplyNumber - 1; i++) {
+                _.each(originalResults, (result) => {
+                    results.push(processRollPart(result.text));
+                });
             }
         }
-        if(vsValues[0] !== undefined) {
-            result += ' vs ' + vsValues[0] + ', ';
-            if(endResult >= vsValues[0]) {
-                result += '**success**';
+
+        // First, let's combine bonuses
+        let bonusResultsNum = 0;
+        let bonusesTotal = 0;
+        _.each(results, (result) => {
+            if(result.type === 'bonus') {
+                bonusResultsNum++;
+                if(result.isNegative) {
+                    bonusesTotal -= result.value;
+                }
+                else {
+                    bonusesTotal += result.value;
+                }
+            }
+        });
+
+        let middleText = '';
+        let finalResult = 0;
+        let nonBonusResultsNum = 0;
+        _.each(results, (result, i) => {
+            if(result.type !== 'bonus') { // we've already combined the bonuses, let's exclude them
+                nonBonusResultsNum++;
+                if (result.isNegative) {
+                    if (i === 0) {
+                        middleText += '-';
+                    }
+                    else {
+                        middleText += ' - ';
+                    }
+                    finalResult -= result.value;
+                }
+                else {
+                    if (i !== 0) {
+                        middleText += ' + ';
+                    }
+                    finalResult += result.value;
+                }
+                if(result.value === result.maxResult) {
+                    middleText += '**' + result.resultText + '**';
+                }
+                else {
+                    middleText += result.resultText;
+                }
+            }
+        });
+
+        if(bonusesTotal !== 0) {
+            if(nonBonusResultsNum === 0) {
+                if(bonusResultsNum > 1) {
+                    middleText = (bonusesTotal < 0 ? '-' : '') + '_' + Math.abs(bonusesTotal) + '_';
+                }
             }
             else {
-                result += '_failure_';
-                success = false;
+                middleText += (bonusesTotal < 0 ? ' - ' : ' + ') + '_' + Math.abs(bonusesTotal) + '_';
+            }
+            finalResult += bonusesTotal;
+        }
+
+        let finalText = '';
+
+        if(aoeNumber) {
+            if (aoeRollNumber === 0) {
+                if(comment) {
+                    finalText += '`' + comment + ':` ';
+                }
+                finalText += text + ' (' + aoeNumber + ' rolls):\n';
             }
         }
-    }
 
-    if (comment && !prependComment) {
-        result += ' `' + comment + '`';
-    }
+        const addVsValueResult = function() {
+            if(vsValues.length) {
+                let vsValue = null;
+                if(aoeNumber > 0) {
+                    if(vsValues[aoeRollNumber]) {
+                        vsValue = vsValues[aoeRollNumber];
+                    }
+                    else if (vsValues.length === 1) { // Assume it's the same for all rolls
+                        vsValue = vsValues[0];
+                    }
+                }
+                else {
+                    vsValue = vsValues[0];
+                }
+                if(vsValue !== null) {
+                    finalText += ' vs ' + vsValue + ', ' + (finalResult >= vsValue ? '**success**' : '_failure_');
+                    success = success || (finalResult >= vsValue);
+                }
+            }
+        };
 
-    return { text: result, success: success };
-};
-
-const getNumberAfterParameterAndCleanString = function(string, parameter) {
-    let numberString = '';
-    let index = string.indexOf(parameter);
-    if(index > 0) {
-        let i = index + parameter.length;
-        while (!isNaN(string[i])) {
-            numberString += string[i];
-            i++;
+        if(nonBonusResultsNum === 0) {
+            if(aoeNumber) {
+                finalText += ' * Roll ' + (aoeRollNumber + 1) + ': ';
+                finalText += '**' + finalResult + '**';
+                addVsValueResult();
+                if(aoeRollNumber < aoeNumber - 1) {
+                    finalText += ';\n';
+                }
+            }
+            else {
+                if(bonusResultsNum > 1) {
+                    finalText += text + '  =  **' + finalResult + '**';
+                }
+                else {
+                    finalText += '**' + finalResult + '**';
+                }
+                addVsValueResult();
+            }
         }
-        let cleanedString = string;
-        if (i - index > 0) {
-            cleanedString = string.slice(0, index) + string.slice(i);
+        else {
+            if(aoeNumber) {
+                finalText += ' * Roll ' + (aoeRollNumber + 1) + ': ';
+                if (nonBonusResultsNum > 1 || bonusesTotal !== 0) {
+                    finalText += middleText + '  =  **' + finalResult + '**';
+                }
+                else {
+                    finalText += '**' + finalResult + '**';
+                }
+                addVsValueResult();
+                if(aoeRollNumber < aoeNumber - 1) {
+                    finalText += ';\n';
+                }
+            }
+            else {
+                if (nonBonusResultsNum > 1 || bonusesTotal !== 0) {
+                    finalText += text + '  =  ' + middleText + '  =  **' + finalResult + '**';
+                }
+                else {
+                    finalText += text + '  =  **' + finalResult + '**';
+                }
+                addVsValueResult();
+            }
         }
-        return { number: parseInt(numberString), cleanedString: cleanedString };
+
+        if(comment && !aoeNumber) {
+            if(prependComment) {
+                finalText = '`' + comment + ':` ' + finalText;
+            }
+            else {
+                finalText = finalText + ' `' + comment + '`';
+            }
+        }
+
+        return finalText;
+    };
+
+    let finalTextForAllRolls = '';
+    if(aoeNumber) {
+        for (let i = 0; i < aoeNumber; i++) {
+            results = [];
+            nextPartIsNegative = false;
+            finalTextForAllRolls += processParenthesisParts(i);
+        }
     }
     else {
-        return null;
+        finalTextForAllRolls = processParenthesisParts();
     }
+
+    return { text: finalTextForAllRolls, success: success, isAoE: (aoeNumber > 0) };
 };
 
 const processRollPart = function (rollPart, isNegative) {
@@ -525,15 +621,15 @@ const processRollPart = function (rollPart, isNegative) {
                 let counter = 0;
                 rollFinalResult = JSON.parse(JSON.stringify(rollResult));
                 rollFinalResult.resultText = '';
-                while (rollResult.value < brutalDie && counter < 100) {
+                while (rollResult.value < brutalDie && counter < maxRerolls) {
                     rollFinalResult.resultText += '~~' + rollResult.resultText + '~~, ';
                     rollResult = rollFunction(rollPart, isNegative, explodeOn);
                     counter++;
                 }
-                if(counter === 100) {
+                if(counter === maxRerolls) {
                     rollFinalResult = {
                         type: 'error',
-                        text: rollPart + ' produced more than 100 re-rolls'
+                        text: rollPart + ' produced more than ' + maxRerolls + ' re-rolls'
                     };
                 }
                 else {
@@ -570,16 +666,16 @@ const processDie = function (die, isNegative) {
     let resultText = '';
     let totalResult = 0;
 
-    if(diceNum > 100) {
+    if(diceNum > maxDiceNum) {
         return {
             type: 'error',
-            text: 'No more than 100 dice allowed per one roll, you requested "' + text + '"'
+            text: 'No more than ' + maxDiceNum + ' dice allowed per one roll, you requested "' + text + '"'
         };
     }
-    if(dieSidesNum > 1000) {
+    if(dieSidesNum > maxDieSides) {
         return {
             type: 'error',
-            text: 'No more than 1000-sided dice allowed, you requested "' + text + '"'
+            text: 'No more than ' + maxDieSides + '-sided dice allowed, you requested "' + text + '"'
         };
     }
     if (diceNum > 1) {
@@ -614,10 +710,10 @@ const processRnKDie = function (die, isNegative, explodeOn) {
     const diceNum = die[0] === '' ? 1 : parseInt(die[0]);
     const diceKeepNum = parseInt(die[1]);
     const text = diceNum + 'k' + diceKeepNum;
-    if(diceNum > 100) {
+    if(diceNum > maxDiceNum) {
         return {
             type: 'error',
-            text: 'No more than 100 dice allowed per one roll, you requested "' + text + '"'
+            text: 'No more than ' + maxDiceNum + ' dice allowed per one roll, you requested "' + text + '"'
         };
     }
     if(diceNum < diceKeepNum) {

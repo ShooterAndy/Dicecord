@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/commands/markdown.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/commands/md.js" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/helpers/formatMessage.js" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/commands/bbcode.js" afterPath="$PROJECT_DIR$/commands/bbcode.js" />
-      <change beforePath="$PROJECT_DIR$/commands/lasterror.js" afterPath="$PROJECT_DIR$/commands/lasterror.js" />
       <change beforePath="$PROJECT_DIR$/commands/roll.js" afterPath="$PROJECT_DIR$/commands/roll.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -22,14 +17,12 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="roll.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="roll.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/commands/roll.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="401">
-              <caret line="511" column="32" lean-forward="false" selection-start-line="511" selection-start-column="32" selection-end-line="511" selection-end-column="32" />
-              <folding>
-                <element signature="e#19687#32419#0" expanded="false" />
-              </folding>
+            <state relative-caret-position="146">
+              <caret line="559" column="2" lean-forward="false" selection-start-line="559" selection-start-column="2" selection-end-line="559" selection-end-column="2" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -117,7 +110,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="lastError" pinned="false" current-in-tab="true">
+      <file leaf-file-name="lastError" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lastError">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
@@ -217,13 +210,13 @@
         <option value="$PROJECT_DIR$/help/roll.txt" />
         <option value="$PROJECT_DIR$/commands/help.js" />
         <option value="$PROJECT_DIR$/help/roll.md" />
-        <option value="$PROJECT_DIR$/commands/roll.js" />
         <option value="$PROJECT_DIR$/commands/md.js" />
         <option value="$PROJECT_DIR$/commands/bbcode.js" />
         <option value="$PROJECT_DIR$/commands/markdown.js" />
         <option value="$PROJECT_DIR$/commands/lasterror.js" />
         <option value="$PROJECT_DIR$/helpers/formatMessage.js" />
         <option value="$PROJECT_DIR$/lastError" />
+        <option value="$PROJECT_DIR$/commands/roll.js" />
       </list>
     </option>
   </component>
@@ -374,7 +367,7 @@
       <workItem from="1559716369274" duration="6000" />
       <workItem from="1560010638370" duration="465000" />
       <workItem from="1560141562515" duration="21091000" />
-      <workItem from="1560298745077" duration="21630000" />
+      <workItem from="1560298745077" duration="21747000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -621,11 +614,25 @@
       <option name="project" value="LOCAL" />
       <updated>1560148401220</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Updated the lastError command to have a linebreak before the text.">
+      <created>1560321900246</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1560321900246</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Updated the !bbcode command to find the last roll message, not just the last message, added !markdown to format for markdown.">
+      <created>1560321961041</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1560321961041</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="140059000" />
+    <option name="totallyTimeSpent" value="140176000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -662,8 +669,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Updated to 1.1.1, improved error handling again?" />
-    <MESSAGE value="Updated to 1.1.2, fixed the disconnect command." />
     <MESSAGE value="Updated the help file to include the information about the discordbots page and the support channel." />
     <MESSAGE value="Updated the error handling? I hope?" />
     <MESSAGE value="Updated help texts." />
@@ -687,7 +692,9 @@
     <MESSAGE value="Added the !lastError command (admin-only)" />
     <MESSAGE value="Added a &gt;X roll modifier (brutal die)" />
     <MESSAGE value="Updated the help files to be .md files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated the help files to be .md files" />
+    <MESSAGE value="Updated the lastError command to have a linebreak before the text." />
+    <MESSAGE value="Updated the !bbcode command to find the last roll message, not just the last message, added !markdown to format for markdown." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated the !bbcode command to find the last roll message, not just the last message, added !markdown to format for markdown." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1031,16 +1038,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/commands/roll.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="401">
-          <caret line="511" column="32" lean-forward="false" selection-start-line="511" selection-start-column="32" selection-end-line="511" selection-end-column="32" />
-          <folding>
-            <element signature="e#19687#32419#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/commands/h.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
@@ -1109,6 +1106,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/commands/roll.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="146">
+          <caret line="559" column="2" lean-forward="false" selection-start-line="559" selection-start-column="2" selection-end-line="559" selection-end-column="2" />
           <folding />
         </state>
       </provider>
