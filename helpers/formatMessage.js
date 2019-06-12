@@ -28,7 +28,8 @@ module.exports = args => {
 };
 
 const processMessage = function(args, lastMessage, formatting) {
-    let boldStart, boldEnd, italicsStart, italicsEnd, listStart, listEnd, listItemStart, listItemEnd, codeStart, codeEnd;
+    let boldStart, boldEnd, italicsStart, italicsEnd, listStart, listEnd, listItemStart, listItemEnd, codeStart,
+        codeEnd, replaceLinebreaks, multipleListStarts;
     switch(formatting) {
         case 'bbcode': {
             boldStart = '[b]';
@@ -41,6 +42,8 @@ const processMessage = function(args, lastMessage, formatting) {
             listItemEnd = '[/li]';
             codeStart = '';
             codeEnd = '';
+            replaceLinebreaks = true;
+            multipleListStarts = false;
             break;
         }
         case 'markdown': {
@@ -50,10 +53,12 @@ const processMessage = function(args, lastMessage, formatting) {
             italicsEnd = '_';
             listStart = '';
             listEnd = '';
-            listItemStart = '\n* ';
+            listItemStart = ' * ';
             listItemEnd = '';
             codeStart = '';
             codeEnd = '';
+            replaceLinebreaks = false;
+            multipleListStarts = true;
             break;
         }
     }
@@ -102,17 +107,33 @@ const processMessage = function(args, lastMessage, formatting) {
                     }
                 }
             });
-            message = message.slice(0, indexOfListStart) + listStart + AoEmessage +
-                message.slice(indexOfListStart + messagePartsLength + indexOfListEnd);
+
+            if(indexOfListEnd !== -1) {
+                message = message.slice(0, indexOfListStart) + listStart + AoEmessage +
+                    message.slice(indexOfListStart + messagePartsLength + indexOfListEnd);
+            }
+            else {
+                message = message.slice(0, indexOfListStart) + listStart + AoEmessage;
+            }
         }
     }
 
-    console.log(message);
-
-    if(message.lastIndexOf('\n') > 0) {
-        message = message.slice(1);
-        message = listStart + listItemStart + message.replace(/\n/gm, listItemEnd + listItemStart);
-        message += listItemEnd + listEnd;
+    message = message.slice(1);
+    if(replaceLinebreaks) {
+        if(message.lastIndexOf('\n') > 0) {
+            message = listStart + listItemStart + message.replace(/\n/gm, listItemEnd + listItemStart);
+            message += listItemEnd + listEnd;
+        }
+    }
+    else {
+        if(message.lastIndexOf('\n') > 0) {
+            message = message.split(listItemStart).join('\n' + listItemStart);
+            message = listStart + listItemStart + message.replace(/\n/gm, '\n' + listItemEnd + listItemStart);
+            message = message.split(listItemStart + listItemStart).join('\t' + listItemStart);
+        }
+        else {
+            message = message.split(listItemStart).join('\n' + listItemStart);
+        }
     }
 
     return args.message.reply('Last message formatted for ' + formatting + ':\n```' + message + '```')
