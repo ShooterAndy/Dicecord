@@ -46,7 +46,7 @@ const processRollMessages = function (message, rollMessages) {
             if(previousSuccess || !rollMessages[i].onSuccess) {
                 if(rollResults && rollResults.text) {
                     if(i !== 0) {
-                        if(rollMessages[i].onSuccess && rollMessages[i].isAoE) {
+                        if(rollMessages[i].onSuccess && !rollMessages[i].isAoE) {
                             replyText += ', ';
                         }
                         else {
@@ -332,9 +332,7 @@ const processRoll = function(roll) {
                 currentPartText = '';
             }
             if(rollPartResult) {
-                console.log(nextPartIsNegative + ', ' + isNegative);
                 rollPartResult.isNegative = isNegative ? !nextPartIsNegative : nextPartIsNegative;
-                console.log(JSON.stringify(rollPartResult));
                 results.push(rollPartResult);
                 nextPartIsNegative = false;
             }
