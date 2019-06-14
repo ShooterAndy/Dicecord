@@ -279,9 +279,12 @@ const processRoll = function(roll) {
     };
 
     let results = [];
-    let nextPartIsNegative = false;
 
-    const processParenthesisPartText = function (parenthesisPartText) {
+    const processParenthesisPartText = function (parenthesisPartText, isNegative) {
+        let nextPartIsNegative = false;
+        if(isNegative === undefined) {
+            isNegative = nextPartIsNegative;
+        }
         // First, let's process the mathematical signs and merge the redundant ones
         let currentSign = null;
         let fixedParenthesisPartText = '';
@@ -322,43 +325,44 @@ const processRoll = function(roll) {
         let currentPartText = '';
         let error = '';
 
-        const getPartResultsIfNeeded = function() {
+        const getPartResultsIfNeeded = function(nextPartType) {
             let rollPartResult = null;
             if(partType === null && currentPartText !== '') { // not a special type
                 rollPartResult = processRollPart(currentPartText);
                 currentPartText = '';
             }
             if(rollPartResult) {
-                if(nextPartIsNegative) {
-                    rollPartResult.isNegative = true;
-                }
+                console.log(nextPartIsNegative + ', ' + isNegative);
+                rollPartResult.isNegative = isNegative ? !nextPartIsNegative : nextPartIsNegative;
+                console.log(JSON.stringify(rollPartResult));
                 results.push(rollPartResult);
+                nextPartIsNegative = false;
             }
         };
 
         _.every(fixedParenthesisPartText, (symbol, i) => {
             if(symbol === '{') {
-                getPartResultsIfNeeded();
+                getPartResultsIfNeeded('parenthesisPart');
                 partType = 'parenthesisPart';
             }
             else if(symbol === '}') {
-                nextPartIsNegative = false;
                 getPartResultsIfNeeded();
                 if(!getParenthesisPartByName(currentParenthesisPartName)) {
                     console.error('ERROR:' + currentParenthesisPartName);
                 }
                 formattedText += '(' +
-                    processParenthesisPartText(getParenthesisPartByName(currentParenthesisPartName).text) + ')';
-                partType = null;
+                    processParenthesisPartText(getParenthesisPartByName(currentParenthesisPartName).text,
+                        nextPartIsNegative) + ')';
                 currentParenthesisPartName = '';
+                partType = null;
             }
             else if(symbol === '+') {
                 getPartResultsIfNeeded();
                 formattedText += ' + ';
             }
             else if(symbol === '-') {
-                nextPartIsNegative = !nextPartIsNegative;
                 getPartResultsIfNeeded();
+                nextPartIsNegative = !nextPartIsNegative;
                 if(i === 0) {
                     formattedText += '-';
                 }
