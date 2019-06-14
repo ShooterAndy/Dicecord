@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/commands/roll.js" afterPath="$PROJECT_DIR$/commands/roll.js" />
-      <change beforePath="$PROJECT_DIR$/lastError" afterPath="$PROJECT_DIR$/lastError" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -21,8 +19,8 @@
       <file leaf-file-name="roll.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/commands/roll.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="392">
-              <caret line="294" column="17" lean-forward="true" selection-start-line="294" selection-start-column="17" selection-end-line="294" selection-end-column="17" />
+            <state relative-caret-position="137">
+              <caret line="332" column="13" lean-forward="true" selection-start-line="332" selection-start-column="13" selection-end-line="332" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -366,7 +364,7 @@
       <workItem from="1560141562515" duration="21091000" />
       <workItem from="1560298745077" duration="25929000" />
       <workItem from="1560405371664" duration="13000" />
-      <workItem from="1560506164325" duration="2257000" />
+      <workItem from="1560506164325" duration="2952000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -648,11 +646,25 @@
       <option name="project" value="LOCAL" />
       <updated>1560325547521</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Fixed negative bonus summation for now, note that the parentheses are not an official feature and have known bugs.">
+      <created>1560508448484</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1560508448484</updated>
+    </task>
+    <task id="LOCAL-00042" summary="Fixed the roll result text for conditional rolls, removed debug console logging">
+      <created>1560509100239</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1560509100239</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="146628000" />
+    <option name="totallyTimeSpent" value="147323000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -662,10 +674,10 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.5252898" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.47049525" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.47049525" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.49578503" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.47471023" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.47471023" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -689,8 +701,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Updated to version 1.1.3, fixed !bbcode, added a more helpful error message for the empty !roll command." />
-    <MESSAGE value="Updated to version 1.1.4, added some precautions to limit the number of options for commands." />
     <MESSAGE value="Updated the invite link (again)" />
     <MESSAGE value="Potentially fixed the missing permissions error?" />
     <MESSAGE value="Potentially fixed the missing permissions error (re-organized the code a bit)?" />
@@ -714,7 +724,9 @@
     <MESSAGE value="Rewrote the roll processing to make it more transparent and stable, added parentheses processing." />
     <MESSAGE value="Updated the help files" />
     <MESSAGE value="Fixed the markdown and bbcode again." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed the markdown and bbcode again." />
+    <MESSAGE value="Fixed negative bonus summation for now, note that the parentheses are not an official feature and have known bugs." />
+    <MESSAGE value="Fixed the roll result text for conditional rolls, removed debug console logging" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed the roll result text for conditional rolls, removed debug console logging" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1059,14 +1071,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lastError">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/help/roll.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
@@ -1135,10 +1139,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/lastError">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/commands/roll.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="294" column="17" lean-forward="true" selection-start-line="294" selection-start-column="17" selection-end-line="294" selection-end-column="17" />
+        <state relative-caret-position="137">
+          <caret line="332" column="13" lean-forward="true" selection-start-line="332" selection-start-column="13" selection-end-line="332" selection-end-column="13" />
           <folding />
         </state>
       </provider>
