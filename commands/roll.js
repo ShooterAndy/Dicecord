@@ -41,12 +41,13 @@ const processRollMessages = function (message, rollMessages) {
     }
     else {
         let previousSuccess = true;
+        let previousAoE = false;
         for (let i = 0; i < rollMessages.length; i++) {
             const rollResults = processRoll(rollMessages[i].message);
             if(previousSuccess || !rollMessages[i].onSuccess) {
                 if(rollResults && rollResults.text) {
                     if(i !== 0) {
-                        if(rollMessages[i].onSuccess && !rollMessages[i].isAoE) {
+                        if(rollMessages[i].onSuccess && !previousAoE) {
                             replyText += ', ';
                         }
                         else {
@@ -60,6 +61,7 @@ const processRollMessages = function (message, rollMessages) {
                     }
                     replyText += rollResults.text;
                     previousSuccess = rollResults.success;
+                    previousAoE = rollResults.isAoE;
                     if(i === rollMessages.length - 1) {
                         replyText += '.';
                     }
