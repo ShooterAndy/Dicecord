@@ -183,6 +183,10 @@ const processRoll = function(roll) {
             maxMultipleRolls + ' are allowed.';
     }
 
+    if(aoeNumber < vsValues.length) {
+        //We assume the roller wants as many rolls as the versus-checks requested
+        aoeNumber = vsValues.length;
+    }
     // Now let's see if we're dealing with a roll  that rolls the same thing multiple times and sums the results up
     let multiplyNumber = 0;
     res = getNumberAfterParameterAndCleanString(roll, '*');
@@ -460,7 +464,7 @@ const processRoll = function(roll) {
 
         let finalText = '';
 
-        if(aoeNumber) {
+        if(aoeNumber > 1) {
             if (aoeRollNumber === 0) {
                 if(comment) {
                     finalText += '`' + comment + ':` ';
@@ -472,7 +476,7 @@ const processRoll = function(roll) {
         const addVsValueResult = function() {
             if(vsValues.length) {
                 let vsValue = null;
-                if(aoeNumber > 0) {
+                if(aoeNumber > 1) {
                     if(vsValues[aoeRollNumber]) {
                         vsValue = vsValues[aoeRollNumber];
                     }
@@ -491,7 +495,7 @@ const processRoll = function(roll) {
         };
 
         if(nonBonusResultsNum === 0) {
-            if(aoeNumber) {
+            if(aoeNumber > 1) {
                 finalText += ' * Roll ' + (aoeRollNumber + 1) + ': ';
                 finalText += '**' + finalResult + '**';
                 addVsValueResult();
@@ -510,7 +514,7 @@ const processRoll = function(roll) {
             }
         }
         else {
-            if(aoeNumber) {
+            if(aoeNumber > 1) {
                 finalText += ' * Roll ' + (aoeRollNumber + 1) + ': ';
                 if (nonBonusResultsNum > 1 || bonusesTotal !== 0) {
                     finalText += middleText + '  =  **' + finalResult + '**';
@@ -534,7 +538,7 @@ const processRoll = function(roll) {
             }
         }
 
-        if(comment && !aoeNumber) {
+        if(comment && aoeNumber < 1) {
             if(prependComment) {
                 finalText = '`' + comment + ':` ' + finalText;
             }
@@ -558,7 +562,7 @@ const processRoll = function(roll) {
         finalTextForAllRolls = processParenthesisParts();
     }
 
-    return { text: finalTextForAllRolls, success: success, isAoE: (aoeNumber > 0) };
+    return { text: finalTextForAllRolls, success: success, isAoE: (aoeNumber > 1) };
 };
 
 const processRollPart = function (rollPart, isNegative) {
