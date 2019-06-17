@@ -20,8 +20,8 @@
       <file leaf-file-name="roll.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/commands/roll.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="205">
-              <caret line="49" column="71" lean-forward="false" selection-start-line="49" selection-start-column="71" selection-end-line="49" selection-end-column="71" />
+            <state relative-caret-position="171">
+              <caret line="547" column="54" lean-forward="false" selection-start-line="547" selection-start-column="47" selection-end-line="547" selection-end-column="54" />
               <folding />
             </state>
           </provider>
@@ -130,7 +130,6 @@
       <find>.then(</find>
       <find>diceRollText</find>
       <find>vsValues</find>
-      <find>comment</find>
       <find>'\n</find>
       <find>roll</find>
       <find>roll part is invalid</find>
@@ -150,6 +149,7 @@
       <find>aoeNumber</find>
       <find>isAoE</find>
       <find>previousSuccess</find>
+      <find>comment</find>
     </findStrings>
     <replaceStrings>
       <replace>'</replace>
@@ -294,8 +294,8 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -367,7 +367,9 @@
       <workItem from="1560405371664" duration="13000" />
       <workItem from="1560506164325" duration="3596000" />
       <workItem from="1560684391426" duration="381000" />
-      <workItem from="1560684920772" duration="1212000" />
+      <workItem from="1560684920772" duration="1855000" />
+      <workItem from="1560731828894" duration="20000" />
+      <workItem from="1560750425785" duration="59000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -677,11 +679,18 @@
       <option name="project" value="LOCAL" />
       <updated>1560684728077</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="Made it so that the conditional roll appears on a separate line if the previous roll is an AoE-type.">
+      <created>1560686157034</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1560686157034</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="149560000" />
+    <option name="totallyTimeSpent" value="150282000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -718,7 +727,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Potentially fixed the missing permissions error (re-organized the code a bit)?" />
     <MESSAGE value="Updated the version number to 1.1.5, fixed some issues with AoE rolls." />
     <MESSAGE value="Updated the general help text to include the link to the github issue tracker." />
     <MESSAGE value="Adding auto-changelog." />
@@ -743,7 +751,8 @@
     <MESSAGE value="Fixed the roll result text for conditional rolls, removed debug console logging" />
     <MESSAGE value="Workspace.xml changes" />
     <MESSAGE value="Made it so that specifying multiple versus values for a roll makes the bot perform the roll that many times." />
-    <option name="LAST_COMMIT_MESSAGE" value="Made it so that specifying multiple versus values for a roll makes the bot perform the roll that many times." />
+    <MESSAGE value="Made it so that the conditional roll appears on a separate line if the previous roll is an AoE-type." />
+    <option name="LAST_COMMIT_MESSAGE" value="Made it so that the conditional roll appears on a separate line if the previous roll is an AoE-type." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -946,11 +955,21 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/help/bbcode.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="0">
+            <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
       <provider editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="114" lean-forward="true" selection-start-line="0" selection-start-column="114" selection-end-line="0" selection-end-column="114" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help/draw.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="0">
@@ -959,13 +978,13 @@
           <second_editor />
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/help/draw.md">
       <provider editor-type-id="text-editor">
         <state relative-caret-position="68">
           <caret line="4" column="116" lean-forward="false" selection-start-line="4" selection-start-column="116" selection-end-line="4" selection-end-column="116" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help/order.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="0">
@@ -974,13 +993,13 @@
           <second_editor />
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/help/order.md">
       <provider editor-type-id="text-editor">
         <state relative-caret-position="170">
           <caret line="10" column="43" lean-forward="false" selection-start-line="10" selection-start-column="43" selection-end-line="10" selection-end-column="43" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help/pick.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="0">
@@ -989,13 +1008,13 @@
           <second_editor />
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/help/pick.md">
       <provider editor-type-id="text-editor">
         <state relative-caret-position="51">
           <caret line="3" column="70" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="3" selection-end-column="70" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help/shuffle.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="0">
@@ -1004,19 +1023,9 @@
           <second_editor />
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/help/shuffle.md">
       <provider editor-type-id="text-editor">
         <state relative-caret-position="68">
           <caret line="4" column="9" lean-forward="false" selection-start-line="4" selection-start-column="9" selection-end-line="4" selection-end-column="9" />
-        </state>
-      </provider>
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="0">
-            <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          </first_editor>
-          <second_editor />
         </state>
       </provider>
     </entry>
@@ -1089,12 +1098,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/help/roll.md">
-      <provider editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="2" lean-forward="false" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="306">
@@ -1102,6 +1105,12 @@
             <folding />
           </first_editor>
           <second_editor />
+        </state>
+      </provider>
+      <provider editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="12" column="2" lean-forward="false" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="2" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1121,12 +1130,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/help/!.md">
-      <provider editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" column="115" lean-forward="false" selection-start-line="3" selection-start-column="69" selection-end-line="3" selection-end-column="115" />
-          <folding />
-        </state>
-      </provider>
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="221">
@@ -1134,6 +1137,12 @@
             <folding />
           </first_editor>
           <second_editor />
+        </state>
+      </provider>
+      <provider editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="115" lean-forward="false" selection-start-line="3" selection-start-column="69" selection-end-line="3" selection-end-column="115" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1166,8 +1175,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/commands/roll.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="205">
-          <caret line="49" column="71" lean-forward="false" selection-start-line="49" selection-start-column="71" selection-end-line="49" selection-end-column="71" />
+        <state relative-caret-position="171">
+          <caret line="547" column="54" lean-forward="false" selection-start-line="547" selection-start-column="47" selection-end-line="547" selection-end-column="54" />
           <folding />
         </state>
       </provider>

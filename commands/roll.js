@@ -540,7 +540,7 @@ const processRoll = function(roll) {
             }
         }
 
-        if(comment && aoeNumber < 1) {
+        if(comment && aoeNumber <= 1) {
             if(prependComment) {
                 finalText = '`' + comment + ':` ' + finalText;
             }
