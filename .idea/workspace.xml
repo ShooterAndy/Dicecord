@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="40b54da3-531d-4ff2-a699-577c8700f466" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/helpers/formatMessage.js" afterPath="$PROJECT_DIR$/helpers/formatMessage.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -16,11 +17,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="roll.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="roll.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/commands/roll.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="392">
-              <caret line="560" column="9" lean-forward="true" selection-start-line="560" selection-start-column="9" selection-end-line="560" selection-end-column="9" />
+            <state relative-caret-position="171">
+              <caret line="340" column="76" lean-forward="false" selection-start-line="340" selection-start-column="58" selection-end-line="340" selection-end-column="76" />
               <folding />
             </state>
           </provider>
@@ -56,11 +57,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="formatMessage.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="formatMessage.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/helpers/formatMessage.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2142">
-              <caret line="126" column="5" lean-forward="false" selection-start-line="126" selection-start-column="5" selection-end-line="126" selection-end-column="5" />
+            <state relative-caret-position="238">
+              <caret line="14" column="108" lean-forward="false" selection-start-line="14" selection-start-column="108" selection-end-line="14" selection-end-column="108" />
               <folding />
             </state>
           </provider>
@@ -143,12 +144,12 @@
       <find>console.log</find>
       <find>console.lo</find>
       <find>replaceLinebreaks</find>
-      <find>nextPartIsNegative</find>
       <find>isNegative</find>
       <find>aoeNumber</find>
       <find>isAoE</find>
       <find>previousSuccess</find>
       <find>comment</find>
+      <find>nextPartIsNegative</find>
     </findStrings>
     <replaceStrings>
       <replace>'</replace>
@@ -209,9 +210,9 @@
         <option value="$PROJECT_DIR$/lastError" />
         <option value="$PROJECT_DIR$/help/roll.md" />
         <option value="$PROJECT_DIR$/help/!.md" />
-        <option value="$PROJECT_DIR$/helpers/formatMessage.js" />
         <option value="$PROJECT_DIR$/help/vs.md" />
         <option value="$PROJECT_DIR$/commands/roll.js" />
+        <option value="$PROJECT_DIR$/helpers/formatMessage.js" />
       </list>
     </option>
   </component>
@@ -293,8 +294,8 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
       <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -368,7 +369,8 @@
       <workItem from="1560684391426" duration="381000" />
       <workItem from="1560684920772" duration="1855000" />
       <workItem from="1560731828894" duration="20000" />
-      <workItem from="1560750425785" duration="103000" />
+      <workItem from="1560750425785" duration="851000" />
+      <workItem from="1561086347825" duration="455000" />
     </task>
     <task id="LOCAL-00001" summary="Some fixes.">
       <created>1556747198372</created>
@@ -692,11 +694,18 @@
       <option name="project" value="LOCAL" />
       <updated>1560750509619</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="Another workspace commit">
+      <created>1560750543229</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1560750543229</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="150326000" />
+    <option name="totallyTimeSpent" value="151529000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -706,10 +715,10 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.5252898" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.47049525" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.47049525" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.49578503" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32934782" sideWeight="0.47471023" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32934782" sideWeight="0.47471023" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -733,7 +742,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Updated the general help text to include the link to the github issue tracker." />
     <MESSAGE value="Adding auto-changelog." />
     <MESSAGE value="Deleted the separate version file, now keeping the version in package.json" />
     <MESSAGE value="Added license and readme files." />
@@ -758,7 +766,8 @@
     <MESSAGE value="Made it so that specifying multiple versus values for a roll makes the bot perform the roll that many times." />
     <MESSAGE value="Made it so that the conditional roll appears on a separate line if the previous roll is an AoE-type." />
     <MESSAGE value="Fixed a bug that caused the roll comment to not appear for rolls with exactly one vs part." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed a bug that caused the roll comment to not appear for rolls with exactly one vs part." />
+    <MESSAGE value="Another workspace commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Another workspace commit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1120,14 +1129,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/commands/bbcode.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external/lib.es2015.symbol.wellknown.d.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="197">
@@ -1148,14 +1149,6 @@
       <provider editor-type-id="text-editor">
         <state relative-caret-position="51">
           <caret line="3" column="115" lean-forward="false" selection-start-line="3" selection-start-column="69" selection-end-line="3" selection-end-column="115" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/helpers/formatMessage.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2142">
-          <caret line="126" column="5" lean-forward="false" selection-start-line="126" selection-start-column="5" selection-end-line="126" selection-end-column="5" />
           <folding />
         </state>
       </provider>
@@ -1181,8 +1174,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/commands/roll.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="560" column="9" lean-forward="true" selection-start-line="560" selection-start-column="9" selection-end-line="560" selection-end-column="9" />
+        <state relative-caret-position="171">
+          <caret line="340" column="76" lean-forward="false" selection-start-line="340" selection-start-column="58" selection-end-line="340" selection-end-column="76" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/commands/bbcode.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/helpers/formatMessage.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="108" lean-forward="false" selection-start-line="14" selection-start-column="108" selection-end-line="14" selection-end-column="108" />
           <folding />
         </state>
       </provider>

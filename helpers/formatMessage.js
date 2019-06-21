@@ -7,12 +7,12 @@ module.exports = args => {
         clientChannels += channel.id + ', ';
     });
     channel.fetchMessages().then(messages => {
-        const messagesArray = messages.array();
+        const messagesArray = _.sortBy(messages.array(), (message) => { return -message.createdTimestamp; });
         let rollMessage = null;
         for(let i = 0; i < messagesArray.length; i++) {
             if (messagesArray[i].author.id === args.client.user.id) {
                 if((messagesArray.length > i + 1) &&
-                    messagesArray[i + 1] && messagesArray[i + 1].content.startsWith('!r')) {
+                    messagesArray[i + 1] && messagesArray[i + 1].content.trim().toLowerCase().startsWith('!r')) {
                     rollMessage = messagesArray[i];
                     break;
                 }
