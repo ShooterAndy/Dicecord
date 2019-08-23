@@ -24,11 +24,11 @@ module.exports = args => {
     });
     if(!rollMessages || !rollMessages.length ||
         (rollMessages.length === 1 && rollMessages[0].message.trim() === '')) {
-        return args.message.reply('ERROR: No dice specified, please input something like:\n`!roll 1d6+2`, or check ' +
+        return args.message.reply('**ERROR:** No dice specified, please input something like:\n`!roll 1d6+2`, or check ' +
             'out `!help roll` for more info.');
     }
     if(rollMessages.length > maxRolls) {
-        return args.message.reply('ERROR: No more than ' + maxRolls +
+        return args.message.reply('**ERROR:** No more than ' + maxRolls +
             ' rolls are allowed per one command, please put them into several separate commands.');
     }
     processRollMessages(args.message, rollMessages);
@@ -67,8 +67,11 @@ const processRollMessages = function (message, rollMessages) {
                     }
                 }
                 else {
-                    if(rollMessages[i].message.trim() !== '') {
-                        replyText += 'ERROR: Roll part is invalid: "' + rollMessages[i].message + '"';
+                    if(rollResults) {
+                        replyText += '**ERROR:** ' + rollResults + '.';
+                    }
+                    else if(rollMessages[i].message.trim() !== '') {
+                        replyText += '**ERROR:** Roll part is invalid: "' + rollMessages[i].message + '"';
                     }
                 }
             }
@@ -97,8 +100,10 @@ const getNumberAfterParameterAndCleanString = function(string, parameter) {
     if(index > 0) {
         stringAfterParameter = string.slice(index + parameter.length).trim();
         let i = 0;
-        while (!isNaN(stringAfterParameter[i])) {
-            numberString += stringAfterParameter[i];
+        while (!isNaN(stringAfterParameter[i]) || stringAfterParameter[i] === ' ') {
+            if(stringAfterParameter[i] !== ' ') {
+                numberString += stringAfterParameter[i];
+            }
             i++;
         }
         let cleanedString = string;
@@ -128,9 +133,9 @@ const processRoll = function(roll) {
     }
 
     // Now that we've removed any readable text for the comment, time to standartize the roll string by
-    // making it lowercase and removing any and all whitespace symbols
+    // making it lowercase and replacing any and all whitespace symbols with a simple space
     roll = roll.toLowerCase();
-    roll = roll.replace(/\s/g, '');
+    roll = roll.replace(/\s/g, ' ');
     roll = roll.replace(/[{}]/g, '');
 
     // Now let's check for a versus part (it can have multiple comma-separated values)
@@ -145,20 +150,42 @@ const processRoll = function(roll) {
             const vsTextParts = vsText.split(',');
             if(vsTextParts.length) {
                 _.each(vsTextParts, function(vsTextPart) {
+                    vsTextPart = vsTextPart.trim();
                     if(!isNaN(vsTextPart)) {
                         vsValues.push(parseInt(vsTextPart));
                     }
                     else {
-                        return 'ERROR: "versus" value "' + vsTextPart + '" is not a number';
+                        const indexOfSpace = vsTextPart.indexOf(' ');
+                        if(indexOfSpace !== -1) {
+                            // We have a space in the middle of our vs part. This is strange and might mean the user
+                            // forgot to add a comment-start symbol before typing a comment. Let's assume only the
+                            // first part is relevant to us.
+                            let ignoredText = vsTextPart.slice(indexOfSpace).trim();
+                            let clippedVsTextPart = vsTextPart.slice(0, indexOfSpace);
+                            if(!isNaN(clippedVsTextPart)) {
+                                vsValues.push(parseInt(clippedVsTextPart));
+                                if(!comment.length) {
+                                    comment = ignoredText;
+                                    prependComment = false;
+                                }
+                                else {
+                                    return '"versus" value "' + vsTextPart + '" is not a number';
+                                }
+                            }
+                            else {
+                                return '"versus" value "' + vsTextPart + '" is not a number';
+                            }
+                        }
+                        return '"versus" value "' + vsTextPart + '" is not a number';
                     }
                 });
             }
             else {
-                return 'ERROR: "versus" part is incomplete';
+                return '"versus" part is incomplete';
             }
         }
         else {
-            return 'ERROR: "versus" part is empty';
+            return '"versus" part is empty';
         }
     }
     if(vsValues.length) {
@@ -181,7 +208,7 @@ const processRoll = function(roll) {
         }
     }
     if(aoeNumber > maxMultipleRolls) {
-        return 'ERROR: the number of rolls specified (' + aoeNumber + ') is too high, no more than ' +
+        return 'the number of rolls specified (' + aoeNumber + ') is too high, no more than ' +
             maxMultipleRolls + ' are allowed.';
     }
 
@@ -197,7 +224,7 @@ const processRoll = function(roll) {
         roll = res.cleanedString;
     }
     if(multiplyNumber > maxMultiplyRolls) {
-        return 'ERROR: the multiplication specified (' + multiplyNumber + ') is too high, no more than ' +
+        return 'the multiplication specified (' + multiplyNumber + ') is too high, no more than ' +
             maxMultiplyRolls + ' are allowed.';
     }
 
@@ -225,7 +252,7 @@ const processRoll = function(roll) {
             let newChildPart = { text: '', children: {} };
             if(!currentPart) {
                 if(_.keys(parenthesisParts).length > 5) {
-                    return 'ERROR: too many parenthesis parts';
+                    return 'too many parenthesis parts';
                 }
                 let newName = 'pp' + _.keys(parenthesisParts).length;
                 parenthesisParts[newName] = newChildPart;
@@ -233,14 +260,14 @@ const processRoll = function(roll) {
             }
             else {
                 if(_.keys(currentPart.children).length > 5) {
-                    return 'ERROR: too many parenthesis parts';
+                    return 'too many parenthesis parts';
                 }
                 let newName = currentPath[currentPath.length - 1] + '_' + _.keys(currentPart.children).length;
                 currentPart.children[newName] = newChildPart;
                 currentPath.push(newName);
             }
             if(currentPath.length > 5) {
-                return 'ERROR: too many parenthesis levels';
+                return 'too many parenthesis levels';
             }
         }
         else if(roll[i] === ')') {
@@ -255,7 +282,7 @@ const processRoll = function(roll) {
                 }
             }
             else {
-                return 'ERROR: found a closing parenthesis without a previous opening one.'
+                return 'found a closing parenthesis without a previous opening one.'
             }
         }
         else {
@@ -331,7 +358,7 @@ const processRoll = function(roll) {
         let currentPartText = '';
         let error = '';
 
-        const getPartResultsIfNeeded = function(nextPartType) {
+        const getPartResultsIfNeeded = function() {
             let rollPartResult = null;
             if(partType === null && currentPartText !== '') { // not a special type
                 rollPartResult = processRollPart(currentPartText);
@@ -339,8 +366,21 @@ const processRoll = function(roll) {
             }
             if(rollPartResult) {
                 rollPartResult.isNegative = isNegative ? !nextPartIsNegative : nextPartIsNegative;
+                if(rollPartResult.ignoredText.length) {
+                    if (!comment.length) {
+                        prependComment = false;
+                        comment = rollPartResult.ignoredText;
+                    }
+                    else {
+                        rollPartResult =
+                            { type: 'error', text: 'Couldn\'t process "' + rollPartResult.ignoredText + '"' };
+                    }
+                }
                 results.push(rollPartResult);
                 nextPartIsNegative = false;
+                if(rollPartResult.type !== 'error') {
+                    formattedText += rollPartResult.text;
+                }
             }
         };
 
@@ -379,7 +419,7 @@ const processRoll = function(roll) {
                     currentParenthesisPartName += symbol;
                 }
                 else {
-                    formattedText += symbol;
+                    //formattedText += symbol;
                     currentPartText += symbol;
                     partType = null;
                 }
@@ -394,7 +434,7 @@ const processRoll = function(roll) {
     };
 
     const processParenthesisParts = function (aoeRollNumber) {
-        let text =  processParenthesisPartText(transformedText);
+        let text = processParenthesisPartText(transformedText).replace(/\s\s+/g, ' ');
 
         if(multiplyNumber > 1) {
             text = '(' + text + ') * ' + multiplyNumber;
@@ -407,17 +447,33 @@ const processRoll = function(roll) {
             }
         }
 
+        let erroredResults = _.filter(results, { type: 'error' });
+        if(erroredResults.length) {
+            let errorsText = '';
+            _.each(erroredResults, (erroredResult) => {
+                if(!errorsText.length) {
+                    errorsText = '**ERROR:** ' + erroredResult.text;
+                }
+                else {
+                    errorsText += '; ' + erroredResult.text
+                }
+            });
+            return errorsText;
+        }
+
         // First, let's combine bonuses
         let bonusResultsNum = 0;
         let bonusesTotal = 0;
         _.each(results, (result) => {
-            if(result.type === 'bonus') {
-                bonusResultsNum++;
-                if(result.isNegative) {
-                    bonusesTotal -= result.value;
-                }
-                else {
-                    bonusesTotal += result.value;
+            if(result.type !== 'error') {
+                if (result.type === 'bonus') {
+                    bonusResultsNum++;
+                    if (result.isNegative) {
+                        bonusesTotal -= result.value;
+                    }
+                    else {
+                        bonusesTotal += result.value;
+                    }
                 }
             }
         });
@@ -426,7 +482,7 @@ const processRoll = function(roll) {
         let finalResult = 0;
         let nonBonusResultsNum = 0;
         _.each(results, (result, i) => {
-            if(result.type !== 'bonus') { // we've already combined the bonuses, let's exclude them
+            if(result.type !== 'bonus' && result.type !== 'error') { // we've already combined the bonuses, let's exclude them
                 nonBonusResultsNum++;
                 if (result.isNegative) {
                     if (i === 0) {
@@ -568,6 +624,15 @@ const processRoll = function(roll) {
 };
 
 const processRollPart = function (rollPart, isNegative) {
+    rollPart = rollPart.trim();
+    const indexOfSpace = rollPart.indexOf(' ');
+    let ignoredText = '';
+    if(indexOfSpace !== -1) {
+        // We have a space in the middle of our roll part. This is strange and might mean the user forgot to add a
+        // comment-start symbol before typing a comment. Let's assume only the first part is relevant to us
+        ignoredText = rollPart.slice(indexOfSpace).trim();
+        rollPart = rollPart.slice(0, indexOfSpace);
+    }
     if (isNaN(rollPart)) {
         // Test for rerolls
         let brutalDie = null;
@@ -611,7 +676,7 @@ const processRollPart = function (rollPart, isNegative) {
         if(!rollFunction) {
             return {
                 type: 'error',
-                text: rollPart
+                text: 'Couldn\'t parse "' + rollPart + '"'
             };
         }
 
@@ -619,7 +684,7 @@ const processRollPart = function (rollPart, isNegative) {
 
         if(brutalDie !== null) {
             let rollResult = rollFunction(rollPart, isNegative, explodeOn);
-            if(rollResult.maxResult < brutalDie) {
+            if(rollResult.maxResult !== undefined && rollResult.maxResult < brutalDie) {
                 return {
                     type: 'error',
                     text: rollPart + ' has higher requested re-roll than possible'
@@ -628,23 +693,25 @@ const processRollPart = function (rollPart, isNegative) {
             else {
                 let counter = 0;
                 rollFinalResult = JSON.parse(JSON.stringify(rollResult));
-                rollFinalResult.resultText = '';
-                while (rollResult.value < brutalDie && counter < maxRerolls) {
-                    rollFinalResult.resultText += '~~' + rollResult.resultText + '~~, ';
-                    rollResult = rollFunction(rollPart, isNegative, explodeOn);
-                    counter++;
-                }
-                if(counter === maxRerolls) {
-                    rollFinalResult = {
-                        type: 'error',
-                        text: rollPart + ' produced more than ' + maxRerolls + ' re-rolls'
-                    };
-                }
-                else {
-                    rollFinalResult.value = rollResult.value;
-                    rollFinalResult.resultText += rollResult.resultText;
-                    rollFinalResult.doWeNeedIntermediateResult = rollFinalResult.doWeNeedIntermediateResult ||
-                        (counter >= 1);
+                if(rollFinalResult.type !== 'error') {
+                    rollFinalResult.resultText = '';
+                    while (rollResult.value < brutalDie && counter < maxRerolls) {
+                        rollFinalResult.resultText += '~~' + rollResult.resultText + '~~, ';
+                        rollResult = rollFunction(rollPart, isNegative, explodeOn);
+                        counter++;
+                    }
+                    if (counter === maxRerolls) {
+                        rollFinalResult = {
+                            type: 'error',
+                            text: rollPart + ' produced more than ' + maxRerolls + ' re-rolls'
+                        };
+                    }
+                    else {
+                        rollFinalResult.value = rollResult.value;
+                        rollFinalResult.resultText += rollResult.resultText;
+                        rollFinalResult.doWeNeedIntermediateResult = rollFinalResult.doWeNeedIntermediateResult ||
+                            (counter >= 1);
+                    }
                 }
             }
         }
@@ -652,6 +719,7 @@ const processRollPart = function (rollPart, isNegative) {
             rollFinalResult = rollFunction(rollPart, isNegative, explodeOn);
         }
 
+        rollFinalResult.ignoredText = ignoredText;
         return rollFinalResult;
     }
     else {
@@ -659,7 +727,8 @@ const processRollPart = function (rollPart, isNegative) {
             type: 'bonus',
             isNegative: isNegative,
             text: rollPart,
-            value: parseInt(rollPart)
+            value: parseInt(rollPart),
+            ignoredText: ignoredText
         };
     }
 };
