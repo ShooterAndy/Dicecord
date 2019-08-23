@@ -5,7 +5,7 @@ const maxRolls = 10;
 const maxMultipleRolls = 25;
 const maxMultiplyRolls = 5;
 const maxDiceNum = 100;
-const maxDieSides = 1000;
+const maxDieSides = 10000;
 const maxRerolls = 100;
 
 module.exports = args => {
@@ -556,7 +556,7 @@ const processRoll = function(roll) {
     if(aoeNumber) {
         for (let i = 0; i < aoeNumber; i++) {
             results = [];
-            nextPartIsNegative = false;
+            //nextPartIsNegative = false;
             finalTextForAllRolls += processParenthesisParts(i);
         }
     }
