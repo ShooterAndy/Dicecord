@@ -1,7 +1,6 @@
 const saveDeck = require('../helpers/saveDeck');
 const loadDecks = require('../helpers/loadDecks.js');
 const _ = require('underscore');
-const fs = require('fs');
 
 module.exports = args => {
     const numberOfCardsToDraw = args.commandText.trim().split(' ')[0];
@@ -12,7 +11,7 @@ module.exports = args => {
 const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
     let text = '';
     if (isNaN(numberOfCardsToDraw)) {
-        return message.reply('ERROR: "' + numberOfCardsToDraw + '" is not a valid number of cards to draw.')
+        return message.reply('**ERROR:** "' + numberOfCardsToDraw + '" is not a valid number of cards to draw.')
             .catch(console.error);
     }
     else {
@@ -22,7 +21,8 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
                 let deck = JSON.parse(JSON.stringify(result[message.channel.id]));
 
                 if (deck.length < numberOfCardsToDraw) {
-                    return message.reply('ERROR: Not enough cards left in the deck (requested ' + numberOfCardsToDraw +
+                    return message.reply('**ERROR:** Not enough cards left in the deck (requested ' +
+                        numberOfCardsToDraw +
                         ', but only ' + deck.length + ' cards left). Reshuffle or draw fewer cards.')
                         .catch(console.error);
                 }
@@ -42,7 +42,7 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
                 }
             }
             else {
-                return message.reply('ERROR: No deck found for this channel. Shuffle the deck first!')
+                return message.reply('**ERROR:** No deck found for this channel. Shuffle the deck first!')
                     .catch(console.error);
             }
         }, (error) => {

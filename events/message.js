@@ -1,17 +1,6 @@
-const fs = require('fs');
-const _ = require('underscore');
-let commands = {};
+const defaultPrefix = '!';
 
-fs.readdir('./commands/', (err, files) => {
-    files.forEach(file => {
-        const commandHandler = require(`../commands/${file}`);
-        const commandName = file.split('.')[0];
-
-        commands[commandName] = commandHandler;
-    });
-});
-
-module.exports = (client, message) => {
+module.exports = (client, message, commands, prefixes) => {
     if(!message.author) { // What in the hell?
         console.error('-- > Message "' + message.content + '" doesn\'t seem to have an author.');
         return;
@@ -19,14 +8,21 @@ module.exports = (client, message) => {
     if(message.author.bot) { // Do not reply to bots
         return;
     }
-    if (message.content.startsWith('!')) {
+
+    let prefix = defaultPrefix;
+    if(message.guild) {
+        if(prefixes[message.guild.id]) {
+            prefix = prefixes[message.guild.id];
+        }
+    }
+    if (message.content.startsWith(prefix)) {
         let hasPermissions = true;
         if(message.channel && message.guild) { // Do we even have a permission to reply?
             if(!message.channel.permissionsFor(message.guild.me).has('SEND_MESSAGES')) {
                 hasPermissions = false;
             }
         }
-        const commandName = message.content.split(' ')[0].slice(1);
+        const commandName = message.content.split(' ')[0].slice(prefix.length);
         if(commandName && commandName.length && commands[commandName.toLowerCase()]) {
             if(!hasPermissions) {
                 console.error('-- > Don\'t have permission to reply to message "' + message.content +
@@ -36,7 +32,12 @@ module.exports = (client, message) => {
                 return;
             }
             const commandText = message.content.slice(commandName.length + 1).trim();
-            return commands[commandName.toLowerCase()]({ message: message, commandText: commandText, client: client });
+            return commands[commandName.toLowerCase()]({
+                message: message,
+                commandText: commandText,
+                client: client,
+                prefix: prefix
+            });
         }
         else {
             if(message.channel.guild.id !== '264445053596991498' /* Bot List channel */ && hasPermissions) {

@@ -1,10 +1,13 @@
 const random = require('random');
 const _ = require('underscore');
+const minimumNumber = 2;
+const maximumNumber = 1000;
 
 module.exports = args => {
     if(!args.commandText) {
-        return args.message.reply('ERROR: no items to order. Please input something like this:\n' +
-            '`!order First item, Another item, ...`, or check out `!help order` for more info').catch(console.error);
+        return args.message.reply('**ERROR:** no items to order. Please input something like this:\n' +
+            '`' + args.prefix + 'order First item, Another item, ...`, or check out `' + args.prefix +
+            'help order` for more info').catch(console.error);
     }
 
     let commandText = args.commandText;
@@ -19,11 +22,12 @@ module.exports = args => {
     }
 
     const choiceParts = commandText.split(',');
-    if(choiceParts.length < 2) {
-        return args.message.reply('ERROR: not enough items to order').catch(console.error);
+    if(choiceParts.length < minimumNumber) {
+        return args.message.reply('**ERROR:** not enough items to order, please provide at least ' + minimumNumber +
+            '.').catch(console.error);
     }
-    if(choiceParts.length > 1000) {
-        return args.message.reply('ERROR: too many items to order, please input less than 1000')
+    if(choiceParts.length > maximumNumber) {
+        return args.message.reply('**ERROR:** too many items to order, please input less than ' + maximumNumber + '.')
             .catch(console.error);
     }
     let choices = [];
@@ -33,8 +37,9 @@ module.exports = args => {
             choices.push(trimmedChoice);
         }
     });
-    if(choices.length < 2) {
-        return args.message.reply('ERROR: not enough actual items to order').catch(console.error);
+    if(choices.length < minimumNumber) {
+        return args.message.reply('ERROR: not enough actual items to order, please provide at least ' + minimumNumber +
+            '.').catch(console.error);
     }
 
     let choicesString = '';

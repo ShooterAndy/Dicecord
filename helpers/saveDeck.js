@@ -7,7 +7,8 @@ module.exports = (args) => {
         decks[args.message.channel.id] = args.deck;
         fs.writeFile('./storage/decks.json', JSON.stringify(decks), function(err) {
             if (err) {
-                return args.message.reply('ERROR: Couldn\'t save decks file: ', err).catch(console.error);
+                console.error('Couldn\'t save the decks file: ' + err);
+                return args.message.reply('**ERROR:** Couldn\'t save the decks file.').catch(console.error);
             } else if(args.shuffling) {
                 return args.message.reply('Deck shuffled!').catch(console.error);
             }

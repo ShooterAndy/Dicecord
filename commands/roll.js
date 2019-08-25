@@ -24,8 +24,8 @@ module.exports = args => {
     });
     if(!rollMessages || !rollMessages.length ||
         (rollMessages.length === 1 && rollMessages[0].message.trim() === '')) {
-        return args.message.reply('**ERROR:** No dice specified, please input something like:\n`!roll 1d6+2`, or check ' +
-            'out `!help roll` for more info.');
+        return args.message.reply('**ERROR:** No dice specified, please input something like:\n`' + args.prefix +
+            'roll 1d6+2`, or check out `' + args.prefix + 'help roll` for more info.');
     }
     if(rollMessages.length > maxRolls) {
         return args.message.reply('**ERROR:** No more than ' + maxRolls +

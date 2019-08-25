@@ -63,11 +63,11 @@ const processMessage = function(args, lastMessage, formatting) {
         }
     }
     if(!lastMessage || !lastMessage.content) {
-        return args.message.reply('ERROR: No last message found').catch(console.error);
+        return args.message.reply('**ERROR:** No last message found').catch(console.error);
     }
     const indexOfComma = lastMessage.content.indexOf(',');
     if(indexOfComma < 1) {
-        return args.message.reply('ERROR: The last message has non-typical format').catch(console.error);
+        return args.message.reply('**ERROR:** The last message has non-typical format').catch(console.error);
     }
     let message = lastMessage.content.slice(indexOfComma + 2);
 

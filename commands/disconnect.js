@@ -6,7 +6,7 @@ module.exports = args => {
             if(message.author.id !== application.owner.id) {
                 console.error('-- > User ' + message.author.username + '#' + message.author.tag + '(' +
                     message.author.id + ') attempted to disconnect this bot!');
-                return message.reply('ERROR: You cannot use this command.').catch(console.error);
+                return message.reply('**ERROR:** You cannot use this command.').catch(console.error);
             }
             client.destroy().then(() => {
                 console.log('-- > Bot disconnected successfully.');
