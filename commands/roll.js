@@ -366,7 +366,7 @@ const processRoll = function(roll) {
             }
             if(rollPartResult) {
                 rollPartResult.isNegative = isNegative ? !nextPartIsNegative : nextPartIsNegative;
-                if(rollPartResult.ignoredText.length) {
+                if(rollPartResult.ignoredText && rollPartResult.ignoredText.length) {
                     if (!comment.length) {
                         prependComment = false;
                         comment = rollPartResult.ignoredText;
