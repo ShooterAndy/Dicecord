@@ -30,6 +30,8 @@ All the commands this bot responds to should be prefixed with the ```!``` symbol
 * [!shuffle (!s)](help/shuffle.md) &mdash; shuffles a standard deck of 54 cards.
 * [!draw (!d)](help/draw.md) &mdash; draws the requested amount of cards from the deck.
 * [!bbcode](help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
+* [!setprefix](help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild,
+_administrator-only!_ 
 
 ## Changelog
 
