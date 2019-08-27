@@ -1,32 +1,35 @@
-const fs = require('fs');
+const pgHandler = require('../helpers/pgHandler');
+const _ = require('underscore');
+const dbName = 'prefixes';
+const columnNames = ["guild_id", "prefix"];
 
 const Prefixes = module.exports = {
     prefixes: {},
     load: () => {
         return new Promise((resolve, reject) => {
-            fs.readFile('./storage/prefixes.json', 'utf8', function (err, data) {
-                if (!err) {
-                    try {
-                        Prefixes.prefixes = JSON.parse(data);
-                        resolve(Prefixes.prefixes);
-                    }
-                    catch (e) {
-                        console.log('ERROR: Couldn\'t parse the prefixes file: ' + e);
-                        reject(e);
-                    }
-                }
+            pgHandler.selectFromDB(dbName).then((data) => {
+                _.each(data, (item) => {
+                    let values = _.values(item);
+                    Prefixes.prefixes[values[0]] = values[1];
+                });
+                resolve(Prefixes.prefixes);
+            }, (error) => {
+                reject(error);
             });
         });
     },
-    set: (prefixes) => {
+    set: (guildId, prefix) => {
         return new Promise((resolve, reject) => {
-            fs.writeFile('./storage/prefixes.json', JSON.stringify(prefixes), function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
+           pgHandler.insertIntoDB(dbName, columnNames, [guildId, prefix]).then(() => {
+               Prefixes.load().then((data) => {
+                   Prefixes.prefixes = data;
+                   resolve();
+               }, (error) => {
+                   console.error('Couldn\'t read the prefixes file: ' + error);
+               });
+           }, (error) => {
+               reject(error);
+           });
         });
     }
 };

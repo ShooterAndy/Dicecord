@@ -36,14 +36,14 @@ module.exports = args => {
         suggestedPrefix.indexOf('~') !== -1 ||
         suggestedPrefix.indexOf('`') !== -1 ||
         suggestedPrefix.indexOf(':') !== -1 ||
+        suggestedPrefix.indexOf('\'') !== -1 ||
+        suggestedPrefix.indexOf('"') !== -1 ||
         suggestedPrefix.indexOf('||') !== -1) {
-        return args.message.reply('**ERROR:** the prefix can\'t have the Discord-reserved symbols ' +
-            '`@`, `#`, `*`, `_`, `~`, `:`, or `||` (as well as the backtick).')
+        return args.message.reply('**ERROR:** the prefix can\'t have quotation marks and the Discord-reserved symbols '
+            + '`@`, `#`, `*`, `_`, `~`, `:`, or `||` (as well as the backtick).')
     }
 
-    let prefixes = Prefixes.prefixes;
-    prefixes[args.message.guild.id] = suggestedPrefix;
-    Prefixes.set(prefixes).then(() => {
+    Prefixes.set(args.message.guild.id, suggestedPrefix).then(() => {
         return args.message.reply('Prefix successfully set to `' + suggestedPrefix + '`.')
             .catch(console.error);
     }, (err) => {

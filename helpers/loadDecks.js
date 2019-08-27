@@ -1,25 +1,18 @@
-const fs = require('fs');
+const pgHandler = require('./pgHandler');
+const _ = require('underscore');
+const dbName = 'decks';
 
 module.exports = () => {
     return new Promise((resolve, reject) => {
-        fs.readFile('./storage/decks.json', 'utf8', function (err, data) {
-            if (err) {
-                reject('**ERROR:** Couldn\'t read the decks file: ' + err);
-            }
-            else {
-                try {
-                    const decks = JSON.parse(data);
-                    if (!decks) {
-                        reject('**ERROR:** decks file is empty.');
-                    }
-                    else {
-                        resolve(decks);
-                    }
-                }
-                catch(e) {
-                    reject('**ERROR:** Couldn\'t parse the decks file: ' + e);
-                }
-            }
+        pgHandler.selectFromDB(dbName).then((data) => {
+            let decks = {};
+            _.each(data, (item) => {
+                let values = _.values(item);
+                decks[values[0]] = JSON.parse(values[1]);
+            });
+            resolve(decks);
+        }, (error) => {
+            reject(error);
         });
     });
 };

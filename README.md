@@ -43,7 +43,8 @@ See [CHANGELOG.md](CHANGELOG.md) for information on versions.
 * [discordbots API](https://discordbots.org/api/docs) &mdash; API for posting to discordbots.org; 
 * [auto-changelog](https://github.com/CookPete/auto-changelog) &mdash; used to generate the changelog;
 * [underscore.js](https://underscorejs.org/) &mdash; helps managing objects and arrays;
-* [random](https://github.com/transitive-bullshit/random#readme) &mdash; helps with randomization.
+* [random](https://github.com/transitive-bullshit/random#readme) &mdash; helps with randomization;
+* [Heroku PostGres](https://elements.heroku.com/addons/heroku-postgresql) &mdash; stores decks and prefixes.
 
 ## Versioning
 
@@ -64,3 +65,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 * This [very helpful article](https://www.freecodecamp.org/news/how-to-create-a-discord-bot-under-15-minutes-fb2fd0083844/)
 * DiscordBotsList support server users
+* [Heroku](https://heroku.com) for hosting this bot

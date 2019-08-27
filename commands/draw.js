@@ -37,8 +37,13 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
                         text += card + ', ';
                     });
                     text = text.slice(0, -2) + '.';
-                    saveDeck({ deck: deck, message: message });
-                    return message.reply(text).catch(console.error);
+                    saveDeck({ deck: deck, message: message }).then(() => {
+                        return message.reply(text).catch(console.error);
+                    }, (error) => {
+                        console.error('ERROR: Failed to update the deck for channel "' + message.channel.id + '", ' +
+                            error);
+                        return message.reply('**ERROR:** Failed to save the deck.').catch(console.error);
+                    });
                 }
             }
             else {
@@ -46,7 +51,8 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
                     .catch(console.error);
             }
         }, (error) => {
-            return message.reply(error).catch(console.error);
+            console.error('ERROR: Failed to get the deck for channel "' + message.channel.id + '", ' + error);
+            return message.reply('**ERROR:** Failed to get the deck.').catch(console.error);
         });
     }
 };

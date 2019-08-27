@@ -17,5 +17,11 @@ const processShuffleCommand = function (message) {
         'J\u2660', 'Q\u2660', 'K\u2660', 'A\u2660',
         'Joker\u26ab', 'Joker\u26aa'
     ]);
-    saveDeck({ deck: deck, message: message, shuffling: true });
+    saveDeck({ deck: deck, message: message }).then(() => {
+        return message.reply('Deck shuffled!');
+    }, (error) => {
+        console.error('ERROR: Couldn\'t save the deck: ' + error);
+        return message.reply('**ERROR:** Couldn\'t save the deck.')
+            .catch(console.error);
+    });
 };

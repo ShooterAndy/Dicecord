@@ -1,19 +1,14 @@
-const fs = require('fs');
-const loadDecks = require('./loadDecks.js');
+const pgHandler = require('./pgHandler');
+const dbName = 'decks';
+const columnNames = ["channel_id", "deck"];
 
 module.exports = (args) => {
-    loadDecks().then((result) => {
-        const decks = result;
-        decks[args.message.channel.id] = args.deck;
-        fs.writeFile('./storage/decks.json', JSON.stringify(decks), function(err) {
-            if (err) {
-                console.error('Couldn\'t save the decks file: ' + err);
-                return args.message.reply('**ERROR:** Couldn\'t save the decks file.').catch(console.error);
-            } else if(args.shuffling) {
-                return args.message.reply('Deck shuffled!').catch(console.error);
-            }
+    return new Promise((resolve, reject) => {
+        pgHandler.insertIntoDB(dbName, columnNames,
+            [args.message.channel.id, JSON.stringify(args.deck)]).then(() => {
+            resolve();
+        }, (error) => {
+            reject(error);
         });
-    }, (error) => {
-        return args.message.reply(error).catch(console.error);
     });
 };
