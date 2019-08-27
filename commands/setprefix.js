@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const fs = require('fs');
 const maxPrefixLength = 8;
 const Prefixes = require('../helpers/prefixes');
 
