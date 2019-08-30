@@ -8,6 +8,9 @@ module.exports = (client, message, commands, prefixes) => {
     if(message.author.bot) { // Do not reply to bots
         return;
     }
+    if(message.author.id === '393096318123245578') { // Do not reply to assholes
+        return;
+    }
 
     let prefix = defaultPrefix;
     if(message.guild) {
