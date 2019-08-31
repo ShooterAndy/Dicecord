@@ -34,7 +34,7 @@ module.exports = (client, message, commands, prefixes) => {
                     message.channel.name + ' (' + message.channel.id + ')');
                 return;
             }
-            const commandText = message.content.slice(commandName.length + 1).trim();
+            const commandText = message.content.slice(commandName.length + prefix.length).trim();
             return commands[commandName.toLowerCase()]({
                 message: message,
                 commandText: commandText,

@@ -21,7 +21,7 @@ module.exports = args => {
             ' symbols.').catch(console.error);
     }
 
-    if(suggestedPrefix.indexOf('/\s/g') !== -1) {
+    if(suggestedPrefix.match(/\s/g)) {
         return args.message.reply('**ERROR:** the prefix can\'t have any white-space symbols in it.')
     }
 
