@@ -882,6 +882,9 @@ const processFudgeDie = function (die, isNegative) {
 };
 
 const roll = function (die) {
+    if(die === 0) {
+        return 0;
+    }
     return random.integer(1, die); //Math.floor((Math.random() * die) + 1);
 };
 
