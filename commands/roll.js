@@ -46,7 +46,12 @@ const processRollMessages = function (message, rollMessages) {
             const rollResults = processRoll(rollMessages[i].message);
             if(previousSuccess || !rollMessages[i].onSuccess) {
                 if(rollResults && rollResults.text) {
-                    if(i !== 0) {
+                    if(i === 0) {
+                        // We start each reply with a new line
+                        replyText += '\n';
+                    }
+                    else {
+                        // And then start each new roll by ending the previous roll text with a punctuation mark
                         if(rollMessages[i].onSuccess && !previousAoE) {
                             replyText += ', ';
                         }
@@ -55,9 +60,6 @@ const processRollMessages = function (message, rollMessages) {
                                 replyText += ';\n';
                             }
                         }
-                    }
-                    else {
-                        replyText += '\n';
                     }
                     replyText += rollResults.text;
                     previousSuccess = rollResults.success;
@@ -76,11 +78,13 @@ const processRollMessages = function (message, rollMessages) {
                 }
             }
             else {
-                if(i === rollMessages.length - 1) {
-                    replyText += '.';
-                }
-                else {
-                    replyText += ';\n';
+                if(rollResults.success) {
+                    if (i === rollMessages.length - 1) {
+                        replyText += '.';
+                    }
+                    else {
+                        replyText += ';\n';
+                    }
                 }
             }
         }

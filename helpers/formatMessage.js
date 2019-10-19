@@ -6,6 +6,10 @@ module.exports = args => {
     _.each(args.client.channels.array(), (channel) => {
         clientChannels += channel.id + ', ';
     });
+    let messageId = null;
+    if(args.commandText.trim().length > 0) {
+        messageId = args.commandText.trim();
+    }
     channel.fetchMessages().then(messages => {
         const messagesArray = _.sortBy(messages.array(), (message) => { return -message.createdTimestamp; });
         let rollMessage = null;
@@ -13,19 +17,76 @@ module.exports = args => {
             if (messagesArray[i].author.id === args.client.user.id) {
                 if((messagesArray.length > i + 1) &&
                     messagesArray[i + 1] && messagesArray[i + 1].content.trim().toLowerCase().startsWith('!r')) {
-                    rollMessage = messagesArray[i];
-                    break;
+                    if (messageId) {
+                       if(messagesArray[i].id === messageId) {
+                           rollMessage = messagesArray[i];
+                           break;
+                       }
+                    }
+                    else {
+                        rollMessage = messagesArray[i];
+                        break;
+                    }
                 }
             }
         }
         if(!rollMessage) {
-            args.message.reply('could not find the last roll message.');
+            if(messageId) {
+                args.message.reply('could not find the roll message with the requested id on this channel.');
+            }
+            else {
+                args.message.reply('could not find the last roll message.');
+            }
         }
         else {
             processMessage(args, rollMessage, args.formatting);
         }
     }).catch(console.error);
 };
+
+const processList = function(message, listStart, listEnd, listItemStart, listItemEnd) {
+    const indexOfListStart = message.indexOf(' * Roll ');
+    if(indexOfListStart >= 0) {
+        const messageParts = message.split(' * Roll');
+        if(messageParts.length > 1) {
+            const indexOfListEnd = messageParts[messageParts.length - 1].indexOf('\n');
+            messageParts[0] = messageParts[0].slice(indexOfListStart);
+            messageParts[messageParts.length - 1] = messageParts[messageParts.length - 1].slice(0, indexOfListEnd);
+            let messagePartsLength = 0;
+            for(let i = 0; i < messageParts.length - 1; i++) {
+                messagePartsLength += messageParts[i].length + 7;
+            }
+            let AoEmessage = '';
+            _.each(messageParts, function (messagePart, i) {
+                if(messagePart.trim().length > 0) {
+                    if(i > 0) {
+                        const indexOfLineEnd = messagePart.indexOf('\n');
+                        AoEmessage += listItemStart + 'Roll' +
+                            (indexOfLineEnd === -1 ? messagePart : messagePart.slice(0, indexOfLineEnd));
+                        if(i === messageParts.length - 1) {
+                            AoEmessage += listItemEnd + listEnd;
+                        }
+                        else {
+                            AoEmessage += listItemEnd;
+                        }
+                    }
+                    else {
+                        AoEmessage += messagePart;
+                    }
+                }
+            });
+
+            if(indexOfListEnd !== -1) {
+                message = message.slice(0, indexOfListStart) + listStart + AoEmessage +
+                    message.slice(indexOfListStart + messagePartsLength + indexOfListEnd);
+            }
+            else {
+                message = message.slice(0, indexOfListStart) + listStart + AoEmessage;
+            }
+        }
+    }
+    return message;
+}
 
 const processMessage = function(args, lastMessage, formatting) {
     let boldStart, boldEnd, italicsStart, italicsEnd, listStart, listEnd, listItemStart, listItemEnd, codeStart,
@@ -77,45 +138,22 @@ const processMessage = function(args, lastMessage, formatting) {
     message = message.replace(/_(.*?(?:_|$))/gm, italicsStart + '$1').replace(/_/gm, italicsEnd);
     message = message.replace(/\*\*(.*?(?:\*\*|$))/gm, boldStart + '$1').replace(/\*\*/gm, boldEnd);
 
-    const indexOfListStart = message.indexOf('\n * Roll ');
-    if(indexOfListStart >= 0) {
-        const messageParts = message.split(' * Roll');
-        if(messageParts.length > 1) {
-            const indexOfListEnd = messageParts[messageParts.length - 1].indexOf('\n');
-            messageParts[0] = messageParts[0].slice(indexOfListStart);
-            messageParts[messageParts.length - 1] = messageParts[messageParts.length - 1].slice(0, indexOfListEnd);
-            let messagePartsLength = 0;
-            for(let i = 0; i < messageParts.length - 1; i++) {
-                messagePartsLength += messageParts[i].length + 7;
-            }
-            let AoEmessage = '';
-            _.each(messageParts, function (messagePart, i) {
-                if(messagePart.trim().length > 0) {
-                    if(i > 0) {
-                        const indexOfLineEnd = messagePart.indexOf('\n');
-                        AoEmessage += listItemStart + 'Roll' +
-                            (indexOfLineEnd === -1 ? messagePart : messagePart.slice(0, indexOfLineEnd));
-                        if(i === messageParts.length - 1) {
-                            AoEmessage += listItemEnd + listEnd;
-                        }
-                        else {
-                            AoEmessage += listItemEnd;
-                        }
-                    }
-                    else {
-                        AoEmessage += messagePart;
-                    }
+    let messageParts = message.split(' rolls):\n');
+    if(messageParts.length) {
+        message = '';
+        message += messageParts[0];
+        _.each(messageParts, (messagePart, i) => {
+            if(i !== 0) {
+                message += ' rolls):';
+                const lastIndexOfListItem = Math.max(messagePart.lastIndexOf(';\n'), messagePart.lastIndexOf('.'));
+                let restOfMessage = '';
+                if (lastIndexOfListItem !== -1) {
+                    restOfMessage = messagePart.slice(lastIndexOfListItem + 2);
+                    messagePart = messagePart.slice(0, lastIndexOfListItem + 2);
                 }
-            });
-
-            if(indexOfListEnd !== -1) {
-                message = message.slice(0, indexOfListStart) + listStart + AoEmessage +
-                    message.slice(indexOfListStart + messagePartsLength + indexOfListEnd);
+                message += processList(messagePart, listStart, listEnd, listItemStart, listItemEnd) + restOfMessage;
             }
-            else {
-                message = message.slice(0, indexOfListStart) + listStart + AoEmessage;
-            }
-        }
+        });
     }
 
     message = message.slice(1);
