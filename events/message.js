@@ -43,7 +43,7 @@ module.exports = (client, message, commands, prefixes) => {
             });
         }
         else {
-            if(message.channel.guild.id !== '264445053596991498' /* Bot List channel */ && hasPermissions) {
+            if(hasPermissions && !(message.guild && message.guild.id === '264445053596991498' /* Bot List channel */)) {
                 return message.reply('Command "' + commandName + '" not found.').catch(console.error);
             }
         }
