@@ -3,7 +3,7 @@ const maxPrefixLength = 8;
 const Prefixes = require('../helpers/prefixes');
 
 module.exports = args => {
-    if(!args.message.member.hasPermission('ADMINISTRATOR')) {
+    if(!args.message.member || !args.message.member.hasPermission('ADMINISTRATOR')) {
         return args.message.reply('**ERROR:** only a guild administrator can change the prefix for this guild.')
             .catch(console.error);
     }
