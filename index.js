@@ -19,6 +19,14 @@ fs.readdir('./commands/', (err, files) => {
     });
 });
 
+const tryToLogIn = function() {
+    console.info('-- > Trying to log in...');
+    client.login(process.env.BOT_TOKEN).catch(error => {
+        console.error('Couldn\'t log in: ' + error);
+        tryToLogIn();
+    });
+};
+
 Prefixes.load().then((data) => {
     prefixes = data;
 
@@ -29,7 +37,7 @@ Prefixes.load().then((data) => {
             client.on(eventName, arg => eventHandler(client, arg, commands, prefixes));
         });
 
-        client.login(process.env.BOT_TOKEN);
+        tryToLogIn();
     });
 }, (error) => {
     console.error('Couldn\'t read the prefixes file: ' + error);
