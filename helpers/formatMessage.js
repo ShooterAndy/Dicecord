@@ -3,14 +3,14 @@ const _ = require('underscore');
 module.exports = args => {
     const channel = args.message.channel;
     let clientChannels = '';
-    _.each(args.client.channels.array(), (channel) => {
+    _.each(args.client.channels.cache.array(), (channel) => {
         clientChannels += channel.id + ', ';
     });
     let messageId = null;
     if(args.commandText.trim().length > 0) {
         messageId = args.commandText.trim();
     }
-    channel.fetchMessages().then(messages => {
+    channel.messages.fetch().then(messages => {
         const messagesArray = _.sortBy(messages.array(), (message) => { return -message.createdTimestamp; });
         let rollMessage = null;
         for(let i = 0; i < messagesArray.length; i++) {
