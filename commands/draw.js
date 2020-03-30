@@ -10,7 +10,7 @@ module.exports = args => {
 
 const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
     let text = '';
-    if (isNaN(numberOfCardsToDraw)) {
+    if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
         return message.reply('**ERROR:** "' + numberOfCardsToDraw + '" is not a valid number of cards to draw.')
             .catch(console.error);
     }
