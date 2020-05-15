@@ -1,22 +1,16 @@
 # Dicecord
 
-Dicecord is a bot for the [Discord](https://discordapp.com/) instant messenger that is made to help dealing with various
-things that require randomization, such as dice rolls, card draws, etc.  
+Dicecord is a bot for the [Discord](https://discordapp.com/) instant messenger that is made to help dealing with various things that require randomization, such as dice rolls, card draws, etc.  
 
 ## Getting Started
 
-Getting this bot on your Discord server is very easy: all you need to do in a normal situation is open 
-[this link](https://discordapp.com/api/oauth2/authorize?client_id=572698679618568193&scope=bot&permissions=0) and allow
-the bot to join a server you'll select in the page that you'll see there.
+Getting this bot on your Discord server is very easy: all you need to do in a normal situation is open [this link](https://discordapp.com/api/oauth2/authorize?client_id=572698679618568193&scope=bot&permissions=0) and allow the bot to join a server you'll select in the page that you'll see there.
 
 ### Prerequisites
 
-Just remember that to do this, you need to have permission to invite users to the server you've selected, and for the
-bot to function properly, it would need to have permissions to read and write the messages in the channel you want it to
- reply at.
+Just remember that to do this, you need to have permission to invite users to the server you've selected, and for the bot to function properly, it would need to have permissions to read and write the messages in the channel you want it to reply at.
  
-If you'e not the administrator of the server you want Dicecord to join, you should ask the administrator to either 
-invite it themselves, or to give you (and the bot) the required permissions.
+If you'e not the administrator of the server you want Dicecord to join, you should ask the administrator to either invite it themselves, or to give you (and the bot) the required permissions.
 
 ## Commands
 
@@ -29,9 +23,14 @@ All the commands this bot responds to should be prefixed with the ```!``` symbol
 * [!pick (!p)](help/pick.md) &mdash; picks a random item from a comma-separated list.
 * [!shuffle (!s)](help/shuffle.md) &mdash; shuffles a standard deck of 54 cards.
 * [!draw (!d)](help/draw.md) &mdash; draws the requested amount of cards from the deck.
+* [!drawshuffled (!drsh)](help/drawshuffled.md) &mdash; allows you to draw a number of cards from a freshly shuffled deck.
 * [!bbcode](help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
-* [!setprefix](help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild,
-_administrator-only!_ 
+* [!markdown (!md)](help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
+* [!setprefix](help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild, _administrator-only!_ 
+
+## Settings
+
+See the [settings page](help/settings.md) for details.
 
 ## Changelog
 
@@ -54,8 +53,7 @@ See [CHANGELOG.md](CHANGELOG.md) for information on versions.
 
 * **Andrey Larionov** - *Initial work* - [ShooterAndy](https://github.com/ShooterAndy)
 
-See also the list of [contributors](https://github.com/ShooterAndy/Dicecord/contributors) (if any) who participated in 
-this project.
+See also the list of [contributors](https://github.com/ShooterAndy/Dicecord/contributors) who participated in this project.
 
 ## License
 

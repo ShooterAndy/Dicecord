@@ -43,8 +43,33 @@ module.exports = (client, message, commands, prefixes) => {
             });
         }
         else {
-            if(hasPermissions && !(message.guild && message.guild.id === '264445053596991498' /* Bot List channel */)) {
-                return message.reply('Command "' + commandName + '" not found.').catch(console.error);
+            const sendNotFoundErrorMessage = () => {
+                if(hasPermissions &&
+                  !(
+                    message.guild &&
+                    message.guild.id === '264445053596991498' /* Bot List channel */
+                  )) {
+                    return message.reply('Command "' + commandName + '" not found.')
+                      .catch(console.error);
+                }
+            };
+            if (message.guild) {
+                message.guild.roles.fetch().then((roles) => {
+                    const dontShowNotFoundErrorRole = roles.cache.array().find(
+                      (role) => role.name === 'DICECORD_NO_NOT_FOUND'
+                    );
+                    if (dontShowNotFoundErrorRole) {
+                        const hasDontShowNotFoundErrorRole =
+                          !!message.guild.member(client.user).roles.cache.array().find(
+                          (role) => role.id === dontShowNotFoundErrorRole.id
+                        );
+                        if (!hasDontShowNotFoundErrorRole) {
+                            sendNotFoundErrorMessage();
+                        }
+                    }
+                }).catch(console.error);
+            } else {
+                sendNotFoundErrorMessage();
             }
         }
     }
