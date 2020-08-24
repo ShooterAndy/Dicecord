@@ -6,8 +6,31 @@ const pgHandler = module.exports = {
         ssl: true,
     }),
     init: () => {
-        pgHandler.client.connect();
-        console.log('-- > Successfully connected to the PostGres database');
+        return new Promise((resolve, reject) => {
+            pgHandler.connect().then(() => resolve()).catch(err => {
+                console.error(
+                  '-- > Failed to connect to PostGres database:\n' + err ? err.stack || err : '—');
+                pgHandler.init();
+            });
+        });
+    },
+    connect: () => {
+        return new Promise((resolve, reject) => {
+            console.log('-- > Trying to connect to the PostGres database...');
+            pgHandler.client.connect()
+                .then(() => {
+                    console.log('-- > Successfully connected to the PostGres database');
+                    pgHandler.client.on('notice', msg => console.warn(
+                      'PostGres client warning: ', msg));
+                    pgHandler.client.on('error', err => {
+                        console.error(
+                          '-- > PostGres client error:\n', err ? err.stack || err : '—');
+                        pgHandler.init();
+                    });
+                    resolve();
+                })
+                .catch(err => reject(err));
+        });
     },
     selectFromDB: (dbName) => {
         return new Promise((resolve, reject) => {
