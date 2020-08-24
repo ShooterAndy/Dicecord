@@ -5,13 +5,16 @@ const _ = require('underscore');
 module.exports = args => {
     const numberOfCardsToDraw = args.commandText.trim().split(' ')[0];
     const comment = args.commandText.trim().slice(numberOfCardsToDraw.length).trim();
-    processDrawCommand(args.message, numberOfCardsToDraw, comment);
+    const verb = args.verb || 'draw';
+    processDrawCommand(args.message, numberOfCardsToDraw, comment, verb);
 };
 
-const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
+const processDrawCommand = function (message, numberOfCardsToDraw, comment, verb) {
     let text = '';
+    const pastVerb = verb === 'deal' ? 'dealt' : 'drew';
     if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
-        return message.reply('**ERROR:** "' + numberOfCardsToDraw + '" is not a valid number of cards to draw.')
+        return message.reply('**ERROR:** "' + numberOfCardsToDraw +
+          '" is not a valid number of cards to ' + verb + '.')
             .catch(console.error);
     }
     else {
@@ -22,14 +25,15 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
 
                 if (deck.length < numberOfCardsToDraw) {
                     return message.reply('**ERROR:** Not enough cards left in the deck (requested ' +
-                        numberOfCardsToDraw +
-                        ', but only ' + deck.length + ' cards left). Reshuffle or draw fewer cards.')
+                        numberOfCardsToDraw + ', but only ' + deck.length +
+                        ' cards left). Reshuffle or ' + verb + ' fewer cards.')
                         .catch(console.error);
                 }
                 else {
                     let drawnCards = deck.slice(0, numberOfCardsToDraw);
                     deck = deck.slice(numberOfCardsToDraw);
-                    text = 'You drew ' + numberOfCardsToDraw + ' cards from the deck (' + deck.length + ' left): ';
+                    text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw +
+                        ' cards from the deck (' + deck.length + ' left): ';
                     if (comment) {
                         text += '\n`' + comment + ':`';
                     }
@@ -40,9 +44,10 @@ const processDrawCommand = function (message, numberOfCardsToDraw, comment) {
                     saveDeck({ deck: deck, message: message }).then(() => {
                         return message.reply(text).catch(console.error);
                     }, (error) => {
-                        console.error('ERROR: Failed to update the deck for channel "' + message.channel.id + '", ' +
-                            error);
-                        return message.reply('**ERROR:** Failed to save the deck.').catch(console.error);
+                        console.error('ERROR: Failed to update the deck for channel "' +
+                            message.channel.id + '", ' + error);
+                        return message.reply('**ERROR:** Failed to save the deck.')
+                            .catch(console.error);
                     });
                 }
             }
