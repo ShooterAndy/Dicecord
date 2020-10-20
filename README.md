@@ -10,31 +10,33 @@ Getting this bot on your Discord server is very easy: all you need to do in a no
 
 Just remember that to do this, you need to have permission to invite users to the server you've selected, and for the bot to function properly, it would need to have permissions to read and write the messages in the channel you want it to reply at.
  
-If you'e not the administrator of the server you want Dicecord to join, you should ask the administrator to either invite it themselves, or to give you (and the bot) the required permissions.
+If you're not the administrator of the server you want Dicecord to join, you should ask the administrator to either invite it themselves, or to give you (and the bot) the required permissions.
 
 ## Commands
 
 All the commands this bot responds to should be prefixed with the ```!``` symbol. The currently available commands are:
 
-* ```!help``` &mdash; provides information about this bot. Add a command name to learn more about it, like 
-```!help roll```.
-* [!roll (!r)](help/roll.md) &mdash; rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
-* [!order (!o)](help/order.md) — randomly re-orders a comma-separated list.
-* [!pick (!p)](help/pick.md) &mdash; picks a random item from a comma-separated list.
-* [!shuffle (!s)](help/shuffle.md) &mdash; shuffles a standard deck of 54 cards.
-* [!draw (!d)](help/draw.md) &mdash; draws the requested amount of cards from the deck.
-* [!drawshuffled (!drsh)](help/drawshuffled.md) &mdash; allows you to draw a number of cards from a freshly shuffled deck.
-* [!bbcode](help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
-* [!markdown (!md)](help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
-* [!setprefix](help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild, _administrator-only!_ 
+* ```!help``` &mdash; provides information about this bot. Add a command name to learn more about it, like ```!help roll```.
+* [!roll (!r)](https://github.com/ShooterAndy/Dicecord/blob/master/help/roll.md) &mdash; rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
+* [!order (!o)](https://github.com/ShooterAndy/Dicecord/blob/master/help/order.md) — randomly re-orders a comma-separated list.
+* [!pick (!p)](https://github.com/ShooterAndy/Dicecord/blob/master/help/pick.md) &mdash; picks a random item from a comma-separated list.
+* [!listDeckTypes (!ldt)](https://github.com/ShooterAndy/Dicecord/blob/master/help/listdecktypes.md) &mdash; lists all existing deck types.
+* [!examineDeck (!ed)](https://github.com/ShooterAndy/Dicecord/blob/master/help/examinedeck.md) &mdash; shows a brief description of the requested type of deck (optionally can show the list of cards).
+* [!shuffle (!s)](https://github.com/ShooterAndy/Dicecord/blob/master/help/shuffle.md) &mdash;  shuffles a deck of cards of a specific type and saves it.
+* [!draw (!d)](https://github.com/ShooterAndy/Dicecord/blob/master/help/draw.md) &mdash; draws the requested amount of cards from the saved deck.
+* [!deal](https://github.com/ShooterAndy/Dicecord/blob/master/help/deal.md) &mdash; deals the requested amount of cards from the saved deck.
+* [!drawShuffled (!drsh)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawshuffled.md) &mdash; draws the requested amount of cards from a fresh deck.
+* [!bbcode](https://github.com/ShooterAndy/Dicecord/blob/master/help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
+* [!markdown (!md)](https://github.com/ShooterAndy/Dicecord/blob/master/help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
+* [!setPrefix](https://github.com/ShooterAndy/Dicecord/blob/master/help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild, _administrator-only!_ 
 
 ## Settings
 
-See the [settings page](help/settings.md) for details.
+See the [settings page](https://github.com/ShooterAndy/Dicecord/blob/master/help/settings.md) for details.
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for information on versions.
+See [CHANGELOG.md](https://github.com/ShooterAndy/Dicecord/blob/master/CHANGELOG.md) for information on versions.
 
 ## Built With
 
@@ -44,6 +46,7 @@ See [CHANGELOG.md](CHANGELOG.md) for information on versions.
 * [underscore.js](https://underscorejs.org/) &mdash; helps managing objects and arrays;
 * [random](https://github.com/transitive-bullshit/random#readme) &mdash; helps with randomization;
 * [Heroku PostGres](https://elements.heroku.com/addons/heroku-postgresql) &mdash; stores decks and prefixes.
+* [pg-promise](https://github.com/vitaly-t/pg-promise) &mdash; allows for much simpler and more convenient code for PostGres quieries.
 
 ## Versioning
 
@@ -57,7 +60,7 @@ See also the list of [contributors](https://github.com/ShooterAndy/Dicecord/cont
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ShooterAndy/Dicecord/blob/master/LICENSE.md) file for details
 
 ## Acknowledgments
 
