@@ -42,7 +42,14 @@ const processDrawShuffledCommand = async (message, numberOfCardsToDraw, deckId, 
     else {
       let text = '';
       let drawnCards = deck.slice(0, numberOfCardsToDraw);
-      text = 'Here are your ' + numberOfCardsToDraw + ' cards from a `' + deckId + '` deck: ';
+      let isOrAre = ' are';
+      let cardOrCards = 'cards';
+      if (numberOfCardsToDraw === 1) {
+        isOrAre = '\'s';
+        cardOrCards = 'card';
+      }
+      text = 'Here' + isOrAre + ' your ' + numberOfCardsToDraw + ' ' + cardOrCards + ' from a `' +
+        deckId + '` deck: ';
       if (comment) {
         text += '\n`' + comment + ':` ';
       }

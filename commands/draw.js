@@ -48,8 +48,12 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb) =
       } else {
         let drawnCards = deck.slice(0, numberOfCardsToDraw);
         deck = deck.slice(numberOfCardsToDraw);
-        text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw +
-          ' cards from the deck (' + deck.length + ' left): ';
+        let cardOrCards = 'cards';
+        if (numberOfCardsToDraw === 1) {
+          cardOrCards = 'card';
+        }
+        text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw + ' ' + cardOrCards +
+          ' from the deck (' + deck.length + ' left): ';
         if (comment) {
           text += '\n`' + comment + ':`';
         }
