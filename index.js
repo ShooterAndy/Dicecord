@@ -7,39 +7,46 @@ const client = new Discord.Client();
 let commands = {};
 let prefixes = {};
 
-const pgHandler = require('./helpers/pgHandler');
+fs.readdir('./commands/', (err, files) => {
+    files.forEach(file => {
+        const commandHandler = require(`./commands/${file}`);
+        const commandName = file.split('.')[0];
 
-pgHandler.init().then(() => {
-    fs.readdir('./commands/', (err, files) => {
-        files.forEach(file => {
-            const commandHandler = require(`./commands/${file}`);
-            const commandName = file.split('.')[0];
-
-            commands[commandName] = commandHandler;
-        });
-    });
-
-    const tryToLogIn = function() {
-        console.info('-- > Trying to log in...');
-        client.login(process.env.BOT_TOKEN).catch(error => {
-            console.error('Couldn\'t log in: ' + error);
-            tryToLogIn();
-        });
-    };
-
-    Prefixes.load().then((data) => {
-        prefixes = data;
-
-        fs.readdir('./events/', (err, files) => {
-            files.forEach(file => {
-                const eventHandler = require(`./events/${file}`);
-                const eventName = file.split('.')[0];
-                client.on(eventName, arg => eventHandler(client, arg, commands, prefixes));
-            });
-
-            tryToLogIn();
-        });
-    }, (error) => {
-        console.error('Couldn\'t read the prefixes file: ' + error);
+        commands[commandName] = commandHandler;
     });
 });
+
+const tryToLogIn = function(errorsCount, previousError, currentError) {
+    if (currentError) {
+        previousError = currentError;
+        errorsCount++;
+    }
+    client.login(process.env.BOT_TOKEN).then(() => {
+        if (errorsCount) {
+            console.error(
+              `-- > Had ${errorsCount} errors trying to log in, the latest being:\n${previousError}`);
+        }
+    }).catch(error => {
+        tryToLogIn(errorsCount, previousError, error);
+    });
+};
+
+const readyBasics = async () => {
+    try {
+        prefixes = await Prefixes.load();
+    } catch (error) {
+        console.error('Couldn\'t read the prefixes table: ' + error);
+    }
+    fs.readdir('./events/', (err, files) => {
+        files.forEach(file => {
+            const eventHandler = require(`./events/${file}`);
+            const eventName = file.split('.')[0];
+            client.on(eventName, arg => eventHandler(client, arg, commands, prefixes));
+        });
+
+        console.info('-- > Trying to log in...');
+        tryToLogIn(0, null, null);
+    });
+}
+
+readyBasics();

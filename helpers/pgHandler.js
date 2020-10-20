@@ -1,101 +1,54 @@
-const postGres = require('pg');
+const PostGresPromise = require('pg-promise')({});
+const prefix = 'public';
 
 const pgHandler = module.exports = {
-    client: new postGres.Client({
-        connectionString: process.env.DATABASE_URL,
-        ssl: true,
-    }),
-    init: () => {
-        return new Promise((resolve, reject) => {
-            pgHandler.connect().then(() => resolve()).catch(err => {
-                console.error(
-                  '-- > Failed to connect to PostGres database:\n' + err ? err.stack || err : '—');
-                pgHandler.init();
-            });
-        });
+    db: PostGresPromise(process.env.DATABASE_URL + '?ssl=true'),
+    async any(dbName, query, columns) {
+        if (!columns) {
+            columns = '*';
+        }
+        if (!query) {
+            query = '';
+        } else {
+            query = ' ' + query;
+        }
+        try {
+            return await pgHandler.db.any(
+              `SELECT ${columns} FROM ${prefix}.${dbName}${query}`);
+        } catch(error) {
+            throw error;
+        }
     },
-    connect: () => {
-        return new Promise((resolve, reject) => {
-            console.log('-- > Trying to connect to the PostGres database...');
-            pgHandler.client.connect()
-                .then(() => {
-                    console.log('-- > Successfully connected to the PostGres database');
-                    pgHandler.client.on('notice', msg => console.warn(
-                      'PostGres client warning: ', msg));
-                    pgHandler.client.on('error', err => {
-                        console.error(
-                          '-- > PostGres client error:\n', err ? err.stack || err : '—');
-                        pgHandler.init();
-                    });
-                    resolve();
-                })
-                .catch(err => reject(err));
-        });
+    async one(dbName, query, columns) {
+        if (!columns) {
+            columns = '*';
+        }
+        if (!query) {
+            query = '';
+        } else {
+            query = ' ' + query;
+        }
+        try {
+            return await pgHandler.db.one(
+              `SELECT ${columns} FROM ${prefix}.${dbName}${query}`);
+        } catch(error) {
+            throw error;
+        }
     },
-    selectFromDB: (dbName) => {
-        return new Promise((resolve, reject) => {
-            pgHandler.client.query('SELECT * FROM public.' + dbName, (err, res) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(res.rows);
-                }
+    async upsert(dbName, idColumn, dataColumns, idValue, dataValues) {
+        try {
+            const columns = idColumn + ',' + dataColumns.join(',');
+            const values = '\'' + idValue +  '\',\'' + dataValues.join('\',\'') + '\'';
+            const updateArray = [];
+            dataColumns.forEach(dc => {
+                updateArray.push(`${dc} = excluded.${dc}`)
             });
-        });
-    },
-    insertIntoDB: (dbName, columnNames, values) => {
-        return new Promise((resolve, reject) => {
-            const query = "SELECT * FROM public." + dbName + " WHERE ";
-            const whereClause = columnNames[0] + " = '" + values[0] + "'";
-
-            //console.log(query + whereClause + ';');
-            pgHandler.client.query(query + whereClause + ';', (err, res) => {
-                if(err) {
-                    reject(err);
-                }
-                else if(!res.rows || !res.rows.length) {
-                    let insertQuery = "INSERT INTO public." + dbName +
-                        " (" + JSON.stringify(columnNames).slice(1, -1).replace(/"/g, '') +
-                        ") VALUES (" ;
-
-                    let valuesText = '';
-                    for(let i = 0; i < values.length; i++) {
-                        valuesText += "'" + values[i] + "'";
-                        if(i < values.length - 1) {
-                            valuesText += ', ';
-                        }
-                    }
-                    //console.log(insertQuery + valuesText + ');');
-                    pgHandler.client.query(insertQuery + valuesText + ');', (err) => {
-                        if(err) {
-                            reject(err);
-                        }
-                        else {
-                            resolve();
-                        }
-                    });
-                }
-                else {
-                    const updateQuery = "UPDATE public." + dbName + " SET ";
-                    let updateFields = '';
-                    for(let i = 1; i < columnNames.length; i++) {
-                        updateFields += columnNames[i] + " = '" + values[i] + "'";
-                        if(i < columnNames.length - 1) {
-                            updateFields += ', ';
-                        }
-                    }
-                    //console.log(updateQuery + updateFields + " WHERE " + whereClause + ';');
-                    pgHandler.client.query(updateQuery + updateFields + " WHERE " + whereClause + ';', (err) => {
-                        if(err) {
-                            reject(err);
-                        }
-                        else {
-                            resolve();
-                        }
-                    });
-                }
-            });
-        })
+            const updateString = updateArray.join(',');
+            const query = `INSERT INTO ${prefix}.${dbName} (${columns}) VALUES (${values}) ` +
+              `ON CONFLICT (${idColumn}) DO UPDATE SET ${updateString}`;
+            return await pgHandler.db.none(query);
+        } catch(error) {
+            throw error;
+        }
     }
 };
