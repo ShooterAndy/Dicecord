@@ -8,4 +8,10 @@ module.exports.POKER_DECK = [
     '2\u2664', '3\u2664', '4\u2664', '5\u2664', '6\u2664', '7\u2664', '8\u2664', '9\u2664', '10\u2664',
     'J\u2664', 'Q\u2664', 'K\u2664', 'A\u2664',
     'Joker(R)', 'Joker(B)'
-]
+];
+module.exports.DEFAULT_DECK_TYPE = 'poker';
+module.exports.DECK_TYPES_DB_NAME = 'deck_types';
+module.exports.DECK_TYPES_COLUMNS = { id: 'id', deck: 'deck', description: 'description' };
+
+module.exports.DECKS_DB_NAME = 'decks';
+module.exports.DECKS_COLUMNS = { channel_id: 'channel_id', deck: 'deck', type_id: 'type_id' };

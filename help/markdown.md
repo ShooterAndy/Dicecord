@@ -1,4 +1,4 @@
-**markdown** selects the last message sent by this bot on this channel and tries to convert it to markdown formatting.
+**markdown** (`md`) selects the last message sent by this bot on this channel and tries to convert it to markdown formatting.
 
 Example:
 `!markdown`

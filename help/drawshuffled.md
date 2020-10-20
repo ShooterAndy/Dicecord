@@ -1,5 +1,8 @@
-**drawshuffled** allows you to draw a number of cards from a freshly shuffled deck.
+**drawShuffled** (`drsh`) allows you to draw a number of cards from a freshly shuffled deck of your choosing (`poker` by default).
 The deck that is created by the `!shuffle` command is not affected by the use of this command.
 
-Example:
-`!drawshuffle 3 Some comment` — will show you three random cards (from a standard 54 cards deck) and preface them with your comment.
+See `!help listDeckTypes` to learn more about deck types and how to list them.
+
+Examples:
+* `!drawshuffle 3 ? Some comment` — will show you three random cards (from a standard 54-cards `poker` deck) and preface them with your comment.
+* `!drsh 3 rider-waite Some comment` — will show you three random cards from the Rider-Waite Tarot deck and preface them with your comment.

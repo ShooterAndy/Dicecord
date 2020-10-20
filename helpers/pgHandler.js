@@ -1,17 +1,27 @@
 const PostGresPromise = require('pg-promise')({});
 const prefix = 'public';
 
+const getColumnsList = (columns) => {
+    if (!columns) {
+        columns = '*';
+    }
+    return columns;
+};
+
+const getQuery = (query) => {
+    if (!query) {
+        query = '';
+    } else {
+        query = ' ' + query;
+    }
+    return query;
+};
+
 const pgHandler = module.exports = {
     db: PostGresPromise(process.env.DATABASE_URL + '?ssl=true'),
     async any(dbName, query, columns) {
-        if (!columns) {
-            columns = '*';
-        }
-        if (!query) {
-            query = '';
-        } else {
-            query = ' ' + query;
-        }
+        columns = getColumnsList(columns);
+        query = getQuery(query);
         try {
             return await pgHandler.db.any(
               `SELECT ${columns} FROM ${prefix}.${dbName}${query}`);
@@ -20,16 +30,21 @@ const pgHandler = module.exports = {
         }
     },
     async one(dbName, query, columns) {
-        if (!columns) {
-            columns = '*';
-        }
-        if (!query) {
-            query = '';
-        } else {
-            query = ' ' + query;
-        }
+        columns = getColumnsList(columns);
+        query = getQuery(query);
         try {
             return await pgHandler.db.one(
+              `SELECT ${columns} FROM ${prefix}.${dbName}${query}`);
+        } catch(error) {
+            throw error;
+        }
+    },
+    async oneOrNone(dbName, query, columns) {
+        columns = getColumnsList(columns);
+        query = getQuery(query);
+
+        try {
+            return await pgHandler.db.oneOrNone(
               `SELECT ${columns} FROM ${prefix}.${dbName}${query}`);
         } catch(error) {
             throw error;

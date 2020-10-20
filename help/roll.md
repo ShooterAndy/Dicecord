@@ -1,4 +1,4 @@
-**roll** command is very versatile and allows you to:
+**roll** (`r`) command is very versatile and allows you to:
  * Roll a custom number of dice with a custom number of sides, for example `!roll 3d8` will roll three eight-sided dice;
  * Roll a fudge dice by using `!roll fudge`, or `!roll f`, or `!roll 4dF`;
  * Roll Roll'n'Keep dice, for example `!roll 4k2e9` will roll four ten-sided dice which will explode on 9 and 10, and sum up the 2 highest results.

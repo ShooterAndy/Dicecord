@@ -1,4 +1,4 @@
-**pick** allows you to randomly order a list of comma-separated values.
+**order** (`o`) allows you to randomly order a list of comma-separated values.
 
 Example:
 `!order Alice, Bob, Candy, Denis, ...` — will shuffle the list and return the resulting list to you.
