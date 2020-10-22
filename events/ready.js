@@ -1,8 +1,18 @@
-module.exports = client => {
-    console.log('-- > Logged in as ' + client.user.tag + '!');
+const packageJSON = require('../package.json');
 
-    const pjson = require('../package.json');
-    client.user.setActivity('v' + pjson.version + ', type !help').catch(console.error);
+const tryToSetActivity = async (client) => {
+    try {
+        await client.user.setActivity('v' + packageJSON.version + ', type !help')
+        console.log('-- > Successfully set activity')
+    } catch (error) {
+        await tryToSetActivity(client)
+    }
+}
+
+module.exports = client => {
+    console.log('-- > Successfully logged in as ' + client.user.tag);
+
+    tryToSetActivity(client)
 
     const DBL = require('dblapi.js');
     const dbl = new DBL(process.env.DBL_TOKEN, client);
@@ -14,8 +24,11 @@ module.exports = client => {
         console.log('-- > No shard');
     }
     setInterval(() => {
-        dbl.postStats(client.guilds.cache.size, client.shard ? client.shard.id : null,
-            client.shard ? client.shard.count : null)
-            .then(() => { }).catch(console.error);
+        try {
+            dbl.postStats(client.guilds.cache.size, client.shard ? client.shard.id : null,
+              client.shard ? client.shard.count : null)
+        } catch (error) {
+            console.error('-- > ERROR: Failed to send DBL stats')
+        }
     }, 1800000);
 };

@@ -37,6 +37,7 @@ module.exports = (client, message, commands, prefixes) => {
             const commandText = message.content.slice(commandName.length + prefix.length).trim();
             return commands[commandName.toLowerCase()]({
                 message: message,
+                commandName: commandName,
                 commandText: commandText,
                 client: client,
                 prefix: prefix

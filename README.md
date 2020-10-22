@@ -8,13 +8,17 @@ Getting this bot on your Discord server is very easy: all you need to do in a no
 
 ### Prerequisites
 
-Just remember that to do this, you need to have permission to invite users to the server you've selected, and for the bot to function properly, it would need to have permissions to read and write the messages in the channel you want it to reply at.
+Just remember that to do this, you would need to have the permission to invite users to the server you've selected, and 
+for the bot to function properly, it would need to have the permission to read and write messages in the channel you 
+want it to be at.
  
-If you're not the administrator of the server you want Dicecord to join, you should ask the administrator to either invite it themselves, or to give you (and the bot) the required permissions.
+If you're not the owner or an administrator of the server you want Dicecord to join, you should ask the owner or an 
+administrator to either invite it themselves, or to give you (and the bot) the required permissions.
 
 ## Commands
 
-All the commands this bot responds to should be prefixed with the ```!``` symbol. The currently available commands are:
+All the commands this bot will respond to should be prefixed with the ```!``` symbol (can be changed).
+The currently available commands are:
 
 * ```!help``` &mdash; provides information about this bot. Add a command name to learn more about it, like ```!help roll```.
 * [!roll (!r)](https://github.com/ShooterAndy/Dicecord/blob/master/help/roll.md) &mdash; rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
@@ -36,7 +40,7 @@ See the [settings page](https://github.com/ShooterAndy/Dicecord/blob/master/help
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/ShooterAndy/Dicecord/blob/master/CHANGELOG.md) for information on versions.
+See [CHANGELOG.md](CHANGELOG.md) for the information on specific version changes.
 
 ## Built With
 
@@ -56,7 +60,11 @@ See [CHANGELOG.md](https://github.com/ShooterAndy/Dicecord/blob/master/CHANGELOG
 
 * **Andrey Larionov** - *Initial work* - [ShooterAndy](https://github.com/ShooterAndy)
 
-See also the list of [contributors](https://github.com/ShooterAndy/Dicecord/contributors) who participated in this project.
+## Contributors
+
+* **Harry Pollard** - *Bug-fixing* — [meharryp](https://github.com/meharryp)
+
+The full, up-to-date list of [contributors](https://github.com/ShooterAndy/Dicecord/contributors).
 
 ## License
 
