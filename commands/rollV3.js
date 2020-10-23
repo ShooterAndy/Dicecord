@@ -524,6 +524,7 @@ const processRollFormula = thisThrow => {
   const processRollStructureElement = throwPart => {
     if (throwPart.childThrows.length) {
       throwPart.childThrows.forEach(childThrow => {
+        childThrow.repeatNumber = throwPart.repeatNumber
         processRollStructureElement(childThrow)
       })
     }

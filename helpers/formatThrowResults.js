@@ -41,23 +41,30 @@ const getFormattedTextFromThrows = (throws, format) => {
 }
 
 const getFormattedTextFromThrow = (t, format) => {
-  let text
+  let text = ''
   const formulaText = getFormulaText(t, format)
 
   if (t.repeatNumber && t.repeatNumber > 1) {
-    text = formulaText + ' (' + t.repeatNumber + ' rolls):\n' + format.listStart
+    if (t.comment) {
+      text = format.codeStart + t.comment + ':' + format.codeEnd + format.space
+    }
+    text += formulaText + ' (' + t.repeatNumber + ' rolls):\n' + format.listStart
     for (let i = 0; i < t.repeatNumber; i++) {
-      text += getIntermediateResultsText(t, format, i, t.repeatNumber)
+      if (t.repeatNumber > 1) {
+        text += format.listItemStart + 'Roll ' + (i+1) + ':' + format.space
+      }
+      const intermediateText = getIntermediateResultsText(t, format, i, t.repeatNumber)
+      text += intermediateText
 
       const finalResultText = getFinalResultText(t, format, i, t.repeatNumber)
 
       // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
       // check here for whether the throw consists of only one number (optionally with a minus before)
-      if (text === finalResultText) {
-        text = format.boldStart + finalResultText + format.boldEnd
+      if (formulaText === finalResultText || !intermediateText) {
+        text += format.boldStart + finalResultText + format.boldEnd
       } else {
-        text += format.space + '=' + format.space + format.boldStart + finalResultText +
-          format.boldEnd
+        text += format.space + '=' + format.space + format.boldStart +
+          finalResultText + format.boldEnd
       }
 
       if (i < t.repeatNumber - 1) {
@@ -68,9 +75,12 @@ const getFormattedTextFromThrow = (t, format) => {
     }
     text += format.listEnd
   } else {
+    if (t.comment && !t.shouldAppendComment) {
+      text = format.codeStart + t.comment + ':' + format.codeEnd + format.space
+    }
+    text += formulaText
     const intermediateResultText = getIntermediateResultsText(t, format, 0, 1)
 
-    text = formulaText
     if (intermediateResultText) {
       text += format.space + '=' + format.space + intermediateResultText
     }
@@ -79,11 +89,15 @@ const getFormattedTextFromThrow = (t, format) => {
 
     // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
     // check here for whether the throw consists of only one number (optionally with a minus before)
-    if (text === finalResultText) {
+    if (formulaText === finalResultText) {
       text = format.boldStart + finalResultText + format.boldEnd
     } else {
       text += format.space + '=' + format.space + format.boldStart + finalResultText +
         format.boldEnd
+    }
+
+    if (t.comment && t.shouldAppendComment) {
+      text += format.space + format.codeStart + t.comment + format.codeEnd
     }
   }
 
@@ -140,7 +154,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
         const childThrow = t.childThrows[formulaPart.index]
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
           OPENING_PARENTHESIS +
-          getFormulaText(childThrow, format) +
+          getFormulaText(childThrow, format, showResults, repeatIndex) +
           CLOSING_PARENTHESIS
         break
       }
@@ -313,16 +327,13 @@ const checkForNonStaticParts = (t) => {
     || (result.nonStaticPartsNumber > 0 && result.operandsNumber > 1))
 }
 
-const getIntermediateResultsText = (t, format, index, repeatNumber) => {
+const getIntermediateResultsText = (t, format, index) => {
   let text = ''
 
   if (!checkForNonStaticParts(t)) {
     return text
   }
 
-  if (repeatNumber > 1) {
-    text += format.listItemStart + 'Roll ' + (index+1) + ':' + format.space
-  }
   text += getFormulaText(t, format, true, index)
   return text
 }
