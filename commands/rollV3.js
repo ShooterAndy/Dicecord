@@ -94,7 +94,6 @@ module.exports = args => {
 
   topLevelCatcher(processWholeCommand, args.commandText)
 
-  // TODO: Check for whether any throws remain to proceed
   try {
     if (warnings.length) {
       topLevelCatcher(showWarnings)
@@ -103,7 +102,7 @@ module.exports = args => {
       if (warnings.length) {
         topLevelCatcher(showWarnings)
       } else {
-        reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}))
+        topLevelCatcher(showResults)
       }
     }
   } catch (error) {
@@ -183,7 +182,8 @@ const showWarnings = () => {
 
 const reactToWarningsResponse = (args) => {
   args.warningsMessage.delete().then(() => {
-    if (args.collected.array()[0].name === YES_EMOJI) {
+    console.log(`-- > REACTIONS: ${JSON.stringify(args.collected.array())}`)
+    if (args.collected.array()[0].key === YES_EMOJI) {
       // do stuff
     } else {
       reply(nws`Okay, here's your original message, please copy and edit it as needed:
@@ -260,10 +260,10 @@ const processWholeCommand = unprocessedCommand => {
   }
 
   if (!unprocessedCommand)
-    throw e(`no roll specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
+    throw e(`no throw specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
   const command = unprocessedCommand.trim()
   if (!command)
-    throw e(`no roll specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
+    throw e(`no throw specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
 
   // First we split the command into separate throws
   const separateParts = command.split(getThrowSeparatorRegex())
@@ -294,12 +294,13 @@ const processWholeCommand = unprocessedCommand => {
       // In case something serious was caught, let's remove the throw
       t.markedForDeletion = true
     }
+
     result = catcher(processRepeatThrowPart, t)
     if (result instanceof Warning) {
       // In case something serious was caught, let's remove the throw
       t.markedForDeletion = true
     }
-    // TODO: still need to process other sub-commands before this
+
     result = catcher(processRollFormula, t)
     if (result instanceof Warning) {
       // In case something serious was caught, let's remove the throw
@@ -315,11 +316,11 @@ const processWholeCommand = unprocessedCommand => {
 const separateCommentFromThrow = unprocessedCommand => {
   const thisThrow = {}
   if (!unprocessedCommand)
-    throw w(nws`no roll specified for one or more of the throws separated by the \
+    throw w(nws`no throw specified for one or more of the throws separated by the \
         \`${THROW_SEPARATOR}\` symbol, this throw will be ignored`)
   const command = unprocessedCommand.trim()
   if (!command)
-    throw w(`no roll specified for one or more of the throws separated by the \
+    throw w(`no throw specified for one or more of the throws separated by the \
         \`${THROW_SEPARATOR}\` symbol, this throw will be ignored`)
 
   let indexOfFirstCommentSeparator = command.indexOf(COMMENT_SEPARATOR)
@@ -327,20 +328,20 @@ const separateCommentFromThrow = unprocessedCommand => {
   let shouldAppendComment = false
   let symbol = COMMENT_SEPARATOR
 
-  if (indexOfFirstAppendCommentSeparator > 0
+  if (indexOfFirstAppendCommentSeparator >= 0
     && indexOfFirstAppendCommentSeparator <= indexOfFirstCommentSeparator) {
     indexOfFirstCommentSeparator = indexOfFirstAppendCommentSeparator
     shouldAppendComment = true
     symbol = APPEND_COMMENT_SEPARATOR
   }
 
-  if (indexOfFirstCommentSeparator > 0) {
+  if (indexOfFirstCommentSeparator >= 0) {
     let formula = command.slice(0, indexOfFirstCommentSeparator).trim()
     let comment = command.slice(indexOfFirstCommentSeparator + symbol.length).trim()
-    if (!formula) {
+    /*if (!formula) {
       throw w(nws`no roll specified for one or more of the throws before the \`${symbol}\` \
             symbol, this throw will be ignored`)
-    }
+    }*/
     thisThrow.originalFormula = formula
     if (!comment) {
       addWarning(nws`There was a \`${symbol}\` symbol present in your command, but it \
@@ -574,10 +575,10 @@ const processRollFormula = thisThrow => {
   const result = catcher(processParenthesesForThrowPart, { throwPart: thisThrow })
   if (result) throw result
   // Just in case, let's see if there still is any formula left
-  if (!thisThrow.formula) {
+  /*if (!thisThrow.formula) {
     throw w(nws`Your throw \`${thisThrow.originalFormula}\` appears to be empty, so it will \
         be ignored`)
-  }
+  }*/
   processRollStructureElement(thisThrow)
 
   // TODO: Add a check for whether the throw and its children have any operands
@@ -1612,6 +1613,12 @@ const roll = (dieSides) => {
 /* ================================================================================================
                                         DISPLAYING STUFF
 ================================================================================================ */
+
+const showResults = () => {
+  if (throws && throws.length) {
+    reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}))
+  }
+}
 
 
 /* ================================================================================================

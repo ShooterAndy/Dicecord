@@ -155,8 +155,8 @@ module.exports.THROW_RESULTS_FORMATS = {
     explosion: '💥',
     critical: '✨',
     botch: '🔥',
-    resultsStart: '(',
-    resultsEnd: ')',
+    resultsStart: '[',
+    resultsEnd: ']',
     vs: 'vs',
     conditionalThrowSeparator: '→'
   }

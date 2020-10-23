@@ -39,9 +39,41 @@ const getFormattedTextFromThrows = (throws, format) => {
 }
 
 const getFormattedTextFromThrow = (t, format, nextThrow) => {
+  const isLast = !nextThrow
+  const appendSeparators = (text) => {
+    if (!isLast) {
+      if (nextThrow.isConditional) {
+        text += format.space + format.conditionalThrowSeparator + format.space
+      } else {
+        text += format.throwSeparator
+      }
+    } else {
+      text += format.throwsEnd
+    }
+    return text
+  }
+  if (!t.formulaParts || !t.formulaParts.length) {
+    if (!t.comment) {
+      return ''
+    }
+    return appendSeparators(format.codeStart + t.comment + format.codeEnd)
+  }
+
+  const isSingleNumber = () => {
+    if (t.formulaParts && t.formulaParts.length) {
+      const numberOperands = t.formulaParts.filter(
+        formulaPart => formulaPart.type === FORMULA_PART_TYPES.operands.number)
+      const totalOperands = t.formulaParts.filter(
+        formulaPart => Object.keys(FORMULA_PART_TYPES.operands).indexOf(formulaPart.type) !== -1)
+      if (numberOperands.length === 1 && totalOperands.length === 1) {
+        return true
+      }
+    }
+    return false
+  }
+
   let text = ''
   const formulaText = getFormulaText(t, format)
-  const isLast = !nextThrow
 
   if (t.repeatNumber && t.repeatNumber > 1) {
     if (t.comment) {
@@ -57,9 +89,10 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
 
       const finalResultText = getFinalResultText(t, format, i, t.repeatNumber)
 
-      // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
-      // check here for whether the throw consists of only one number (optionally with a minus before)
-      if (formulaText === finalResultText || !intermediateText) {
+      // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an
+      // actual check here for whether the throw consists of only one number
+      // (optionally with a minus before)
+      if (isSingleNumber() || !intermediateText) {
         text += finalResultText
       } else {
         text += format.space + '=' + format.space + finalResultText
@@ -91,7 +124,7 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
 
     // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
     // check here for whether the throw consists of only one number (optionally with a minus before)
-    if (formulaText === finalResultText) {
+    if (isSingleNumber()) {
       text = finalResultText
     } else {
       text += format.space + '=' + format.space + finalResultText
@@ -101,15 +134,7 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
       text += format.space + format.codeStart + t.comment + format.codeEnd
     }
 
-    if (!isLast) {
-      if (nextThrow.isConditional) {
-        text += format.space + format.conditionalThrowSeparator + format.space
-      } else {
-        text += format.throwSeparator
-      }
-    } else {
-      text += format.throwsEnd
-    }
+    text = appendSeparators(text)
   }
 
   return text
