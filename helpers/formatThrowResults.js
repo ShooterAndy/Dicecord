@@ -270,7 +270,7 @@ const getDiceResultText = (throwResult, throwType) => {
   if (!throwResult) return ''
 
   const getFudgeDiceText = () => {
-    const text = FUDGE_RESULT_SYMBOLS[throwResult.result + 2]
+    const text = FUDGE_RESULT_SYMBOLS[throwResult.result + 1]
     if (!text) return 'ERROR'
     return text
   }
