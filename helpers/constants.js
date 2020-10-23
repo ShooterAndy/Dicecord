@@ -84,11 +84,12 @@ module.exports.YES_EMOJI = '✅'
 module.exports.NO_EMOJI = '🚫'
 
 // These symbols have to be case independent
-module.exports.THROW_SEPARATOR = ';'
 module.exports.COMMENT_SEPARATOR = '?'
 module.exports.APPEND_COMMENT_SEPARATOR = '?!'
 
 // These do not have to be
+module.exports.THROW_SEPARATOR = ';'
+module.exports.THROW_SEPARATOR_VS = '=>'
 module.exports.VERSUS_SEPARATOR = 'vs'
 module.exports.VERSUS_PARTS_SEPARATOR = ','
 module.exports.REPEAT_THROW_SEPARATOR = '|'

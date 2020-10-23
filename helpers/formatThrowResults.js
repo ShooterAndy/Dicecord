@@ -29,17 +29,19 @@ const getFormattedTextFromThrows = (throws, format) => {
   }
 
   let text = format.throwsStart
-  throws.forEach((t, index) => {
-    const throwText = getFormattedTextFromThrow(t, format, (index === throws.length - 1))
+  const filteredThrows = throws.filter(t => !t.isSkipped)
+  filteredThrows.forEach((t, index) => {
+    const throwText = getFormattedTextFromThrow(t, format, filteredThrows[index + 1])
     text += throwText
   })
 
   return text
 }
 
-const getFormattedTextFromThrow = (t, format, isLast) => {
+const getFormattedTextFromThrow = (t, format, nextThrow) => {
   let text = ''
   const formulaText = getFormulaText(t, format)
+  const isLast = !nextThrow
 
   if (t.repeatNumber && t.repeatNumber > 1) {
     if (t.comment) {
@@ -67,6 +69,10 @@ const getFormattedTextFromThrow = (t, format, isLast) => {
         text += ';' + format.listItemEnd + '\n'
       } else {
         text += '.' + format.listItemEnd
+      }
+
+      if (!isLast && (i === t.repeatNumber - 1) && nextThrow.isConditional) {
+        text += format.conditionalThrowSeparator + format.space
       }
     }
     text += format.listEnd
@@ -96,7 +102,11 @@ const getFormattedTextFromThrow = (t, format, isLast) => {
     }
 
     if (!isLast) {
-      text += format.throwSeparator
+      if (nextThrow.isConditional) {
+        text += format.space + format.conditionalThrowSeparator + format.space
+      } else {
+        text += format.throwSeparator
+      }
     } else {
       text += format.throwsEnd
     }
@@ -386,8 +396,12 @@ const getFinalResultText = (t, format, index) => {
   }
 
   if (t.vsValues && t.vsValues[index]) {
-    text += format.space + format.vs + format.space + t.vsValues[index].finalResults[0] + ',' +
-      format.space
+    text += format.space + format.vs + format.space
+    const intermediateVsResult = getIntermediateResultsText(t.vsValues[index], format, index)
+    if (intermediateVsResult) {
+      text += intermediateVsResult + format.space + '=' + format.space
+    }
+    text += t.vsValues[index].finalResults[0] + ',' + format.space
     if (t.vsResults && t.vsResults[index]) {
       switch(t.vsResults[index]) {
         case VS_CHECK_RESULTS.success: {

@@ -44,6 +44,7 @@ const {
   NO_EMOJI,
 
   THROW_SEPARATOR,
+  THROW_SEPARATOR_VS,
   COMMENT_SEPARATOR,
   APPEND_COMMENT_SEPARATOR,
 
@@ -94,15 +95,19 @@ module.exports = args => {
   topLevelCatcher(processWholeCommand, args.commandText)
 
   // TODO: Check for whether any throws remain to proceed
-  if (warnings.length) {
-    topLevelCatcher(showWarnings)
-  } else {
-    topLevelCatcher(calculateWholeCommand)
+  try {
     if (warnings.length) {
       topLevelCatcher(showWarnings)
     } else {
-      reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME})).catch(console.error)
+      topLevelCatcher(calculateWholeCommand)
+      if (warnings.length) {
+        topLevelCatcher(showWarnings)
+      } else {
+        reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}))
+      }
     }
+  } catch (error) {
+    console.error(error)
   }
 }
 
@@ -211,6 +216,7 @@ const topLevelCatcher = (fn, args) => {
       showError(error.message)
     } else {
       showUncaughtError(error)
+      throw error
     }
   }
 }
@@ -249,6 +255,10 @@ const w = text => {
 ================================================================================================ */
 
 const processWholeCommand = unprocessedCommand => {
+  const isSeparator = (part) => {
+    return (part === THROW_SEPARATOR || part === THROW_SEPARATOR_VS)
+  }
+
   if (!unprocessedCommand)
     throw e(`no roll specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
   const command = unprocessedCommand.trim()
@@ -256,15 +266,25 @@ const processWholeCommand = unprocessedCommand => {
     throw e(`no roll specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
 
   // First we split the command into separate throws
-  const separateThrows = command.split(THROW_SEPARATOR)
+  const separateParts = command.split(getThrowSeparatorRegex())
   // Then we separate the comments from the formulae
-  separateThrows.forEach(t => {
-    const result = catcher(separateCommentFromThrow, t)
-    if (!(result instanceof Warning)) {
-      // We also make it lowercase here
-      result.formula = result.originalFormula.toLowerCase()
-      throws.push(result)
+  let previousPart = null
+  separateParts.forEach(part => {
+    if (isSeparator(part) && (!previousPart || isSeparator(previousPart))) {
+      throw e(`You seem to have misplaced a \`${part}\` symbol in \`${command}\``)
     }
+    if (!isSeparator(part)) {
+      const result = catcher(separateCommentFromThrow, part)
+      if (!(result instanceof Warning)) {
+        // We also make it lowercase here
+        result.formula = result.originalFormula.toLowerCase()
+        if (previousPart === THROW_SEPARATOR_VS) {
+          result.isConditional = true
+        }
+        throws.push(result)
+      }
+    }
+    previousPart = part
   })
   // After that, we go over the now structured throws
   // First, we check their formulae for various throw sub-commands, starting with the 'versus' one
@@ -1238,13 +1258,30 @@ const processDiceModifier = (args) => {
 ================================================================================================ */
 
 const calculateWholeCommand = () => {
+  let previousThrow = null
   throws.forEach(t => {
-    if (t.vsValues && t.vsValues.length) {
-      t.vsValues.forEach(vsThrow => {
-        catcher(calculateThrow, vsThrow)
-      })
+    let rollForResults = true
+    if (t.isConditional
+      && previousThrow && previousThrow.vsResults && previousThrow.vsResults.length) {
+      // TODO: For now we use ANY success from a throw with repeats. Maybe have some other way?
+      const i = previousThrow.vsResults.findIndex(vsResult =>
+        vsResult === VS_CHECK_RESULTS.success || vsResult === VS_CHECK_RESULTS.criticalDnD4
+      )
+      if (i === -1) {
+        rollForResults = false
+      }
     }
-    catcher(calculateThrow, t)
+    if (rollForResults) {
+      if (t.vsValues && t.vsValues.length) {
+        t.vsValues.forEach(vsThrow => {
+          catcher(calculateThrow, vsThrow)
+        })
+      }
+      catcher(calculateThrow, t)
+    } else {
+      t.isSkipped = true
+    }
+    previousThrow = t
   })
 
   console.log(`RESULTS:\n${JSON.stringify(throws)}`)
@@ -1580,6 +1617,11 @@ const roll = (dieSides) => {
 /* ================================================================================================
                                         OTHER STUFF
 ================================================================================================ */
+
+const getThrowSeparatorRegex = () => {
+  const regexString = `(${THROW_SEPARATOR}|${THROW_SEPARATOR_VS})`
+  return new RegExp(regexString, 'gi')
+}
 
 const getChildThrowRegex = () => {
   const regexString = `^${OPENING_PARENTHESES_REPLACER}[0-9]+${CLOSING_PARENTHESES_REPLACER}$`
