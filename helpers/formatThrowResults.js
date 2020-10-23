@@ -6,13 +6,13 @@ const {
   FUDGE_SYMBOL,
   NORMAL_DICE_SYMBOL,
   RNK_DICE_SYMBOL,
-  RNK_DIE_SIDES,
   DICE_MODIFIERS,
   OPENING_PARENTHESIS,
   CLOSING_PARENTHESIS,
   RESULT_TYPES,
   SPECIAL_THROW_RESULTS,
-  FUDGE_RESULT_SYMBOLS
+  FUDGE_RESULT_SYMBOLS,
+  VS_CHECK_RESULTS
 } = require('./constants')
 
 module.exports = (args) => {
@@ -58,10 +58,9 @@ const getFormattedTextFromThrow = (t, format, isLast) => {
       // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
       // check here for whether the throw consists of only one number (optionally with a minus before)
       if (formulaText === finalResultText || !intermediateText) {
-        text += format.boldStart + finalResultText + format.boldEnd
+        text += finalResultText
       } else {
-        text += format.space + '=' + format.space + format.boldStart +
-          finalResultText + format.boldEnd
+        text += format.space + '=' + format.space + finalResultText
       }
 
       if ((i < t.repeatNumber - 1) || !isLast) {
@@ -87,10 +86,9 @@ const getFormattedTextFromThrow = (t, format, isLast) => {
     // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
     // check here for whether the throw consists of only one number (optionally with a minus before)
     if (formulaText === finalResultText) {
-      text = format.boldStart + finalResultText + format.boldEnd
+      text = finalResultText
     } else {
-      text += format.space + '=' + format.space + format.boldStart + finalResultText +
-        format.boldEnd
+      text += format.space + '=' + format.space + finalResultText
     }
 
     if (t.comment && t.shouldAppendComment) {
@@ -370,17 +368,44 @@ const getIntermediateResultsText = (t, format, index) => {
 }
 
 const getFinalResultText = (t, format, index) => {
-  let text = t.finalResults[index].toString()
-  if (t.specialResults && t.specialResults.length) {
-    // for now, we just check the first one, but maybe later think about some other stuff here?
-    switch (t.specialResults[index][0]) {
-      case SPECIAL_THROW_RESULTS.criticalSuccess: {
-        text += format.codeStart + format.critical + format.codeEnd
-        break
+  let text = format.boldStart + t.finalResults[index].toString() + format.boldEnd
+  if (t.specialResults && t.specialResults.length
+    && t.specialResults[index] && t.specialResults[index].length) {
+    t.specialResults[index].forEach(specialResult => {
+      switch (specialResult) {
+        case SPECIAL_THROW_RESULTS.criticalSuccess: {
+          text += format.codeStart + format.critical + format.codeEnd
+          break
+        }
+        case SPECIAL_THROW_RESULTS.criticalFailure: {
+          text += format.codeStart + format.botch + format.codeEnd
+          break
+        }
       }
-      case SPECIAL_THROW_RESULTS.criticalFailure: {
-        text += format.codeStart + format.botch + format.codeEnd
-        break
+    })
+  }
+
+  if (t.vsValues && t.vsValues[index]) {
+    text += format.space + format.vs + format.space + t.vsValues[index].finalResults[0] + ',' +
+      format.space
+    if (t.vsResults && t.vsResults[index]) {
+      switch(t.vsResults[index]) {
+        case VS_CHECK_RESULTS.success: {
+          text += format.boldStart + 'success' + format.boldEnd
+          break
+        }
+        case VS_CHECK_RESULTS.criticalDnD4: {
+          text += format.boldStart + 'critical success' + format.boldEnd
+          break
+        }
+        case VS_CHECK_RESULTS.failure: {
+          text += format.italicsStart + 'failure' + format.italicsEnd
+          break
+        }
+        case VS_CHECK_RESULTS.botchDnD4: {
+          text += format.italicsStart + 'critical failure' + format.italicsEnd
+          break
+        }
       }
     }
   }

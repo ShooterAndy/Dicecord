@@ -59,11 +59,6 @@ module.exports.DICE_MODIFIERS = {
   brutal: 'br'
 }
 
-module.exports.SPECIAL_THROW_RESULTS = {
-  criticalSuccess: 'criticalSuccess',
-  criticalFailure: 'criticalFailure'
-}
-
 module.exports.RNK_DICE_SYMBOL = 'k'
 module.exports.RNK_DIE_SIDES = 10
 
@@ -122,6 +117,20 @@ module.exports.RESULT_TYPES = {
   botch: 'botch'
 }
 // -------------------------------------------------------------------------------------------------
+module.exports.SPECIAL_THROW_RESULTS = {
+  criticalSuccess: 'criticalSuccess',
+  criticalFailure: 'criticalFailure',
+  criticalSuccessDnD4: 'criticalSuccessDnD4',
+  criticalFailureDnD4: 'criticalFailureDnD4'
+}
+// -------------------------------------------------------------------------------------------------
+module.exports.VS_CHECK_RESULTS = {
+  success: 'success',
+  failure: 'failure',
+  criticalDnD4: 'criticalDnD4',
+  botchDnD4: 'botchDnD4'
+}
+// -------------------------------------------------------------------------------------------------
 module.exports.THROW_RESULTS_FORMATS = {
   discord: {
     boldStart: '**',
@@ -147,6 +156,7 @@ module.exports.THROW_RESULTS_FORMATS = {
     botch: '🔥',
     resultsStart: '(',
     resultsEnd: ')',
+    vs: 'vs',
     conditionalThrowSeparator: '→'
   }
 }

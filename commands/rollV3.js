@@ -49,6 +49,8 @@ const {
 
   VERSUS_SEPARATOR,
   VERSUS_PARTS_SEPARATOR,
+  VS_CHECK_RESULTS,
+
   REPEAT_THROW_SEPARATOR,
 
   OPENING_PARENTHESIS,
@@ -1343,10 +1345,24 @@ const calculateThrow = (thisThrow) => {
         vsValue = thisThrow.vsValues[thisThrow.vsValues.length - 1].finalResults[0]
       }
 
-      if (!thisThrow.vsSuccesses) {
-        thisThrow.vsSuccesses = []
+      if (!thisThrow.vsResults) {
+        thisThrow.vsResults = []
       }
-      thisThrow.vsSuccesses.push(finalResult >= vsValue)
+
+      let vsResult = (finalResult >= vsValue ? VS_CHECK_RESULTS.success : VS_CHECK_RESULTS.failure)
+      thisThrow.specialResults[i].forEach(specialResult => {
+        switch (specialResult) {
+          case SPECIAL_THROW_RESULTS.criticalSuccessDnD4: {
+            vsResult = VS_CHECK_RESULTS.criticalDnD4
+            break
+          }
+          case SPECIAL_THROW_RESULTS.criticalFailureDnD4: {
+            vsResult = VS_CHECK_RESULTS.botchDnD4
+            break
+          }
+        }
+      })
+      thisThrow.vsResults.push(vsResult)
     }
   }
 }
@@ -1486,12 +1502,18 @@ const calculateNormalDice = (dice) => {
           if (criticalOn !== -1 && result.result >= criticalOn) {
             result.type = RESULT_TYPES.critical
             if (numberOfRolls === 1) {
+              if (dice.type === FORMULA_PART_TYPES.operands.dnd4Dice) {
+                specialResults.push(SPECIAL_THROW_RESULTS.criticalSuccessDnD4)
+              }
               specialResults.push(SPECIAL_THROW_RESULTS.criticalSuccess)
             }
           }
           else if (botchOn !== -1 && result.result <= botchOn) {
             result.type = RESULT_TYPES.botch
             if (numberOfRolls === 1) {
+              if (dice.type === FORMULA_PART_TYPES.operands.dnd4Dice) {
+                specialResults.push(SPECIAL_THROW_RESULTS.criticalFailureDnD4)
+              }
               specialResults.push(SPECIAL_THROW_RESULTS.criticalFailure)
             }
           }
