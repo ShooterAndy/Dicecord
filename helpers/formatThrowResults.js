@@ -11,6 +11,7 @@ const {
   OPENING_PARENTHESIS,
   CLOSING_PARENTHESIS,
   RESULT_TYPES,
+  SPECIAL_THROW_RESULTS,
   FUDGE_RESULT_SYMBOLS
 } = require('./constants')
 
@@ -29,18 +30,14 @@ const getFormattedTextFromThrows = (throws, format) => {
 
   let text = format.throwsStart
   throws.forEach((t, index) => {
-    const throwText = getFormattedTextFromThrow(t, format)
+    const throwText = getFormattedTextFromThrow(t, format, (index === throws.length - 1))
     text += throwText
-    if (index < throws.length - 1) {
-      text += format.throwSeparator
-    }
   })
-  text += format.throwsEnd
 
   return text
 }
 
-const getFormattedTextFromThrow = (t, format) => {
+const getFormattedTextFromThrow = (t, format, isLast) => {
   let text = ''
   const formulaText = getFormulaText(t, format)
 
@@ -67,7 +64,7 @@ const getFormattedTextFromThrow = (t, format) => {
           finalResultText + format.boldEnd
       }
 
-      if (i < t.repeatNumber - 1) {
+      if ((i < t.repeatNumber - 1) || !isLast) {
         text += ';' + format.listItemEnd + '\n'
       } else {
         text += '.' + format.listItemEnd
@@ -98,6 +95,12 @@ const getFormattedTextFromThrow = (t, format) => {
 
     if (t.comment && t.shouldAppendComment) {
       text += format.space + format.codeStart + t.comment + format.codeEnd
+    }
+
+    if (!isLast) {
+      text += format.throwSeparator
+    } else {
+      text += format.throwsEnd
     }
   }
 
@@ -138,6 +141,15 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
           text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
         } else {
           text += getNormalDiceFormulaText(formulaPart)
+        }
+        break
+      }
+      case FORMULA_PART_TYPES.operands.dnd4Dice: {
+        text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
+        if (showResults) {
+          text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
+        } else {
+          text += getDnDDiceFormulaText(formulaPart)
         }
         break
       }
@@ -189,9 +201,7 @@ const getDiceModsText = (formulaPart) => {
   let text = ''
   if (formulaPart.diceMods && formulaPart.diceMods.length) {
     formulaPart.diceMods.forEach(diceMod => {
-      if ((formulaPart.type !== FORMULA_PART_TYPES.operands.rnkDice) ||
-        (diceMod.type !== DICE_MODIFIERS.explode && diceMod.type !== DICE_MODIFIERS.keepHighest) ||
-        (diceMod.type === DICE_MODIFIERS.explode && diceMod.value !== RNK_DIE_SIDES)) {
+      if (!diceMod.default) {
         text += diceMod.type + diceMod.value
       }
     })
@@ -211,6 +221,20 @@ const getRnKDiceFormulaText = (formulaPart) => {
     diceMod => diceMod.type === DICE_MODIFIERS.keepHighest
   )
   let text = formulaPart.number + RNK_DICE_SYMBOL + (keepHighestMod.value || 'ERROR')
+
+  if (formulaPart.diceMods && formulaPart.diceMods.length) {
+    formulaPart.diceMods.forEach(diceMod => {
+      if (!diceMod.default && diceMod.type !== DICE_MODIFIERS.keepHighest) {
+        text += diceMod.type + diceMod.value
+      }
+    })
+  }
+
+  return text
+}
+
+const getDnDDiceFormulaText = (formulaPart) => {
+  let text = formulaPart.number + NORMAL_DICE_SYMBOL + formulaPart.sides
 
   return text + getDiceModsText(formulaPart)
 }
@@ -249,6 +273,11 @@ const getDiceResultsText = (throwResults, throwType, format) => {
         case RESULT_TYPES.critical: {
           text += getDiceResultText(throwResult, throwType) +
             format.codeStart + format.critical + format.codeEnd
+          break
+        }
+        case RESULT_TYPES.botch: {
+          text += getDiceResultText(throwResult, throwType) +
+            format.codeStart + format.botch + format.codeEnd
         }
       }
     }
@@ -277,6 +306,7 @@ const getDiceResultText = (throwResult, throwType) => {
 
   switch (throwType) {
     case FORMULA_PART_TYPES.operands.rnkDice:
+    case FORMULA_PART_TYPES.operands.dnd4Dice:
     case FORMULA_PART_TYPES.operands.normalDice: {
       return throwResult.result.toString()
     }
@@ -298,6 +328,7 @@ const checkForNonStaticParts = (t) => {
       const formulaPart = t.formulaParts[i]
       switch (formulaPart.type) {
         case FORMULA_PART_TYPES.operands.rnkDice:
+        case FORMULA_PART_TYPES.operands.dnd4Dice:
         case FORMULA_PART_TYPES.operands.normalDice:
         case FORMULA_PART_TYPES.operands.fudgeDice: {
           nonStaticPartsNumber += formulaPart.number
@@ -339,7 +370,21 @@ const getIntermediateResultsText = (t, format, index) => {
 }
 
 const getFinalResultText = (t, format, index) => {
-  return t.finalResults[index].toString()
+  let text = t.finalResults[index].toString()
+  if (t.specialResults && t.specialResults.length) {
+    // for now, we just check the first one, but maybe later think about some other stuff here?
+    switch (t.specialResults[index][0]) {
+      case SPECIAL_THROW_RESULTS.criticalSuccess: {
+        text += format.codeStart + format.critical + format.codeEnd
+        break
+      }
+      case SPECIAL_THROW_RESULTS.criticalFailure: {
+        text += format.codeStart + format.botch + format.codeEnd
+        break
+      }
+    }
+  }
+  return text
 }
 
 // -------------------------------------------------------------------------------------------------

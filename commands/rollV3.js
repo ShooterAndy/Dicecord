@@ -34,6 +34,12 @@ const {
   FUDGE_DIE_SIDES,
   FUDGE_DICE_SYMBOLS,
 
+  DND_DIE_SIDES,
+  DND_DICE_NUM,
+  DND_BOTCH,
+  DND_CRITICAL,
+  DND4_SYMBOL,
+
   YES_EMOJI,
   NO_EMOJI,
 
@@ -57,6 +63,7 @@ const {
   NUMERICAL_REGEX,
 
   RESULT_TYPES,
+  SPECIAL_THROW_RESULTS,
 
   DEFAULT_THROW_RESULT_FORMAT_NAME
 } = require('../helpers/constants')
@@ -152,8 +159,8 @@ const showWarnings = () => {
     })
     warningsText += '\nDo you still wish to proceed?'
     reply(warningsText).then(warningsMessage => {
-      warningsMessage.react(YES_EMOJI).then(() => {
-        warningsMessage.react(NO_EMOJI).then(() => {
+      Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
+        .then(() => {
           const filter = (reaction, user) =>
             (reaction.emoji.name === YES_EMOJI || reaction.emoji.name === NO_EMOJI)
             && user.id === message.author.id
@@ -162,7 +169,6 @@ const showWarnings = () => {
               catcher(reactToWarningsResponse, { warningsMessage, collected })
             })
             .catch(err => { throw(err) })
-        }).catch(err => { throw(err) })
       }).catch(err => { throw(err) })
     }).catch(err => { throw(err) })
   }
@@ -685,6 +691,8 @@ const processDiceOperand = (unparsedFormula) => {
     return catcher(processRegularDice, unparsedFormula)
   } else if (formula.match(getRnKDiceRegex())) {
     return catcher(processRnKDice, unparsedFormula)
+  } else if (formula.startsWith(DND4_SYMBOL)) {
+    return catcher(processDnD4Dice, unparsedFormula)
   } else {
     let startingFudgeDiceSymbol = ''
     FUDGE_DICE_SYMBOLS.forEach(fudgeDiceSymbol => {
@@ -699,6 +707,32 @@ const processDiceOperand = (unparsedFormula) => {
   // TODO: handle other cases here
   throw w(nws`\`${unparsedFormula}\` was not recognized as a valid dice formula, so it will \
     be ignored. ${getTypoOrCommentHint()}`)
+}
+
+// -------------------------------------------------------------------------------------------------
+
+const processDnD4Dice = (unparsedFormula) => {
+  const dice = {
+    formula: unparsedFormula,
+    type: FORMULA_PART_TYPES.operands.dnd4Dice,
+    number: DND_DICE_NUM,
+    sides: DND_DIE_SIDES,
+    diceMods: [{
+      type: DICE_MODIFIERS.critical,
+      value: DND_CRITICAL,
+      default: true
+    }, {
+      type: DICE_MODIFIERS.botch,
+      value: DND_BOTCH,
+      default: true
+    }]
+  }
+
+  let parsedFormula = unparsedFormula.slice(DND4_SYMBOL.length)
+
+  processDiceModifiers(dice, parsedFormula, unparsedFormula)
+
+  return dice
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -740,14 +774,19 @@ const processRnKDice = (unparsedFormula) => {
 
   let parsedFormula = unparsedFormula
 
-  dice.number = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
-  if (dice.number) {
+  let result = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
+  if (result) {
+    dice.number = result
     parsedFormula = parsedFormula.slice(dice.number.toString().length)
   }
 
   parsedFormula = parsedFormula.slice(RNK_DICE_SYMBOL.length)
 
   const keepNumber = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'keep' })
+  if (!keepNumber) {
+    throw w(nws`You have to keep at least 1 die in \
+            \`${unparsedFormula}\`, so this roll will be ignored. ${getTypoOrCommentHint()}`)
+  }
 
   if (keepNumber > dice.number) {
     throw w(nws`You cannot keep more dice (${keepNumber}) than you roll (${dice.number}) in \
@@ -777,8 +816,9 @@ const processRegularDice = (unparsedFormula) => {
 
   let parsedFormula = unparsedFormula
 
-  dice.number = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
-  if (dice.number) {
+  let result = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
+  if (result) {
+    dice.number = result
     parsedFormula = parsedFormula.slice(dice.number.toString().length)
   }
 
@@ -814,9 +854,9 @@ const getDiceNumber = (args) => {
       throw w(nws`it seems that you have attempted to ${word} more than ${MAX_DICE_NUMBER} dice \
             in \`${unparsedFormula}\`, so these dice will be ignored`)
     }
-  } // we assume we roll 1 die otherwise
+  } else return null
 
-  return diceNumber || 1
+  return diceNumber
 }
 
 const getDieSides = (args) => {
@@ -854,7 +894,11 @@ const processDiceModifiers = (dice, parsedFormula, unparsedFormula) => {
     diceMods.forEach(diceMod => {
       const result = catcher(processDiceModifier, {diceMod, dice})
       if (result && !(result instanceof Warning)) {
-        dice.diceMods.push(result)
+        if (result.toBeDeleted) {
+          dice.diceMods = dice.diceMods.filter(dm => dm.type !== result.type)
+        } else {
+          dice.diceMods.push(result)
+        }
       }
     })
 
@@ -949,26 +993,39 @@ const processDiceModifier = (args) => {
       return { type: modName, value: modValue }
     }
     case DICE_MODIFIERS.explode: {
+      const otherExplodeMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.explode
+      )
+      let replaceDefault = false
+      if (otherExplodeMods && otherExplodeMods.length) {
+        if (otherExplodeMods.length === 1 && otherExplodeMods[0].default) {
+          replaceDefault = true
+        } else {
+          throw w(nws`there appear to be several explode modifiers in \
+                \`${dice.formula}\`, so only the first one will be applied to it`)
+        }
+      }
       if (modValue < 2) {
-        throw w(nws`can't explode on a ${modValue}, the minimum explosion value is 2, \
+        if (modValue !== 0 && !replaceDefault) {
+          throw w(nws`can't explode on a ${modValue}, the minimum explosion value is 2, \
                 this modifier will be ignored`)
+        }
       }
       if (modValue > dice.sides) {
         throw w(nws`can't explode on a ${modValue} for a roll of a ${dice.sides}-sided \
                 die, this modifier will be ignored`)
       }
-      const otherExplodeMods = dice.diceMods.filter(mod =>
-        mod.type === DICE_MODIFIERS.explode
-      )
-      if (otherExplodeMods && otherExplodeMods.length) {
-        if (otherExplodeMods.length === 1 && otherExplodeMods[0].default) {
+
+      if (replaceDefault) {
+        if (modValue === 0) { // This will remove the default rules if they exist
+          return { type: modName, toBeDeleted: true }
+        } else {
           otherExplodeMods[0].value = modValue
           delete otherExplodeMods[0].default
-          return null
         }
-        throw w(nws`there appear to be several explode modifiers in \
-                \`${dice.formula}\`, so only the first one will be applied to it`)
+        return null
       }
+
       return { type: modName, value: modValue }
     }
     case DICE_MODIFIERS.reRollTimes:
@@ -1097,20 +1154,70 @@ const processDiceModifier = (args) => {
       return { type: mod, value }
     }
     case DICE_MODIFIERS.critical: {
+      let replaceDefault = false
       const otherCriticalMods = dice.diceMods.filter(mod =>
         mod.type === DICE_MODIFIERS.critical
       )
       if (otherCriticalMods && otherCriticalMods.length) {
-        throw w(nws`there appear to be several "critical" roll modifiers in \
+        if (otherCriticalMods.length === 1 && otherCriticalMods[0].default) {
+          replaceDefault = true
+        } else {
+          throw w(nws`there appear to be several "critical" roll modifiers in \
                 \`${dice.formula}\`, so only the first one will be applied to it`)
+        }
       }
       if (modValue <= 1) {
-        throw w(nws`can't set a critical value to ${modValue}, the minimum value is \
-                1, this roll modifier will be ignored`)
+        if (modValue !== 0 && !replaceDefault) {
+          throw w(nws`can't set a critical value to ${modValue}, the minimum value is \
+                2, this roll modifier will be ignored`)
+        }
       }
       if (modValue > dice.sides) {
         throw w(nws`can't set a critical value to ${modValue} in a \`${dice.formula}\` \
                 roll, so this roll modifier will be ignored`)
+      }
+      if (replaceDefault) {
+        if (modValue === 0) { // This will remove the default rules if they exist
+          return { type: modName, toBeDeleted: true }
+        } else {
+          otherCriticalMods[0].value = modValue
+          delete otherCriticalMods[0].default
+        }
+        return null
+      }
+      return { type: modName, value: modValue }
+    }
+    case DICE_MODIFIERS.botch: {
+      let replaceDefault = false
+      const otherBotchMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.botch
+      )
+      if (otherBotchMods && otherBotchMods.length) {
+        if (otherBotchMods.length === 1 && otherBotchMods[0].default) {
+          replaceDefault = true
+        } else {
+          throw w(nws`there appear to be several "botch" roll modifiers in \
+                \`${dice.formula}\`, so only the first one will be applied to it`)
+        }
+      }
+      if (modValue < 1) {
+        if (modValue !== 0 && !replaceDefault) {
+          throw w(nws`can't set a botch value to ${modValue}, the minimum value is \
+                1, this roll modifier will be ignored`)
+        }
+      }
+      if (modValue >= dice.sides) {
+        throw w(nws`can't set a botch value to ${modValue} in a \`${dice.formula}\` \
+                roll, so this roll modifier will be ignored`)
+      }
+      if (replaceDefault) {
+        if (modValue === 0) { // This will remove the default rules if they exist
+          return { type: modName, toBeDeleted: true }
+        } else {
+          otherBotchMods[0].value = modValue
+          delete otherBotchMods[0].default
+        }
+        return null
       }
       return { type: modName, value: modValue }
     }
@@ -1166,6 +1273,11 @@ const calculateThrow = (thisThrow) => {
     operation = FORMULA_PART_TYPES.operators.sum
   }
 
+  const addSpecialResults = (specialResults) => {
+    if (!thisThrow.specialResults) thisThrow.specialResults = []
+    thisThrow.specialResults.push(specialResults)
+  }
+
   // Don't forget to go through all the child throws!
   thisThrow.childThrows.forEach(childThrow => {
     catcher(calculateThrow, childThrow)
@@ -1180,7 +1292,13 @@ const calculateThrow = (thisThrow) => {
     thisThrow.formulaParts.forEach(formulaPart => {
       switch (formulaPart.type) {
         case FORMULA_PART_TYPES.operands.normalDice:
-        case FORMULA_PART_TYPES.operands.rnkDice:
+        case FORMULA_PART_TYPES.operands.dnd4Dice:
+        case FORMULA_PART_TYPES.operands.rnkDice: {
+          catcher(calculateNormalDice, formulaPart)
+          sumOrSubtract(formulaPart.finalResults[i])
+          addSpecialResults(formulaPart.specialResults[i])
+          break
+        }
         case FORMULA_PART_TYPES.operands.fudgeDice: {
           catcher(calculateNormalDice, formulaPart)
           sumOrSubtract(formulaPart.finalResults[i])
@@ -1275,6 +1393,7 @@ const calculateNormalDice = (dice) => {
   const reRollIfTotalEquals = setMod(DICE_MODIFIERS.reRollIfTotalEquals, -1)
   const reRollTimesMax = setMod(DICE_MODIFIERS.reRollTimes, MAX_RE_ROLLS)
   const criticalOn = setMod(DICE_MODIFIERS.critical, -1)
+  const botchOn = setMod(DICE_MODIFIERS.botch, -1)
 
   const mod = (dice.type === FORMULA_PART_TYPES.operands.fudgeDice ? -2 : 0)
 
@@ -1362,9 +1481,21 @@ const calculateNormalDice = (dice) => {
         remainingResult => remainingResult.index === result.index)) {
         if (!isCounting && result.type !== RESULT_TYPES.ignored) {
           finalResult += result.result
+          if (!dice.specialResults) dice.specialResults = []
+          let specialResults = []
           if (criticalOn !== -1 && result.result >= criticalOn) {
             result.type = RESULT_TYPES.critical
+            if (numberOfRolls === 1) {
+              specialResults.push(SPECIAL_THROW_RESULTS.criticalSuccess)
+            }
           }
+          else if (botchOn !== -1 && result.result <= botchOn) {
+            result.type = RESULT_TYPES.botch
+            if (numberOfRolls === 1) {
+              specialResults.push(SPECIAL_THROW_RESULTS.criticalFailure)
+            }
+          }
+          dice.specialResults.push(specialResults)
         }
         diceResults.push({
           type: result.type, result: result.result, explosions: result.explosions

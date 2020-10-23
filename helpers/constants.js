@@ -27,6 +27,7 @@ module.exports.FORMULA_PART_TYPES = {
     number: 'number',
     normalDice: 'normalDice',
     fudgeDice: 'fudgeDice',
+    dnd4Dice: 'dnd4Dice',
     rnkDice: 'rnkDice',
     child: 'child'
   }
@@ -53,12 +54,25 @@ module.exports.DICE_MODIFIERS = {
   reRollIfTotalEquals: 'rte',
   reRollTimes: 'rt',
   critical: 'cr',
+  botch: 'bo',
   // synonyms
   brutal: 'br'
 }
 
+module.exports.SPECIAL_THROW_RESULTS = {
+  criticalSuccess: 'criticalSuccess',
+  criticalFailure: 'criticalFailure'
+}
+
 module.exports.RNK_DICE_SYMBOL = 'k'
 module.exports.RNK_DIE_SIDES = 10
+
+module.exports.DND_DIE_SIDES = 20
+module.exports.DND_DICE_NUM = 1
+module.exports.DND_CRITICAL = this.DND_DIE_SIDES
+module.exports.DND_BOTCH = 1
+
+module.exports.DND4_SYMBOL = 'dnd4'
 
 module.exports.FUDGE_DICE_NUMBER = 4
 module.exports.FUDGE_DIE_SIDES = 3 // I know it's supposed to be 6, but who cares
@@ -104,7 +118,8 @@ module.exports.RESULT_TYPES = {
   final: 'final',
   ignored: 'ignored',
   exploded: 'exploded',
-  critical: 'critical'
+  critical: 'critical',
+  botch: 'botch'
 }
 // -------------------------------------------------------------------------------------------------
 module.exports.THROW_RESULTS_FORMATS = {
@@ -125,13 +140,14 @@ module.exports.THROW_RESULTS_FORMATS = {
     underlineEnd: '__',
     throwsStart: '',
     throwSeparator: ';\n',
-    throwsEnd: '',
+    throwsEnd: '.',
     space: ' ',
     explosion: '💥',
     critical: '✨',
     botch: '🔥',
     resultsStart: '(',
-    resultsEnd: ')'
+    resultsEnd: ')',
+    conditionalThrowSeparator: '→'
   }
 }
 module.exports.DEFAULT_THROW_RESULT_FORMAT_NAME = Object.keys(this.THROW_RESULTS_FORMATS)[0]
