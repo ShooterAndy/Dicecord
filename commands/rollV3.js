@@ -27,6 +27,9 @@ const {
   MAX_RE_ROLLS,
   DICE_MODIFIERS,
 
+  RNK_DICE_SYMBOL,
+  RNK_DIE_SIDES,
+
   FUDGE_DICE_NUMBER,
   FUDGE_DIE_SIDES,
   FUDGE_DICE_SYMBOLS,
@@ -679,6 +682,8 @@ const processDiceOperand = (unparsedFormula) => {
   if (formula.match(getNormalDiceRegex())) {
     // this is presumably a normal dice
     return catcher(processRegularDice, unparsedFormula)
+  } else if (formula.match(getRnKDiceRegex())) {
+    return catcher(processRnKDice, unparsedFormula)
   } else {
     let startingFudgeDiceSymbol = ''
     FUDGE_DICE_SYMBOLS.forEach(fudgeDiceSymbol => {
@@ -719,6 +724,48 @@ const processFudgeDice = (args) => {
 
 // -------------------------------------------------------------------------------------------------
 
+const processRnKDice = (unparsedFormula) => {
+  const dice = {
+    formula: unparsedFormula,
+    type: FORMULA_PART_TYPES.operands.rnkDice,
+    number: 1,
+    sides: RNK_DIE_SIDES,
+    diceMods: [{
+      type: DICE_MODIFIERS.explode,
+      value: RNK_DIE_SIDES,
+      default: true
+    }]
+  }
+
+  let parsedFormula = unparsedFormula
+
+  dice.number = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
+  if (dice.number) {
+    parsedFormula = parsedFormula.slice(dice.number.toString().length)
+  }
+
+  parsedFormula = parsedFormula.slice(RNK_DICE_SYMBOL.length)
+
+  const keepNumber = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'keep' })
+
+  if (keepNumber > dice.number) {
+    throw w(nws`You cannot keep more dice (${keepNumber}) than you roll (${dice.number}) in \
+            \`${unparsedFormula}\`, so this roll will be ignored. ${getTypoOrCommentHint()}`)
+  }
+
+  dice.diceMods.push({
+    type: DICE_MODIFIERS.keepHighest,
+    value: keepNumber
+  })
+
+  parsedFormula = parsedFormula.slice(keepNumber.toString().length)
+  processDiceModifiers(dice, parsedFormula, unparsedFormula)
+
+  return dice
+}
+
+// -------------------------------------------------------------------------------------------------
+
 const processRegularDice = (unparsedFormula) => {
   const dice = {
     formula: unparsedFormula,
@@ -727,47 +774,66 @@ const processRegularDice = (unparsedFormula) => {
     diceMods: []
   }
 
-  let diceNumber = unparsedFormula.match(/^\d+/g)
   let parsedFormula = unparsedFormula
 
-  if (diceNumber && diceNumber.length) {
-    diceNumber = diceNumber[0]
-    dice.number = Number(diceNumber)
-    if (isNaN(dice.number)) {
-      throw w(nws`\`${diceNumber}\` is not a valid number of dice rolls in \
-            \`${unparsedFormula}\`, so it will be ignored. ${getTypoOrCommentHint()}`)
-    }
-
-    if (dice.number < 1) {
-      throw w(nws`it seems that you have attempted to roll less than one die in \
-            \`${unparsedFormula}\`, so this roll will be ignored`)
-    }
-
-    if (dice.number > MAX_DICE_NUMBER) {
-      throw w(nws`it seems that you have attempted to roll more than ${MAX_DICE_NUMBER} dice \
-            in \`${unparsedFormula}\`, so these rolls will be ignored`)
-    }
-
-    parsedFormula = parsedFormula.slice(diceNumber.length)
-  } // we assume we roll 1 die otherwise
+  dice.number = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
+  if (dice.number) {
+    parsedFormula = parsedFormula.slice(dice.number.toString().length)
+  }
 
   parsedFormula = parsedFormula.slice(NORMAL_DICE_SYMBOL.length)
 
-  let dieSides = parsedFormula.toString().match(/^\d+/g)
-  if (dieSides && dieSides.length) {
-    dieSides = dieSides[0]
-    dice.sides = Number(dieSides)
-    if (isNaN(dice.sides)) {
-      throw w(nws`\`${diceNumber}\` is not a valid number of die sides in \
+  dice.sides = catcher(getDieSides, { unparsedFormula, parsedFormula })
+
+  parsedFormula = parsedFormula.slice(dice.sides.toString().length)
+  processDiceModifiers(dice, parsedFormula, unparsedFormula)
+
+  return dice
+}
+
+// -------------------------------------------------------------------------------------------------
+
+const getDiceNumber = (args) => {
+  let { unparsedFormula, parsedFormula, word } = args
+  let diceNumber = parsedFormula.match(/^\d+/g)
+
+  if (diceNumber && diceNumber.length) {
+    diceNumber = Number(diceNumber[0])
+    if (isNaN(diceNumber)) {
+      throw w(nws`\`${diceNumber}\` is not a valid number of dice ${word}s in \
             \`${unparsedFormula}\`, so it will be ignored. ${getTypoOrCommentHint()}`)
     }
 
-    if (dice.sides < 1) {
+    if (diceNumber < 1) {
+      throw w(nws`it seems that you have attempted to ${word} less than one die in \
+            \`${unparsedFormula}\`, so this roll will be ignored`)
+    }
+
+    if (diceNumber > MAX_DICE_NUMBER) {
+      throw w(nws`it seems that you have attempted to ${word} more than ${MAX_DICE_NUMBER} dice \
+            in \`${unparsedFormula}\`, so these dice will be ignored`)
+    }
+  } // we assume we roll 1 die otherwise
+
+  return diceNumber || 1
+}
+
+const getDieSides = (args) => {
+  let { unparsedFormula, parsedFormula } = args
+  let dieSides = parsedFormula.toString().match(/^\d+/g)
+  if (dieSides && dieSides.length) {
+    dieSides = Number(dieSides[0])
+    if (isNaN(dieSides)) {
+      throw w(nws`\`${dieSides}\` is not a valid number of die sides in \
+            \`${unparsedFormula}\`, so it will be ignored. ${getTypoOrCommentHint()}`)
+    }
+
+    if (dieSides < 1) {
       throw w(nws`it seems that you have attempted to roll a die with less than one side in \
             \`${unparsedFormula}\`, so this roll will be ignored`)
     }
 
-    if (dice.sides > MAX_DIE_SIDES) {
+    if (dieSides > MAX_DIE_SIDES) {
       throw w(nws`it seems that you have attempted to roll more a die with more than \
             ${MAX_DICE_NUMBER} sides in \`${unparsedFormula}\`, so it will be ignored`)
     }
@@ -776,13 +842,17 @@ const processRegularDice = (unparsedFormula) => {
         this roll will be ignored`)
   }
 
-  parsedFormula = parsedFormula.slice(dieSides.length)
+  return dieSides || 1
+}
 
+// -------------------------------------------------------------------------------------------------
+
+const processDiceModifiers = (dice, parsedFormula, unparsedFormula) => {
   const diceMods = parsedFormula.toString().match(getDiceModifierRegex())
   if (diceMods && diceMods.length) {
     diceMods.forEach(diceMod => {
       const result = catcher(processDiceModifier, {diceMod, dice})
-      if (!(result instanceof Warning)) {
+      if (result && !(result instanceof Warning)) {
         dice.diceMods.push(result)
       }
     })
@@ -793,8 +863,6 @@ const processRegularDice = (unparsedFormula) => {
     addWarning(nws`\`${parsedFormula}\` was not recognized as valid syntax in \
         \`${unparsedFormula}\`, so it will be ignored. ${getTypoOrCommentHint()}`)
   }
-
-  return dice
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -880,13 +948,6 @@ const processDiceModifier = (args) => {
       return { type: modName, value: modValue }
     }
     case DICE_MODIFIERS.explode: {
-      const otherExplodeMods = dice.diceMods.filter(mod =>
-        mod.type === DICE_MODIFIERS.explode
-      )
-      if (otherExplodeMods && otherExplodeMods.length) {
-        throw w(nws`there appear to be several explode modifiers in \
-                \`${dice.formula}\`, so only the first one will be applied to it`)
-      }
       if (modValue < 2) {
         throw w(nws`can't explode on a ${modValue}, the minimum explosion value is 2, \
                 this modifier will be ignored`)
@@ -894,6 +955,18 @@ const processDiceModifier = (args) => {
       if (modValue > dice.sides) {
         throw w(nws`can't explode on a ${modValue} for a roll of a ${dice.sides}-sided \
                 die, this modifier will be ignored`)
+      }
+      const otherExplodeMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.explode
+      )
+      if (otherExplodeMods && otherExplodeMods.length) {
+        if (otherExplodeMods.length === 1 && otherExplodeMods[0].default) {
+          otherExplodeMods[0].value = modValue
+          delete otherExplodeMods[0].default
+          return null
+        }
+        throw w(nws`there appear to be several explode modifiers in \
+                \`${dice.formula}\`, so only the first one will be applied to it`)
       }
       return { type: modName, value: modValue }
     }
@@ -1105,11 +1178,8 @@ const calculateThrow = (thisThrow) => {
 
     thisThrow.formulaParts.forEach(formulaPart => {
       switch (formulaPart.type) {
-        case FORMULA_PART_TYPES.operands.normalDice: {
-          catcher(calculateNormalDice, formulaPart)
-          sumOrSubtract(formulaPart.finalResults[i])
-          break
-        }
+        case FORMULA_PART_TYPES.operands.normalDice:
+        case FORMULA_PART_TYPES.operands.rnkDice:
         case FORMULA_PART_TYPES.operands.fudgeDice: {
           catcher(calculateNormalDice, formulaPart)
           sumOrSubtract(formulaPart.finalResults[i])
@@ -1378,6 +1448,11 @@ const getRepeatThrowRegex = () => {
 
 const getNormalDiceRegex = () => {
   const regexString = `^\\d*${NORMAL_DICE_SYMBOL}\\d+`
+  return new RegExp(regexString, 'gi')
+}
+
+const getRnKDiceRegex = () => {
+  const regexString = `^\\d*${RNK_DICE_SYMBOL}\\d+`
   return new RegExp(regexString, 'gi')
 }
 

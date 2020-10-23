@@ -27,6 +27,7 @@ module.exports.FORMULA_PART_TYPES = {
     number: 'number',
     normalDice: 'normalDice',
     fudgeDice: 'fudgeDice',
+    rnkDice: 'rnkDice',
     child: 'child'
   }
 }
@@ -55,6 +56,9 @@ module.exports.DICE_MODIFIERS = {
   // synonyms
   brutal: 'br'
 }
+
+module.exports.RNK_DICE_SYMBOL = 'k'
+module.exports.RNK_DIE_SIDES = 10
 
 module.exports.FUDGE_DICE_NUMBER = 4
 module.exports.FUDGE_DIE_SIDES = 3 // I know it's supposed to be 6, but who cares

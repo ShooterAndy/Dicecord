@@ -5,6 +5,9 @@ const {
   FUDGE_DICE_NUMBER,
   FUDGE_SYMBOL,
   NORMAL_DICE_SYMBOL,
+  RNK_DICE_SYMBOL,
+  RNK_DIE_SIDES,
+  DICE_MODIFIERS,
   OPENING_PARENTHESIS,
   CLOSING_PARENTHESIS,
   RESULT_TYPES,
@@ -90,13 +93,20 @@ const getFormattedTextFromThrow = (t, format) => {
 const getFormulaText = (t, format, showResults, repeatIndex) => {
   let text = ''
 
+  let shouldSumStaticMods = false
+  if (!t.childThrows || !t.childThrows.length) {
+    shouldSumStaticMods = showResults
+  }
+
   let previousFormulaPart = null
   let isPrecededByOperatorOrNothing = false
   t.formulaParts.forEach((formulaPart, index) => {
     switch(formulaPart.type) {
       case FORMULA_PART_TYPES.operands.number: {
-        text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
-          formulaPart.value.toString()
+        if (!shouldSumStaticMods) {
+          text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
+            formulaPart.value.toString()
+        }
         break
       }
       case FORMULA_PART_TYPES.operands.fudgeDice: {
@@ -117,6 +127,15 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
         }
         break
       }
+      case FORMULA_PART_TYPES.operands.rnkDice: {
+        text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
+        if (showResults) {
+          text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
+        } else {
+          text += getRnKDiceFormulaText(formulaPart)
+        }
+        break
+      }
       case FORMULA_PART_TYPES.operands.child: {
         const childThrow = t.childThrows[formulaPart.index]
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
@@ -127,7 +146,10 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operators.sum:
       case FORMULA_PART_TYPES.operators.subtract: {
-        text += (previousFormulaPart ? format.space : '') + formulaPart.type
+        if (!shouldSumStaticMods || (t.formulaParts[index + 1] &&
+          t.formulaParts[index + 1].type !== FORMULA_PART_TYPES.operands.number)) {
+          text += (previousFormulaPart ? format.space : '') + formulaPart.type
+        }
       }
     }
 
@@ -136,19 +158,47 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
     previousFormulaPart = formulaPart
   })
 
+  if (shouldSumStaticMods && t.staticModifiersSum) {
+    text += format.space
+    if (t.staticModifiersSum < 0) {
+       text += FORMULA_PART_TYPES.operators.subtract
+    } else {
+      text += FORMULA_PART_TYPES.operators.sum
+    }
+    text += format.space + format.italicsStart + Math.abs(t.staticModifiersSum) + format.italicsEnd
+  }
+
+  return text
+}
+
+const getDiceModsText = (formulaPart) => {
+  let text = ''
+  if (formulaPart.diceMods && formulaPart.diceMods.length) {
+    formulaPart.diceMods.forEach(diceMod => {
+      if ((formulaPart.type !== FORMULA_PART_TYPES.operands.rnkDice) ||
+        (diceMod.type !== DICE_MODIFIERS.explode && diceMod.type !== DICE_MODIFIERS.keepHighest) ||
+        (diceMod.type === DICE_MODIFIERS.explode && diceMod.value !== RNK_DIE_SIDES)) {
+        text += diceMod.type + diceMod.value
+      }
+    })
+  }
+
   return text
 }
 
 const getNormalDiceFormulaText = (formulaPart) => {
   let text = formulaPart.number + NORMAL_DICE_SYMBOL + formulaPart.sides
 
-  if (formulaPart.diceMods && formulaPart.diceMods.length) {
-    formulaPart.diceMods.forEach(diceMod => {
-      text += diceMod.type + diceMod.value
-    })
-  }
+  return text + getDiceModsText(formulaPart)
+}
 
-  return text
+const getRnKDiceFormulaText = (formulaPart) => {
+  const keepHighestMod = formulaPart.diceMods.find(
+    diceMod => diceMod.type === DICE_MODIFIERS.keepHighest
+  )
+  let text = formulaPart.number + RNK_DICE_SYMBOL + (keepHighestMod.value || 'ERROR')
+
+  return text + getDiceModsText(formulaPart)
 }
 
 const getDiceResultsText = (throwResults, throwType, format) => {
@@ -212,6 +262,7 @@ const getDiceResultText = (throwResult, throwType) => {
   }
 
   switch (throwType) {
+    case FORMULA_PART_TYPES.operands.rnkDice:
     case FORMULA_PART_TYPES.operands.normalDice: {
       return throwResult.result.toString()
     }
@@ -232,6 +283,7 @@ const checkForNonStaticParts = (t) => {
     for (let i = 0; i < t.formulaParts.length; i++) {
       const formulaPart = t.formulaParts[i]
       switch (formulaPart.type) {
+        case FORMULA_PART_TYPES.operands.rnkDice:
         case FORMULA_PART_TYPES.operands.normalDice:
         case FORMULA_PART_TYPES.operands.fudgeDice: {
           nonStaticPartsNumber += formulaPart.number
