@@ -5,6 +5,12 @@ module.exports.DECK_TYPES_COLUMNS = { id: 'id', deck: 'deck', description: 'desc
 module.exports.DECKS_DB_NAME = 'decks';
 module.exports.DECKS_COLUMNS = { channel_id: 'channel_id', deck: 'deck', type_id: 'type_id' };
 
+module.exports.SAVED_ROLL_COMMANDS_DB_NAME = 'saved_roll_commands'
+module.exports.SAVED_ROLL_COMMANDS_COLUMNS = {
+  id: 'id', channel_id: 'channel_id', name: 'name', command: 'command', timestamp: 'timestamp'
+};
+module.exports.SAVED_ROLL_COMMANDS_EXPIRE_AFTER = '1 hour'
+
 module.exports.HANDLED_ERROR_TYPE_NAME = 'HANDLED_ERROR'
 module.exports.HANDLED_WARNING_TYPE_NAME = 'HANDLED_WARNING'
 

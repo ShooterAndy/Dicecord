@@ -23,9 +23,9 @@ const processShuffleCommand = async (message, deckId, prefix) => {
         [constants.DECKS_COLUMNS.deck, constants.DECKS_COLUMNS.type_id],
         message.channel.id,
         [JSON.stringify(deck), deckId]);
-      return message.reply('Your `' + deckId + '` deck was shuffled!');
+      return message.reply('Your `' + deckId + '` deck was shuffled!').catch(console.error);
     } catch(error) {
-      console.error('ERROR: Failed to update the deck for channel "' +
+      console.error('**ERROR:** Failed to update the deck for channel "' +
         message.channel.id + '", ' + error);
       return message.reply('**ERROR:** Failed to save the deck.')
         .catch(console.error);

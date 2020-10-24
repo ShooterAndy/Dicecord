@@ -3,6 +3,7 @@ const _ = require('underscore')
 const formatThrowResults = require('../helpers/formatThrowResults')
 
 const nws = require('../helpers/nws')
+const replyHelper = require('../helpers/reply')
 
 const {
   HANDLED_ERROR_TYPE_NAME,
@@ -79,7 +80,6 @@ let message = null
 let botClientUser = null
 let prefix = null
 let commandName = null
-let doReply = true // TODO: Add handling later
 
 // -------------------------------------------------------------------------------------------------
 
@@ -94,6 +94,7 @@ module.exports = args => {
 
   topLevelCatcher(processWholeCommand, args.commandText)
 
+  // TODO: double-check what happens here with both the error and the warnings shown
   try {
     if (warnings.length) {
       topLevelCatcher(showWarnings)
@@ -113,28 +114,12 @@ module.exports = args => {
 /* ================================================================================================
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 ================================================================================================ */
-
-const reply = (text) => {
-  return new Promise((resolve, reject) => {
-    if (doReply) {
-      message.reply(`\n${text}`, { split: true })
-        .catch(err => {
-          reject(new Error(err))
-        })
-        .then((messages) => {
-          resolve(_.last(messages))
-        })
-    } else {
-      message.channel.send(text, { split: true })
-        .catch(err => {
-          reject(new Error(err))
-        })
-        .then((messages) => {
-          resolve(_.last(messages))
-        })
-    }
-  })
-
+const reply = async (text) => {
+  try {
+    await replyHelper(text, message)
+  } catch (error) {
+    throw error
+  }
 }
 
 const addWarning = (text) => {
@@ -181,6 +166,7 @@ const showWarnings = () => {
 }
 
 const reactToWarningsResponse = (args) => {
+  // TODO: figure out what I want to do here
   args.warningsMessage.delete().then(() => {
     console.log(`-- > REACTIONS: ${JSON.stringify(args.collected.array())}`)
     if (args.collected.array()[0].key === YES_EMOJI) {
@@ -433,6 +419,8 @@ const processRepeatThrowPart = thisThrow => {
 
     requestedRepeatNumber =
       Number(repeatThrowParts[0].slice(REPEAT_THROW_SEPARATOR.length).trim())
+
+    // TODO: Double-check edge cases here (and in vs parts)
     if (requestedRepeatNumber >= MAX_REPEAT_THROWS) {
       addWarning(nws`you cannot have more than \`${MAX_REPEAT_THROWS}\` repeated throws in \
         \`${thisThrow.originalFormula}\`, so this will be ignored`)
@@ -1615,6 +1603,7 @@ const roll = (dieSides) => {
 ================================================================================================ */
 
 const showResults = () => {
+  // TODO: add buttons
   if (throws && throws.length) {
     reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}))
   }
