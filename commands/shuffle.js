@@ -1,38 +1,51 @@
-const _ = require('underscore');
-const constants = require('../helpers/constants.js')
-const pg = require('../helpers/pgHandler');
+const _ = require('underscore')
+const {
+  DEFAULT_DECK_TYPE,
+  DECK_TYPES_DB_NAME,
+  DECK_TYPES_COLUMNS,
+  DECKS_DB_NAME,
+  DECKS_COLUMNS,
+  ERROR_PREFIX
+} = require('../helpers/constants.js')
+const pg = require('../helpers/pgHandler')
+const nws = require('../helpers/nws')
+const reply = require('../helpers/reply')
 
 module.exports = async (args) => {
-  let deckId = constants.DEFAULT_DECK_TYPE;
+  let deckId = DEFAULT_DECK_TYPE;
   if (args.commandText.trim()) {
-    deckId = args.commandText.trim().toLowerCase();
+    deckId = args.commandText.trim().toLowerCase()
   }
-  await processShuffleCommand(args.message, deckId, args.prefix);
+  await processShuffleCommand(args.message, deckId, args.prefix)
 };
 
 const processShuffleCommand = async (message, deckId, prefix) => {
   try {
-    const result = await pg.one(constants.DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
-      constants.DECK_TYPES_COLUMNS.deck);
+    const result = await pg.oneOrNone(DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
+      DECK_TYPES_COLUMNS.deck)
+    if (!result || !result.length) {
+      return reply(`No deck \`${deckId}\` exists.`, message)
+        .catch(console.error)
+    }
 
-    const deck = _.shuffle(JSON.parse(result.deck));
+    const deck = _.shuffle(JSON.parse(result.deck))
     try {
       await pg.upsert(
-        constants.DECKS_DB_NAME,
-        constants.DECKS_COLUMNS.channel_id,
-        [constants.DECKS_COLUMNS.deck, constants.DECKS_COLUMNS.type_id],
+        DECKS_DB_NAME,
+        DECKS_COLUMNS.channel_id,
+        [DECKS_COLUMNS.deck, DECKS_COLUMNS.type_id],
         message.channel.id,
         [JSON.stringify(deck), deckId]);
-      return message.reply('Your `' + deckId + '` deck was shuffled!').catch(console.error);
+      return reply('Your `' + deckId + '` deck was shuffled!', message).catch(console.error)
     } catch(error) {
-      console.error('**ERROR:** Failed to update the deck for channel "' +
-        message.channel.id + '", ' + error);
-      return message.reply('**ERROR:** Failed to save the deck.')
-        .catch(console.error);
+      console.error(nws`-- > ERROR: Failed to update the deck for channel \
+        ${message.channel.id}, ${error}`)
+      return reply(`${ERROR_PREFIX} Failed to save the deck.`, message)
+        .catch(console.error)
     }
   } catch (error) {
-    return message.reply('**ERROR:** No deck type `' + deckId + '` exists. ' +
-      'List all existing deck types via the `' + prefix + 'listDeckTypes` command.')
-      .catch(console.error);
+    return reply(nws`${ERROR_PREFIX} No deck type \`${deckId}\` exists. \
+      'You can list all existing deck types via the \`'${prefix}listDeckTypes\` command.`, message)
+      .catch(console.error)
   }
 };
