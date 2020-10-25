@@ -1,70 +1,79 @@
-const _ = require('underscore');
-const constants = require('../helpers/constants.js');
-const pg = require('../helpers/pgHandler');
+const _ = require('underscore')
+const {
+  DEFAULT_DECK_TYPE,
+  DECK_TYPES_DB_NAME,
+  DECK_TYPES_COLUMNS,
+  ERROR_PREFIX,
+  COMMENT_SEPARATOR
+} = require('../helpers/constants.js')
+const pg = require('../helpers/pgHandler')
+const reply = require('../helpers/reply')
+const nws = require('../helpers/nws')
 
 module.exports = async (args) => {
-  const numberOfCardsToDraw = args.commandText.trim().split(' ')[0];
-  const secondPart = args.commandText.trim().slice(numberOfCardsToDraw.length).trim();
-  let comment;
-  let deckId = constants.DEFAULT_DECK_TYPE;
-  if (secondPart.startsWith('?')) {
-    comment = secondPart.slice(1).trim();
+  const numberOfCardsToDraw = args.commandText.trim().split(' ')[0]
+  const secondPart = args.commandText.trim().slice(numberOfCardsToDraw.length).trim()
+  let comment
+  let deckId = DEFAULT_DECK_TYPE
+  if (secondPart.startsWith(COMMENT_SEPARATOR)) {
+    comment = secondPart.slice(COMMENT_SEPARATOR.length).trim()
   } else if (secondPart) {
-    deckId = secondPart.split(' ')[0];
-    comment = secondPart.slice(deckId.length).trim();
-    if (comment.startsWith('?')) {
-      comment = comment.slice(1).trim();
+    deckId = secondPart.split(' ')[0]
+    comment = secondPart.slice(deckId.length).trim()
+    if (comment.startsWith(COMMENT_SEPARATOR)) {
+      comment = comment.slice(COMMENT_SEPARATOR.length).trim()
     }
   }
-  await processDrawShuffledCommand(args.message, numberOfCardsToDraw, deckId, comment, args.prefix);
+  await processDrawShuffledCommand(args.message, numberOfCardsToDraw, deckId, comment, args.prefix,
+    args.commandName)
 };
 
-const processDrawShuffledCommand = async (message, numberOfCardsToDraw, deckId, comment, prefix) => {
+const processDrawShuffledCommand =
+  async (message, numberOfCardsToDraw, deckId, comment, prefix, commandName) => {
   if (isNaN(numberOfCardsToDraw)) {
-    return message.reply('**ERROR:** "' + numberOfCardsToDraw +
-      '" is not a valid number of cards to draw.')
-      .catch(console.error);
+    return reply(nws`${ERROR_PREFIX}"${numberOfCardsToDraw}" is not a valid number of cards to \
+      draw.`, message)
   }
 
   try {
-    const result = await pg.one(constants.DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
-      constants.DECK_TYPES_COLUMNS.deck);
+    const result = await pg.oneOrNone(DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
+      DECK_TYPES_COLUMNS.deck)
+    if (!result || !result.length) {
+      return reply(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
+      types via the \`${prefix}listDeckTypes\` command. Or did you write that as a comment? \
+      Please note that specifying the deck type is now required before writing a comment, so it \
+      should look like this: \`${prefix}${commandName} 3 poker ${COMMENT_SEPARATOR} your comment \
+      here\`.`, message)
+    }
 
-    const deck = _.shuffle(JSON.parse(result.deck));
-    numberOfCardsToDraw = parseInt(numberOfCardsToDraw);
-    if (numberOfCardsToDraw > constants.POKER_DECK.length) {
-      return message.reply('**ERROR:** Not enough cards in the deck (requested ' +
-        numberOfCardsToDraw +
-        ', but only ' + constants.POKER_DECK.length +
-        ' cards in the deck). Please draw fewer cards.')
-        .catch(console.error);
+    const deck = _.shuffle(JSON.parse(result.deck))
+    numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
+    if (numberOfCardsToDraw > result.deck.length) {
+      return reply(nws`${ERROR_PREFIX}Not enough cards in the deck (requested \
+        ${numberOfCardsToDraw}, but the deck only has ${result.deck.length} cards in it. Please \
+        draw fewer cards.`, message)
     }
     else {
-      let text = '';
-      let drawnCards = deck.slice(0, numberOfCardsToDraw);
-      let isOrAre = ' are';
-      let cardOrCards = 'cards';
+      let text = ''
+      let drawnCards = deck.slice(0, numberOfCardsToDraw)
+      let isOrAre = ' are'
+      let cardOrCards = 'cards'
       if (numberOfCardsToDraw === 1) {
-        isOrAre = '\'s';
-        cardOrCards = 'card';
+        isOrAre = '\'s'
+        cardOrCards = 'card'
       }
       text = 'Here' + isOrAre + ' your ' + numberOfCardsToDraw + ' ' + cardOrCards + ' from a `' +
-        deckId + '` deck: ';
+        deckId + '` deck: '
       if (comment) {
-        text += '\n`' + comment + ':` ';
+        text += '\n`' + comment + ':` '
       }
-      _.each(drawnCards, function(card) {
-        text += card + ', ';
-      });
-      text = text.slice(0, -2) + '.';
-      return message.reply(text).catch(console.error);
+
+      text += drawnCards.join(', ')
+      return reply(text, message)
     }
   } catch (error) {
-    return message.reply('**ERROR:** No deck type `' + deckId + '` exists. ' +
-      'List all existing deck types via the `' + prefix + 'listDeckTypes` command. ' +
-      'Or did you write that as a comment? Please note that specifying the deck type is now ' +
-      'required before writing a comment, so it should look like this: `' + prefix +
-      'drawShuffled 3 poker ? your comment here`.')
-      .catch(console.error);
+    console.error('-- > Failed to load the deck for the !drsh command:\n' + error)
+    return reply(`${ERROR_PREFIX}Failed to load the deck. Please contact the bot author.`,
+      message)
   }
 };

@@ -34,23 +34,23 @@ const deleteExpiredSavedRollCommands = async () => {
                 ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER}.`)
     }
   } catch (error) {
-    console.error('-- > Failed to delete expired roll commands:\n' + error)
+    console.error('-- > ERROR: Failed to delete expired roll commands:\n' + error)
   }
 }
 
 module.exports = (client) => {
-  console.log('-- > Successfully logged in as ' + client.user.tag);
+  console.log('-- > Successfully logged in as ' + client.user.tag)
 
   tryToSetActivity(client)
 
-  const DBL = require('dblapi.js');
-  const dbl = new DBL(process.env.DBL_TOKEN, client);
+  const DBL = require('dblapi.js')
+  const dbl = new DBL(process.env.DBL_TOKEN, client)
 
   if(client.shard) {
-    console.log('-- > Shard id: "' + client.shard.id + '"; count: "' + client.shard.count + '"');
+    console.log('-- > Shard id: "' + client.shard.id + '"; count: "' + client.shard.count + '"')
   }
   else {
-    console.log('-- > No shard');
+    console.log('-- > No shard')
   }
   setInterval(() => {
     if (!process.env.IS_LOCAL) {
@@ -64,7 +64,7 @@ module.exports = (client) => {
         console.error('-- > ERROR: Failed to send DBL stats')
       }
     }
-  }, transformMinutesToMs(30));
+  }, transformMinutesToMs(30))
 
   deleteExpiredSavedRollCommands()
 

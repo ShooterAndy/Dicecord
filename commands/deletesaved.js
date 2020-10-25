@@ -15,24 +15,22 @@ module.exports = async (args) => {
         ${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}' AND \
         ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
       if (!result) {
-        reply(nws`Couldn't find the \`${name}\` command among the ones saved for this Discord \
-          channel. Please try listing all saved commands for this Discord channel via the \
-          \`${args.prefix}listsaved\` command`, args.message).catch(console.error)
-        return
+        return reply(nws`Couldn't find the \`${name}\` command among the ones saved for this \
+          Discord channel. Please try listing all saved commands for this Discord channel via the \
+          \`${args.prefix}listSaved\` command`, args.message)
       }
-      reply(nws`The \`${name}\` has been successfully deleted from the list of saved commands for \
-        this Discord channel.`,
-        args.message).catch(console.error)
+      return reply(nws`The \`${name}\` has been successfully deleted from the list of saved \
+        commands for this Discord channel.`, args.message)
     } catch (error) {
       console.log(error)
-      reply(nws`${ERROR_PREFIX}Failed to delete the command. Please contact the bot author.`,
-        args.message).catch(console.error)
+      return reply(nws`${ERROR_PREFIX}Failed to delete the command. Please contact the bot author.`,
+        args.message)
     }
   } else {
-    reply(nws`${ERROR_PREFIX}You have to enter the name of the command you want to delete, \
+    return reply(nws`${ERROR_PREFIX}You have to enter the name of the command you want to delete, \
       for example:\n\`${args.prefix}${args.commandName} some-name\`\nIf you do not remember the \
-      name, you can use the \`${args.prefix}listsaved\` command to get the list of all saved \
+      name, you can use the \`${args.prefix}listSaved\` command to get the list of all saved \
       commands for this Discord channel.`,
-      args.message).catch(console.error)
+      args.message)
   }
 }

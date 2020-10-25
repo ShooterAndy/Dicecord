@@ -1,5 +1,5 @@
-const help = require('./help');
+const help = require('./help')
 
 module.exports = args => {
-    return help(args);
-};
+    return help(args)
+}

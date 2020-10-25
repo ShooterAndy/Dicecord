@@ -1,3 +1,3 @@
 module.exports = error => {
-    console.error('-- > DBL Error: ' + error);
-};
+  console.error('-- > DBL Error: ' + error)
+}

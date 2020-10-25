@@ -1,27 +1,34 @@
-const Prefixes = require('../helpers/prefixes');
+const Prefixes = require('../helpers/prefixes')
+const reply = require('../helpers/reply')
+const nws = require('../helpers/nws')
+const {
+  ERROR_PREFIX
+} = require('../helpers/constants')
 
-module.exports = args => {
-    const message = args.message;
-    const client = args.client;
-    const guildId = args.commandText.trim();
-    if(message.author.id) {
-        client.fetchApplication().then(application => {
-            if(message.author.id !== application.owner.id) {
-                console.error('-- > User ' + message.author.username + '#' + message.author.tag + '(' +
-                    message.author.id + ') attempted to use a getprefix command!');
-                return message.reply('**ERROR:** You cannot use this command.').catch(console.error);
-            }
-            if(!guildId) {
-                return args.message.reply('**ERROR:** No Guild id specified.')
-                    .catch(console.error);
-            }
-            if(!client.guilds.get(guildId)) {
-                return args.message.reply('**ERROR:** This bot is not present at this Guild.')
-                    .catch(console.error);
-            }
-            return args.message.reply('Prefix for Guild "' + client.guilds.get(guildId).name + '" `' + guildId +
-                '` is' +  (Prefixes.prefixes[guildId] ? ('`' + Prefixes.prefixes[guildId] + '`') : 'not specified') +
-                '.').catch(console.error);
-        }).catch(console.error);
+module.exports = async args => {
+  const message = args.message
+  const client = args.client
+  const guildId = args.commandText.trim()
+  if(message.author.id) {
+    try {
+      const application = client.fetchApplication()
+      if(message.author.id !== application.owner.id) {
+        console.warn('-- > User ' + message.author.username + '#' + message.author.tag + '(' +
+          message.author.id + ') attempted to use a getPrefix command!')
+        return reply(`${ERROR_PREFIX}You cannot use this command.`, message)
+      }
+      if(!guildId) {
+        return reply(`${ERROR_PREFIX}No Guild id specified.`, message)
+      }
+      if(!client.guilds.cache.get(guildId)) {
+        return reply(`${ERROR_PREFIX}This bot is not present at this Guild.`, message)
+      }
+      const prefix = Prefixes.prefixes[guildId] ?
+        (`\`${Prefixes.prefixes[guildId]}\``) : 'not specified'
+      return reply(nws`Prefix for Guild "${client.guilds.cache.get(guildId).name}" \`${guildId}\` \
+        is ${prefix}.`, message)
+    } catch (error) {
+      console.error(`-- > Failed to fetch application:\n${error}`)
     }
+  }
 };

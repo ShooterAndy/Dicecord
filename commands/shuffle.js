@@ -25,7 +25,6 @@ const processShuffleCommand = async (message, deckId, prefix) => {
       DECK_TYPES_COLUMNS.deck)
     if (!result || !result.length) {
       return reply(`No deck \`${deckId}\` exists.`, message)
-        .catch(console.error)
     }
 
     const deck = _.shuffle(JSON.parse(result.deck))
@@ -36,16 +35,14 @@ const processShuffleCommand = async (message, deckId, prefix) => {
         [DECKS_COLUMNS.deck, DECKS_COLUMNS.type_id],
         message.channel.id,
         [JSON.stringify(deck), deckId]);
-      return reply('Your `' + deckId + '` deck was shuffled!', message).catch(console.error)
+      return reply('Your `' + deckId + '` deck was shuffled!', message)
     } catch(error) {
       console.error(nws`-- > ERROR: Failed to update the deck for channel \
         ${message.channel.id}, ${error}`)
       return reply(`${ERROR_PREFIX} Failed to save the deck.`, message)
-        .catch(console.error)
     }
   } catch (error) {
     return reply(nws`${ERROR_PREFIX} No deck type \`${deckId}\` exists. \
       'You can list all existing deck types via the \`'${prefix}listDeckTypes\` command.`, message)
-      .catch(console.error)
   }
 };

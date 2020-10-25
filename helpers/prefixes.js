@@ -1,34 +1,35 @@
-const pgHandler = require('../helpers/pgHandler');
-const _ = require('underscore');
-const dbName = 'prefixes';
-const idColumn = 'guild_id';
-const dataColumns = ['prefix'];
+const pgHandler = require('./pgHandler')
+const _ = require('underscore')
+const {
+  PREFIXES_DB_NAME,
+  PREFIXES_COLUMNS
+} = require('./constants')
 
 const Prefixes = module.exports = {
   prefixes: {},
   load: async () => {
     try {
-      const data = await pgHandler.any(dbName);
+      const data = await pgHandler.any(PREFIXES_DB_NAME)
       _.each(data, (item) => {
-        let values = _.values(item);
-        Prefixes.prefixes[values[0]] = values[1];
+        let values = _.values(item)
+        Prefixes.prefixes[values[0]] = values[1]
       });
       return Prefixes.prefixes;
     } catch(error) {
-      throw error;
+      throw error
     }
   },
   set: async (guildId, prefix) => {
     try {
       await pgHandler.upsert(
-        dbName,
-        idColumn,
-        dataColumns,
+        PREFIXES_DB_NAME,
+        PREFIXES_COLUMNS.guild_id,
+        [PREFIXES_COLUMNS.prefix],
         guildId,
         [prefix])
-      Prefixes.prefixes = await Prefixes.load();
+      Prefixes.prefixes = await Prefixes.load()
     } catch(error) {
-      throw error;
+      throw error
     }
   }
-};
+}

@@ -1,5 +1,5 @@
-const examineDeck = require('./examinedeck');
+const examineDeck = require('./examinedeck')
 
 module.exports = args => {
-  return examineDeck(args);
+  return examineDeck(args)
 };

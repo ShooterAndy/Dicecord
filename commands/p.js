@@ -1,5 +1,5 @@
-const pick = require('./pick');
+const pick = require('./pick')
 
 module.exports = args => {
-    return pick(args);
-};
+  return pick(args)
+}

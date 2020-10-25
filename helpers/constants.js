@@ -1,15 +1,42 @@
-module.exports.DEFAULT_DECK_TYPE = 'poker';
-module.exports.DECK_TYPES_DB_NAME = 'deck_types';
-module.exports.DECK_TYPES_COLUMNS = { id: 'id', deck: 'deck', description: 'description' };
+module.exports.DB_PREFIX = 'public'
 
-module.exports.DECKS_DB_NAME = 'decks';
-module.exports.DECKS_COLUMNS = { channel_id: 'channel_id', deck: 'deck', type_id: 'type_id' };
+module.exports.PREFIXES_DB_NAME = 'prefixes'
+module.exports.PREFIXES_COLUMNS = { guild_id: 'guild_id', prefix: 'prefix' }
+
+module.exports.DEFAULT_DECK_TYPE = 'poker'
+module.exports.DECK_TYPES_DB_NAME = 'deck_types'
+module.exports.DECK_TYPES_COLUMNS = { id: 'id', deck: 'deck', description: 'description' }
+
+module.exports.DECKS_DB_NAME = 'decks'
+module.exports.DECKS_COLUMNS = { channel_id: 'channel_id', deck: 'deck', type_id: 'type_id' }
 
 module.exports.SAVED_ROLL_COMMANDS_DB_NAME = 'saved_roll_commands'
 module.exports.SAVED_ROLL_COMMANDS_COLUMNS = {
   id: 'id', channel_id: 'channel_id', name: 'name', command: 'command', timestamp: 'timestamp'
 };
 module.exports.SAVED_ROLL_COMMANDS_EXPIRE_AFTER = '30 days'
+
+// -------------------------------------------------------------------------------------------------
+
+module.exports.DEFAULT_PREFIX = '!'
+
+// -------------------------------------------------------------------------------------------------
+
+module.exports.NO_NOT_FOUND_ROLE_NAME = 'DICECORD_NO_NOT_FOUND'
+
+// -------------------------------------------------------------------------------------------------
+
+module.exports.MIN_PREFIX_LENGTH = 1
+module.exports.MAX_PREFIX_LENGTH = 8
+
+// -------------------------------------------------------------------------------------------------
+
+module.exports.MIN_ORDER_NUMBER = 2
+module.exports.MAX_ORDER_NUMBER = 1000
+module.exports.MIN_PICK_NUMBER = 2
+module.exports.MAX_PICK_NUMBER = 1000
+
+// -------------------------------------------------------------------------------------------------
 
 module.exports.HANDLED_ERROR_TYPE_NAME = 'HANDLED_ERROR'
 module.exports.HANDLED_WARNING_TYPE_NAME = 'HANDLED_WARNING'
@@ -178,6 +205,64 @@ module.exports.THROW_RESULTS_FORMATS = {
     resultsEnd: ']',
     vs: 'vs',
     conditionalThrowSeparator: '→'
+  },
+  markdown: {
+    boldStart: '**',
+    boldEnd: '**',
+    italicsStart: '_',
+    italicsEnd: '_',
+    listStart: '',
+    listEnd: '',
+    listItemStart: ' * ',
+    listItemEnd: '',
+    codeStart: '',
+    codeEnd: '',
+    strikethroughStart: '~~',
+    strikethroughEnd: '~~',
+    underlineStart: '__',
+    underlineEnd: '__',
+    throwsStart: '',
+    throwSeparator: ';\n',
+    throwsEnd: '.',
+    space: ' ',
+    explosion: '💥',
+    critical: '✨',
+    botch: '🔥',
+    resultsStart: '[',
+    resultsEnd: ']',
+    vs: 'vs',
+    conditionalThrowSeparator: '→',
+    replaceLinebreaks: false,
+    multipleListStarts: true
+  },
+  bbcode: {
+    boldStart: '[b]',
+    boldEnd: '[/b]',
+    italicsStart: '[i]',
+    italicsEnd: '[/i]',
+    listStart: '[ul]',
+    listEnd: '[/ul]',
+    listItemStart: '[li]',
+    listItemEnd: '[/li]',
+    codeStart: '',
+    codeEnd: '',
+    strikethroughStart: '[strike]',
+    strikethroughEnd: '[/strike]',
+    underlineStart: '[u]',
+    underlineEnd: '[/u]',
+    throwsStart: '[ul][li]',
+    throwSeparator: '[/li][li]',
+    throwsEnd: '[/li]',
+    space: ' ',
+    explosion: '💥',
+    critical: '✨',
+    botch: '🔥',
+    resultsStart: '(',
+    resultsEnd: ')',
+    vs: 'vs',
+    conditionalThrowSeparator: '→',
+    replaceLinebreaks: true,
+    multipleListStarts: false
   }
 }
 module.exports.DEFAULT_THROW_RESULT_FORMAT_NAME = Object.keys(this.THROW_RESULTS_FORMATS)[0]

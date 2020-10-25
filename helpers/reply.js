@@ -12,6 +12,6 @@ module.exports = async (text, message) => {
     }
     return messages[messages.length - 1]
   } catch (error) {
-    throw error
+    console.error('-- > ERROR: Failed to reply:\n' + error)
   }
 }

@@ -13,19 +13,18 @@ module.exports = async (args) => {
       `WHERE ${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}'`,
       [SAVED_ROLL_COMMANDS_COLUMNS.name])
     if (!result || !result.length) {
-      reply(nws`There are no roll commands saved for this channel yet. Try saving some with the \
-        \`${args.prefix}saveroll NAME COMMAND\` command!`,
-        args.message).catch(console.error)
-      return
+      return reply(nws`There are no roll commands saved for this channel yet. Try saving some with \
+        the \`${args.prefix}saveRoll NAME COMMAND\` command!`,
+        args.message)
     }
     let text = 'Here\'s the list of all roll commands saved for this channel:\n'
     result.forEach(command => {
       text += `\`${command.name}\`\n`
     })
-    reply(text, args.message).catch(console.error)
+    return reply(text, args.message)
   } catch(error) {
     console.log(error)
-    reply(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot author.`,
-      args.message).catch(console.error)
+    return reply(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot \
+      author.`, args.message)
   }
 }

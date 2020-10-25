@@ -1,5 +1,5 @@
-const order = require('./order');
+const order = require('./order')
 
 module.exports = args => {
-    return order(args);
-};
+  return order(args)
+}

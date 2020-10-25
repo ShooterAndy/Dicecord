@@ -1,5 +1,5 @@
-const command = require('./listsaved');
+const command = require('./listsaved')
 
 module.exports = args => {
-  return command(args);
-};
+  return command(args)
+}

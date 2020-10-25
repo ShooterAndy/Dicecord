@@ -1,5 +1,5 @@
-const listDeckTypes = require('./listdecktypes');
+const listDeckTypes = require('./listdecktypes')
 
 module.exports = args => {
-  return listDeckTypes(args);
+  return listDeckTypes(args)
 };

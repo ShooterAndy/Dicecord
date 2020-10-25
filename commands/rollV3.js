@@ -129,7 +129,7 @@ const addWarning = (text) => {
   }
 }
 
-const showWarnings = () => {
+const showWarnings = async () => {
   if (warnings.length) {
     let warningsText = WARNING_PREFIX
     if (warnings.length > 1) {
@@ -149,19 +149,16 @@ const showWarnings = () => {
       }
     })
     warningsText += '\nDo you still wish to proceed?'
-    reply(warningsText).then(warningsMessage => {
-      Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
-        .then(() => {
-          const filter = (reaction, user) =>
-            (reaction.emoji.name === YES_EMOJI || reaction.emoji.name === NO_EMOJI)
-            && user.id === message.author.id
-          warningsMessage.awaitReactions(filter, { max: 1 })
-            .then(collected => {
-              catcher(reactToWarningsResponse, { warningsMessage, collected })
-            })
-            .catch(err => { throw(err) })
-      }).catch(err => { throw(err) })
-    }).catch(err => { throw(err) })
+    const warningsMessage = await reply(warningsText, message)
+    await Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
+    const filter = (reaction, user) =>
+      (reaction.emoji.name === YES_EMOJI || reaction.emoji.name === NO_EMOJI)
+      && user.id === message.author.id
+    warningsMessage.awaitReactions(filter, { max: 1 })
+      .then(collected => {
+        catcher(reactToWarningsResponse, { warningsMessage, collected })
+      })
+      .catch(err => { throw(err) })
   }
 }
 
@@ -172,25 +169,25 @@ const reactToWarningsResponse = (args) => {
     if (args.collected.array()[0].key === YES_EMOJI) {
       // do stuff
     } else {
-      reply(nws`Okay, here's your original message, please copy and edit it as needed:
-            \`\`\`${message.content}\`\`\``)
+      return reply(nws`Okay, here's your original message, please copy and edit it as needed:
+            \`\`\`${message.content}\`\`\``, message)
     }
   }).catch(err => { throw(err) })
 }
 
 const showError = (text) => {
-  reply(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it as \
-    needed:\n\`\`\`${message.content}\`\`\``).catch(console.error)
+  return reply(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it \ 
+    as needed:\n\`\`\`${message.content}\`\`\``, message)
 }
 
 const showUncaughtError = (error) => {
-  reply(`${ERROR_PREFIX}some uncaught error occurred, please contact the developer.`)
-    .catch(console.error)
   if (error) {
     console.error(`!!! Unhandled error was thrown in roll command:\n${error.stack}`)
   } else {
     console.error(`!!! Unknown error was thrown in roll command:\n${(new Error()).stack}`)
   }
+  return reply(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
+    message)
 }
 
 const topLevelCatcher = (fn, args) => {
@@ -1605,7 +1602,7 @@ const roll = (dieSides) => {
 const showResults = () => {
   // TODO: add buttons
   if (throws && throws.length) {
-    reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}))
+    return reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}), message)
   }
 }
 

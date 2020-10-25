@@ -1,7 +1,7 @@
-const formatMessage = require('../helpers/formatMessage');
+const formatMessage = require('../helpers/formatMessage')
 
 module.exports = args => {
-    args.formatting = 'markdown';
-    formatMessage(args);
-};
+  args.formatting = 'markdown'
+  formatMessage(args)
+}
 

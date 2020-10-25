@@ -1,5 +1,5 @@
-const shuffle = require('./shuffle');
+const shuffle = require('./shuffle')
 
 module.exports = args => {
-    return shuffle(args);
-};
+  return shuffle(args)
+}

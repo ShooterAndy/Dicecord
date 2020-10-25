@@ -1,32 +1,41 @@
-const pg = require('../helpers/pgHandler');
-const constants = require('../helpers/constants');
+const pg = require('../helpers/pgHandler')
+const reply = require('../helpers/reply')
+const nws = require('../helpers/nws')
+const {
+  DECK_TYPES_DB_NAME,
+  DECK_TYPES_COLUMNS,
+  ERROR_PREFIX
+} = require('../helpers/constants')
 
 module.exports = async (args) => {
   try {
     const result = await pg.any(
-      constants.DECK_TYPES_DB_NAME,
-      `ORDER BY ${constants.DECK_TYPES_COLUMNS.id} ASC`,
-      constants.DECK_TYPES_COLUMNS.id
-    );
-    if (!result || !result.length) throw new Error('empty response from the database');
+      DECK_TYPES_DB_NAME,
+      `ORDER BY ${DECK_TYPES_COLUMNS.id} ASC`,
+      DECK_TYPES_COLUMNS.id
+    )
+    if (!result || !result.length) {
+      console.error(`-- > ERROR: The list of deck types appears to be empty`)
+      return reply(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
+        author.`, args.message)
+    }
 
-    let decksText = '`';
+    let decksText = '`'
     result.forEach((deck, index) => {
-      decksText += deck.id;
+      decksText += deck.id
       if (index < result.length - 1) {
-        decksText += '`\n`';
+        decksText += '`\n`'
       } else {
-        decksText += '`';
+        decksText += '`'
       }
-    });
-    const text = 'Here\'s the list of all available deck types:\n' + decksText + '\n' +
-      'You can learn more about them by using the `' + args.prefix + 'examineDeck`, for example `' +
-      args.prefix + 'examineDeck poker`';
-    return args.message.reply(text)
-      .catch(console.error);
+    })
+    const text = nws`Here's the list of all available deck types:\n${decksText}\nYou can learn \
+      more about them by using the \`${args.prefix}examineDeck\`, for example \
+      \`${args.prefix}examineDeck poker\``
+    return reply(text, args.message)
   } catch (error) {
-    console.error('ERROR: Failed to get the list of decks:\n' + error);
-    return args.message.reply('**ERROR:** Failed to get the list of decks.')
-      .catch(console.error);
+    console.error('-- > ERROR: Failed to get the list of decks:\n' + error);
+    return reply(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
+      author.`, args.message)
   }
 };

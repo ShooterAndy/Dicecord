@@ -8,28 +8,27 @@ const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
 
 module.exports = async (args) => {
-  const firstArg = args.commandText.trim().split(' ')[0].toLowerCase();
-  let deckId = firstArg;
-  let shouldShowCards = false;
+  const firstArg = args.commandText.trim().split(' ')[0].toLowerCase()
+  let deckId = firstArg
+  let shouldShowCards = false
   if (firstArg === '-full') {
-    shouldShowCards = true;
-    deckId = args.commandText.trim().slice(firstArg.length).trim();
+    shouldShowCards = true
+    deckId = args.commandText.trim().slice(firstArg.length).trim()
   }
   try {
     if (!deckId) {
       return reply(nws`${ERROR_PREFIX}Please enter the name of the deck you wish to \
         examine, for example:\n\`${args.prefix}${args.commandName} poker-color\``, args.message)
-        .catch(console.error)
     }
     const result = await pg.oneOrNone(
       DECK_TYPES_DB_NAME,
       `WHERE id = '${deckId}'`,
       DECK_TYPES_COLUMNS.description +
       (shouldShowCards ? (',' + DECK_TYPES_COLUMNS.deck) : '')
-    );
+    )
     if (!result || !result.length) {
-      return reply(`No deck \`${deckId}\` exists.`, args.message)
-        .catch(console.error)
+      return reply(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
+      types via the \`${args.prefix}listDeckTypes\` command.`, args.message)
     }
     let text = '`' + deckId + '`:\n> ' + result.description + '\n'
     if (shouldShowCards) {
@@ -41,7 +40,7 @@ module.exports = async (args) => {
     return reply(text, args.message).catch(console.error)
   } catch (error) {
     console.error('ERROR: Failed to get the info for deck "' + deckId + '":\n' + error);
-    return reply(`${ERROR_PREFIX} Failed to get the information about this deck.`,
-      args.message).catch(console.error)
+    return reply(`${ERROR_PREFIX} Failed to get the information about this deck. Please \
+      contact the author of this bot.`, args.message)
   }
 };

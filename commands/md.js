@@ -1,5 +1,5 @@
-const markdown = require('./markdown');
+const markdown = require('./markdown')
 
 module.exports = args => {
-    return markdown(args);
-};
+  return markdown(args)
+}

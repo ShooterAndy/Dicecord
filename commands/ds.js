@@ -1,5 +1,5 @@
-const command = require('./deletesaved');
+const command = require('./deletesaved')
 
 module.exports = args => {
-  return command(args);
+  return command(args)
 };

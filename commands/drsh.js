@@ -1,5 +1,5 @@
-const drawShuffled = require('./drawshuffled');
+const drawShuffled = require('./drawshuffled')
 
 module.exports = args => {
-    return drawShuffled(args);
+  return drawShuffled(args)
 };

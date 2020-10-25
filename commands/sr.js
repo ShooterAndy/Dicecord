@@ -1,5 +1,5 @@
-const command = require('./saveroll');
+const command = require('./saveroll')
 
 module.exports = args => {
-  return command(args);
-};
+  return command(args)
+}

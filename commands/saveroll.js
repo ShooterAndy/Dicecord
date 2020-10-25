@@ -27,21 +27,21 @@ module.exports = async (args) => {
             name,
             command
           ], SAVED_ROLL_COMMANDS_COLUMNS.timestamp)
-        reply(nws`Your command \`${name}\` was saved successfully! You can roll it like this:\n\
-          \`${args.prefix}rollsaved ${name}\``, args.message).catch(console.error)
+        return reply(nws`Your command \`${name}\` was saved successfully! You can roll it like \
+          this:\n\`${args.prefix}rollSaved ${name}\``, args.message)
       } catch (error) {
         console.log(error)
-        reply(nws`${ERROR_PREFIX}Failed to save the command. Please contact the bot author.`,
-          args.message).catch(console.error)
+        return reply(nws`${ERROR_PREFIX}Failed to save the command. Please contact the bot author.`,
+          args.message)
       }
     } else {
-      reply(nws`${ERROR_PREFIX}You have to enter the command you want to have saved after the \
-        name, for example:\n\`${args.prefix}${args.commandName} ${commandText} 2d10+6\``,
-        args.message).catch(console.error)
+      return reply(nws`${ERROR_PREFIX}You have to enter the command you want to have saved after \
+        the name, for example:\n\`${args.prefix}${args.commandName} ${commandText} 2d10+6\``,
+        args.message)
     }
   } else {
-    reply(nws`${ERROR_PREFIX}You have to enter the name you want to use followed by the command \
-      you want to have saved, for example:\n\`${args.prefix}${args.commandName} some-name 2d10+6\``,
-      args.message).catch(console.error)
+    return reply(nws`${ERROR_PREFIX}You have to enter the name you want to use followed by the \
+      command you want to have saved, for example:\n\`${args.prefix}${args.commandName} some-name \
+      2d10+6\``, args.message)
   }
 }
