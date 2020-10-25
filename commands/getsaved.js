@@ -23,6 +23,18 @@ module.exports = async (args) => {
       reply(nws`Here's the \`${name}\` saved command:\n\`\`\`${result.command}\`\`\`\n\
         You can roll it on this Discord channel via \`${args.prefix}rollsaved ${name}\``,
         args.message).catch(console.error)
+
+      try {
+        await pg.updateTimestamp(
+          SAVED_ROLL_COMMANDS_DB_NAME,
+          SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
+          nws`${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}' AND \
+          ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
+      } catch (error) {
+        console.log(error)
+        reply(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot author.`,
+          args.message).catch(console.error)
+      }
     } catch (error) {
       console.log(error)
       reply(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,

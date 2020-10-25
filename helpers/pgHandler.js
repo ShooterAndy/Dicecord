@@ -89,6 +89,16 @@ const pgHandler = module.exports = {
             throw error
         }
     },
+    async updateTimestamp(dbName, timestampColumn, whereQuery) {
+        try {
+          const query = `UPDATE ${prefix}.${dbName} SET ${timestampColumn} = NOW() ` +
+            `WHERE ${whereQuery}`
+
+          return await pgHandler.db.none(query)
+        } catch(error) {
+          throw error
+        }
+    },
     async deleteOneOrNone(dbName, query) {
         query = getQuery(query);
 

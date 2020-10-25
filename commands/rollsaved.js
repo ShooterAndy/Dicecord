@@ -30,12 +30,12 @@ module.exports = async (args) => {
       }
       roll(argsForRoll)
 
-      // TODO: update last used timestamp!
       try {
-        await pg.upsertWithoutId(
+        await pg.updateTimestamp(
           SAVED_ROLL_COMMANDS_DB_NAME,
-          [SAVED_ROLL_COMMANDS_COLUMNS.channel_id, SAVED_ROLL_COMMANDS_COLUMNS.name],
-          [], [], SAVED_ROLL_COMMANDS_COLUMNS.timestamp)
+          SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
+          nws`${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}' AND \
+          ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
       } catch (error) {
         console.log(error)
         reply(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot author.`,

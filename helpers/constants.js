@@ -9,7 +9,7 @@ module.exports.SAVED_ROLL_COMMANDS_DB_NAME = 'saved_roll_commands'
 module.exports.SAVED_ROLL_COMMANDS_COLUMNS = {
   id: 'id', channel_id: 'channel_id', name: 'name', command: 'command', timestamp: 'timestamp'
 };
-module.exports.SAVED_ROLL_COMMANDS_EXPIRE_AFTER = '1 hour'
+module.exports.SAVED_ROLL_COMMANDS_EXPIRE_AFTER = '30 days'
 
 module.exports.HANDLED_ERROR_TYPE_NAME = 'HANDLED_ERROR'
 module.exports.HANDLED_WARNING_TYPE_NAME = 'HANDLED_WARNING'
@@ -137,6 +137,19 @@ module.exports.VS_CHECK_RESULTS = {
   criticalDnD4: 'criticalDnD4',
   botchDnD4: 'botchDnD4'
 }
+// -------------------------------------------------------------------------------------------------
+module.exports.SPECIAL_CONDITION_TYPES = {
+  maximizeRolls: 'maximizeRolls',
+  multiplyRolls: 'multiplyRolls',
+  addRoll: 'addRoll'
+}
+// -------------------------------------------------------------------------------------------------
+module.exports.SPECIAL_CONDITIONS = { }
+this.SPECIAL_CONDITIONS[this.SPECIAL_THROW_RESULTS.criticalSuccessDnD4] = [
+  {
+    type: this.SPECIAL_CONDITION_TYPES.maximizeRolls
+  }
+]
 // -------------------------------------------------------------------------------------------------
 module.exports.THROW_RESULTS_FORMATS = {
   discord: {
