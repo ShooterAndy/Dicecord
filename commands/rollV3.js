@@ -117,7 +117,7 @@ module.exports = args => {
 ================================================================================================ */
 const reply = async (text) => {
   try {
-    await replyHelper(text, message)
+    return await replyHelper(text, message)
   } catch (error) {
     throw error
   }

@@ -28,7 +28,7 @@ module.exports.DECKS_COLUMNS = { channel_id: 'channel_id', deck: 'deck', type_id
 module.exports.SAVED_ROLL_COMMANDS_DB_NAME = 'saved_roll_commands'
 module.exports.SAVED_ROLL_COMMANDS_COLUMNS = {
   id: 'id', user_id: 'user_id', name: 'name', command: 'command', timestamp: 'timestamp'
-};
+}
 module.exports.SAVED_ROLL_COMMANDS_EXPIRE_AFTER = '30 days'
 module.exports.MAX_SAVED_ROLL_COMMANDS_PER_USER = 10
 module.exports.UPSERT_SAVED_ROLL_COMMAND_RESULTS = {

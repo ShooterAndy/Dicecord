@@ -55,6 +55,7 @@ module.exports = async (client, message, commands, prefixes) => {
       if (message.guild) {
         try {
           const roles = await message.guild.roles.fetch()
+          let shouldSendNotFoundMessage = true
           const dontShowNotFoundErrorRole = roles.cache.array().find(
             (role) => role.name === NO_NOT_FOUND_ROLE_NAME
           )
@@ -63,9 +64,12 @@ module.exports = async (client, message, commands, prefixes) => {
               !!message.guild.member(client.user).roles.cache.array().find(
                 (role) => role.id === dontShowNotFoundErrorRole.id
               )
-            if (!hasDontShowNotFoundErrorRole) {
-              sendNotFoundErrorMessage()
+            if (hasDontShowNotFoundErrorRole) {
+              shouldSendNotFoundMessage = false
             }
+          }
+          if (shouldSendNotFoundMessage) {
+            sendNotFoundErrorMessage()
           }
         } catch(error) {
           logger.error(`Could not fetch the list of roles:`, error)
