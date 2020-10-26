@@ -7,6 +7,7 @@ const {
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const numberOfCardsToDraw = args.commandText.trim().split(' ')[0]
@@ -40,8 +41,7 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb) =
       try {
         deck = JSON.parse(result[DECKS_COLUMNS.deck]);
       } catch (error) {
-        console.error(nws`ERROR: Failed to parse the deck for channel "${message.channel.id}":\n\
-          ${error}`)
+        logger.error(nws`Failed to parse the deck for channel "${message.channel.id}"`, error)
         return reply(nws`${ERROR_PREFIX}Failed to process the deck. Please contact the bot author`,
           message)
       }
@@ -73,14 +73,12 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb) =
             [JSON.stringify(deck)])
           return reply(text, message)
         } catch (error) {
-          console.error(nws`ERROR: Failed to update the deck for channel "${message.channel.id}":\n\
-            ${error}`)
+          logger.error(nws`Failed to update the deck for channel "${message.channel.id}"`, error)
           return reply(`${ERROR_PREFIX}Failed to save the deck.`, message)
         }
       }
     } catch(error) {
-      console.error(`-- > ERROR: Failed to get the deck for channel "${message.channel.id}":\n\
-        ${error}`)
+      logger.error(`Failed to get the deck for channel "${message.channel.id}"`, error)
     }
   }
 };

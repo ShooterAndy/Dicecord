@@ -6,6 +6,7 @@ const {
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const commandText = args.commandText.trim()
@@ -15,6 +16,7 @@ module.exports = async (args) => {
       const name = commandText.slice(0, indexOfFirstSpace).trim().toLowerCase()
       const command = commandText.slice(indexOfFirstSpace).trim()
       try {
+        // todo: change to user_id, add max amount
         await pg.upsertWithoutId(
           SAVED_ROLL_COMMANDS_DB_NAME,
           [SAVED_ROLL_COMMANDS_COLUMNS.channel_id, SAVED_ROLL_COMMANDS_COLUMNS.name],
@@ -30,7 +32,7 @@ module.exports = async (args) => {
         return reply(nws`Your command \`${name}\` was saved successfully! You can roll it like \
           this:\n\`${args.prefix}rollSaved ${name}\``, args.message)
       } catch (error) {
-        console.log(error)
+        logger.error(`Failed to save a roll command`, error)
         return reply(nws`${ERROR_PREFIX}Failed to save the command. Please contact the bot author.`,
           args.message)
       }

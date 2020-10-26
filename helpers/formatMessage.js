@@ -5,6 +5,7 @@ const {
 } = require('./constants')
 const reply = require('./reply')
 const nws = require('./nws')
+const logger = require('./logger')
 
 /*************************************************************************************************/
 // NOTE: This code is no longer supported
@@ -48,7 +49,7 @@ module.exports = async args => {
       processMessage(args, rollMessage, args.formatting)
     }
   } catch(error) {
-    console.error(`-- > ERROR: Failed to fetch messages for channel "${channel.id}":\n${error}`)
+    logger.error(`Failed to fetch messages for channel "${channel.id}"`, error)
     return reply(`${ERROR_PREFIX}Failed to get messages for this channel.`, args.message)
   }
 }

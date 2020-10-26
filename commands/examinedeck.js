@@ -6,6 +6,7 @@ const {
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const firstArg = args.commandText.trim().split(' ')[0].toLowerCase()
@@ -39,7 +40,7 @@ module.exports = async (args) => {
     }
     return reply(text, args.message).catch(console.error)
   } catch (error) {
-    console.error('ERROR: Failed to get the info for deck "' + deckId + '":\n' + error);
+    logger.error(`Failed to get the info for deck "${deckId}"`, error)
     return reply(`${ERROR_PREFIX} Failed to get the information about this deck. Please \
       contact the author of this bot.`, args.message)
   }

@@ -6,6 +6,7 @@ const {
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const name = args.commandText.trim()
@@ -27,7 +28,7 @@ module.exports = async (args) => {
           nws`${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}' AND \
           ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
       } catch (error) {
-        console.log(error)
+        logger.error(`Failed to update timestamp in ${args.commandName}`, error)
         return reply(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot \ 
           author.`, args.message)
       }
@@ -36,7 +37,7 @@ module.exports = async (args) => {
         You can roll it on this Discord channel via \`${args.prefix}rollSaved ${name}\``,
         args.message)
     } catch (error) {
-      console.log(error)
+      logger.error(`Failed to get saved roll command`, error)
       return reply(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,
         args.message)
     }

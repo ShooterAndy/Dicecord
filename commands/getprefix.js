@@ -4,6 +4,7 @@ const nws = require('../helpers/nws')
 const {
   ERROR_PREFIX
 } = require('../helpers/constants')
+const logger = require('../helpers/logger')
 
 module.exports = async args => {
   const message = args.message
@@ -13,8 +14,8 @@ module.exports = async args => {
     try {
       const application = client.fetchApplication()
       if(message.author.id !== application.owner.id) {
-        console.warn('-- > User ' + message.author.username + '#' + message.author.tag + '(' +
-          message.author.id + ') attempted to use a getPrefix command!')
+        logger.warn(nws`User ${message.author.username}#${message.author.tag}( \
+          ${message.author.id}) attempted to use a getPrefix command!`)
         return reply(`${ERROR_PREFIX}You cannot use this command.`, message)
       }
       if(!guildId) {
@@ -28,7 +29,7 @@ module.exports = async args => {
       return reply(nws`Prefix for Guild "${client.guilds.cache.get(guildId).name}" \`${guildId}\` \
         is ${prefix}.`, message)
     } catch (error) {
-      console.error(`-- > Failed to fetch application:\n${error}`)
+      logger.error(`Failed to fetch application`, error)
     }
   }
 };

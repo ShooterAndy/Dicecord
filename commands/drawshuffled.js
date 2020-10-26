@@ -9,6 +9,7 @@ const {
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const numberOfCardsToDraw = args.commandText.trim().split(' ')[0]
@@ -72,7 +73,8 @@ const processDrawShuffledCommand =
       return reply(text, message)
     }
   } catch (error) {
-    console.error('-- > Failed to load the deck for the !drsh command:\n' + error)
+    logger.error(`Failed to load the deck for the "${prefix}${commandName} ${deckId}" command`,
+      error)
     return reply(`${ERROR_PREFIX}Failed to load the deck. Please contact the bot author.`,
       message)
   }

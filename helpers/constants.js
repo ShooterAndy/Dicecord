@@ -1,3 +1,18 @@
+module.exports.IS_LOCAL = process.env.IS_LOCAL || false
+
+// -------------------------------------------------------------------------------------------------
+
+module.exports.LOG_TYPES = {
+  error: 'ERROR',
+  warning: 'WARNING',
+  info: 'INFO'
+}
+module.exports.ADMINISTRATOR_ID = process.env.ADMINISTRATOR_ID
+module.exports.LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID
+module.exports.LOG_PREFIX = '-- > '
+
+// -------------------------------------------------------------------------------------------------
+
 module.exports.DB_PREFIX = 'public'
 
 module.exports.PREFIXES_DB_NAME = 'prefixes'

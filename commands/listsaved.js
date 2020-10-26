@@ -6,6 +6,7 @@ const {
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   try {
@@ -23,7 +24,7 @@ module.exports = async (args) => {
     })
     return reply(text, args.message)
   } catch(error) {
-    console.log(error)
+    logger.log(`Failed to get the list of saved roll commands`, error)
     return reply(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot \
       author.`, args.message)
   }

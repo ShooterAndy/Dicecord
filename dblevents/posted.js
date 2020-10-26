@@ -1,3 +1,5 @@
+const logger = require('../helpers/logger')
+
 module.exports = () => {
-  console.log('-- > Server count posted successfully!')
+  logger.log('Server count posted successfully!')
 }

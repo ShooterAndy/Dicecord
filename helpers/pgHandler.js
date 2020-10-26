@@ -18,7 +18,9 @@ const getQuery = (query) => {
 };
 
 const pgHandler = module.exports = {
+
   db: PostGresPromise(process.env.DATABASE_URL + '?ssl=true'),
+
   async any(dbName, query, columns) {
     columns = getColumnsList(columns)
     query = getQuery(query);

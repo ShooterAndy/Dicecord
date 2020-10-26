@@ -4,6 +4,7 @@ const formatThrowResults = require('../helpers/formatThrowResults')
 
 const nws = require('../helpers/nws')
 const replyHelper = require('../helpers/reply')
+const logger = require('../helpers/logger')
 
 const {
   HANDLED_ERROR_TYPE_NAME,
@@ -107,7 +108,7 @@ module.exports = args => {
       }
     }
   } catch (error) {
-    console.error(error)
+    logger.error(`Top level error in ${commandName} command`, error)
   }
 }
 
@@ -182,9 +183,9 @@ const showError = (text) => {
 
 const showUncaughtError = (error) => {
   if (error) {
-    console.error(`!!! Unhandled error was thrown in roll command:\n${error.stack}`)
+    logger.error(`Unhandled error was thrown in roll command`, error.stack)
   } else {
-    console.error(`!!! Unknown error was thrown in roll command:\n${(new Error()).stack}`)
+    logger.error(`Unknown error was thrown in roll command`, (new Error()).stack)
   }
   return reply(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
     message)

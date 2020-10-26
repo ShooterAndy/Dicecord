@@ -6,6 +6,7 @@ const {
   DECK_TYPES_COLUMNS,
   ERROR_PREFIX
 } = require('../helpers/constants')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   try {
@@ -15,7 +16,7 @@ module.exports = async (args) => {
       DECK_TYPES_COLUMNS.id
     )
     if (!result || !result.length) {
-      console.error(`-- > ERROR: The list of deck types appears to be empty`)
+      logger.error(`The list of deck types appears to be empty`)
       return reply(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
         author.`, args.message)
     }
@@ -34,7 +35,7 @@ module.exports = async (args) => {
       \`${args.prefix}examineDeck poker\``
     return reply(text, args.message)
   } catch (error) {
-    console.error('-- > ERROR: Failed to get the list of decks:\n' + error);
+    logger.error('Failed to get the list of decks', error);
     return reply(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
       author.`, args.message)
   }

@@ -10,6 +10,7 @@ const {
 const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
 const reply = require('../helpers/reply')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   let deckId = DEFAULT_DECK_TYPE;
@@ -37,8 +38,7 @@ const processShuffleCommand = async (message, deckId, prefix) => {
         [JSON.stringify(deck), deckId]);
       return reply('Your `' + deckId + '` deck was shuffled!', message)
     } catch(error) {
-      console.error(nws`-- > ERROR: Failed to update the deck for channel \
-        ${message.channel.id}, ${error}`)
+      logger.error(nws`Failed to update the deck for channel ${message.channel.id}`, error)
       return reply(`${ERROR_PREFIX} Failed to save the deck.`, message)
     }
   } catch (error) {

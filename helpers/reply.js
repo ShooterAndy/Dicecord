@@ -1,6 +1,8 @@
+const logger = require('./logger')
+
 module.exports = async (text, message) => {
   if (!text || !message) {
-    console.error('-- > ERROR: No text or message in reply')
+    logger.error(`No text or message in reply function call`)
   }
   try {
     const doReply = require('./shouldReply')()
@@ -12,6 +14,6 @@ module.exports = async (text, message) => {
     }
     return messages[messages.length - 1]
   } catch (error) {
-    console.error('-- > ERROR: Failed to reply:\n' + error)
+    logger.error(`Failed to send a message in reply function call`, error)
   }
 }

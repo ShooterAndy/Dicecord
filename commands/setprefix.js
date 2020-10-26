@@ -6,6 +6,7 @@ const {
 const Prefixes = require('../helpers/prefixes')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async args => {
   if (!args.message.guild || !args.message.guild.id) {
@@ -63,7 +64,7 @@ module.exports = async args => {
     await Prefixes.set(args.message.guild.id, suggestedPrefix)
     return reply(`Prefix successfully set to \`${suggestedPrefix}\`.`, args.message)
   } catch (err) {
-    console.error(`-- > ERROR: Couldn't save the prefixes file:\n${err}`);
+    logger.error(`Couldn't save the prefixes file`, err);
     return reply(`${ERROR_PREFIX}Couldn't save the prefix. Please contact the bot author.`,
       args.message)
   }

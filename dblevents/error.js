@@ -1,3 +1,5 @@
+const logger = require('../helpers/logger')
+
 module.exports = error => {
-  console.error('-- > DBL Error: ' + error)
+  logger.error(`DBL Error`, error)
 }

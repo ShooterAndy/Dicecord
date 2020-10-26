@@ -6,6 +6,7 @@ const {
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
+const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const name = args.commandText.trim()
@@ -22,7 +23,7 @@ module.exports = async (args) => {
       return reply(nws`The \`${name}\` has been successfully deleted from the list of saved \
         commands for this Discord channel.`, args.message)
     } catch (error) {
-      console.log(error)
+      logger.error(`Failed to delete a saved roll command`, error)
       return reply(nws`${ERROR_PREFIX}Failed to delete the command. Please contact the bot author.`,
         args.message)
     }

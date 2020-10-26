@@ -4,10 +4,11 @@ const {
   NO_NOT_FOUND_ROLE_NAME
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
+const logger = require('../helpers/logger')
 
 module.exports = async (client, message, commands, prefixes) => {
   if(!message.author) { // What in the hell?
-    console.error(`-- > Message "${message.content}" doesn't seem to have an author???`)
+    logger.error(`Message "${message.content}" doesn't seem to have an author???`)
     return
   }
   if(message.author.bot) { // Do not reply to bots
@@ -67,7 +68,7 @@ module.exports = async (client, message, commands, prefixes) => {
             }
           }
         } catch(error) {
-          console.error(`-- > ERROR: Could not fetch the list of roles:\n${error}`)
+          logger.error(`Could not fetch the list of roles:`, error)
         }
       } else {
         sendNotFoundErrorMessage()
