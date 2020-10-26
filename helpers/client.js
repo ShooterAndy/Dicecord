@@ -5,7 +5,7 @@ const { LOG_PREFIX } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
 
-module.exports = {
+const Client = module.exports = {
 
   client: null,
 
@@ -26,8 +26,7 @@ module.exports = {
   },
 
   async readyBasics (commands) {
-    this.client = new Discord.Client()
-    const safe = this
+    Client.client = new Discord.Client()
     let prefixes
     try {
       prefixes = await Prefixes.load()
@@ -38,11 +37,11 @@ module.exports = {
       files.forEach(file => {
         const eventHandler = require(`../events/${file}`)
         const eventName = file.split('.')[0]
-        safe.client.on(eventName, arg => eventHandler(this.client, arg, commands, prefixes))
+        Client.client.on(eventName, arg => eventHandler(this.client, arg, commands, prefixes))
       });
 
       logger.log('Trying to log in...')
-      safe.tryToLogIn(0, null, null)
+      Client.tryToLogIn(0, null, null)
     })
   }
 }

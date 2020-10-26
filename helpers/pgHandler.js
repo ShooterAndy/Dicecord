@@ -1,5 +1,8 @@
 const PostGresPromise = require('pg-promise')({})
 const prefix = require('./constants').DB_PREFIX
+const nws = require('./nws')
+const logger = require('./logger')
+const { MAX_SAVED_ROLL_COMMANDS_PER_USER } = require('./constants')
 
 const getColumnsList = (columns) => {
   if (!columns) {
@@ -88,6 +91,20 @@ const pgHandler = module.exports = {
 
       return await pgHandler.db.none(query)
     } catch(error) {
+      throw error
+    }
+  },
+  async upsertSavedRollCommand(dataValues) {
+    try {
+      const values = `'${dataValues.join(`', '`)}'`
+      const query = nws`SELECT upsert_saved_roll_command(${values}, \
+        ${MAX_SAVED_ROLL_COMMANDS_PER_USER});`
+      const result = await pgHandler.db.one(query)
+      if (!result || !result.upsert_saved_roll_command) {
+        logger.error(`The result of upsert_saved_roll_command appears to be empty`)
+      }
+      return result.upsert_saved_roll_command
+    } catch (error) {
       throw error
     }
   },

@@ -1,7 +1,8 @@
 const {
   SAVED_ROLL_COMMANDS_DB_NAME,
   SAVED_ROLL_COMMANDS_COLUMNS,
-  ERROR_PREFIX
+  ERROR_PREFIX,
+  SAVED_ROLL_COMMANDS_EXPIRE_AFTER
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
@@ -14,11 +15,12 @@ module.exports = async (args) => {
   if (name) {
     try {
       const result = await pg.oneOrNone(SAVED_ROLL_COMMANDS_DB_NAME, nws`WHERE \
-        ${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}' AND \
+        ${SAVED_ROLL_COMMANDS_COLUMNS.user_id} = '${args.message.author.id}' AND \
         ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
       if (!result) {
-        return reply(nws`Couldn't find the \`${name}\` command among the ones saved for this \
-          Discord channel. Please try listing all saved commands for this Discord channel via the \
+        return reply(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
+          Perhaps it expired after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of not being used? \
+          You can also try listing all your saved roll commands via the \ 
           \`${args.prefix}listSaved\` command`, args.message)
       }
       const argsForRoll = {
@@ -34,7 +36,7 @@ module.exports = async (args) => {
         await pg.updateTimestamp(
           SAVED_ROLL_COMMANDS_DB_NAME,
           SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
-          nws`${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}' AND \
+          nws`${SAVED_ROLL_COMMANDS_COLUMNS.user_id} = '${args.message.author.id}' AND \
           ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
       } catch (error) {
         logger.error(`Failed to update timestamp in ${args.commandName}`, error)

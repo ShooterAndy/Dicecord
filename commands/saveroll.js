@@ -1,6 +1,7 @@
 const {
-  SAVED_ROLL_COMMANDS_DB_NAME,
-  SAVED_ROLL_COMMANDS_COLUMNS,
+  UPSERT_SAVED_ROLL_COMMAND_RESULTS,
+  MAX_SAVED_ROLL_COMMANDS_PER_USER,
+  SAVED_ROLL_COMMANDS_EXPIRE_AFTER,
   ERROR_PREFIX
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
@@ -16,21 +17,35 @@ module.exports = async (args) => {
       const name = commandText.slice(0, indexOfFirstSpace).trim().toLowerCase()
       const command = commandText.slice(indexOfFirstSpace).trim()
       try {
-        // todo: change to user_id, add max amount
-        await pg.upsertWithoutId(
-          SAVED_ROLL_COMMANDS_DB_NAME,
-          [SAVED_ROLL_COMMANDS_COLUMNS.channel_id, SAVED_ROLL_COMMANDS_COLUMNS.name],
-          [
-            SAVED_ROLL_COMMANDS_COLUMNS.channel_id,
-            SAVED_ROLL_COMMANDS_COLUMNS.name,
-            SAVED_ROLL_COMMANDS_COLUMNS.command
-          ], [
-            args.message.channel.id,
-            name,
-            command
-          ], SAVED_ROLL_COMMANDS_COLUMNS.timestamp)
-        return reply(nws`Your command \`${name}\` was saved successfully! You can roll it like \
-          this:\n\`${args.prefix}rollSaved ${name}\``, args.message)
+        const result = await pg.upsertSavedRollCommand(
+          [args.message.author.id, name, command]
+        )
+        switch (result) {
+          case UPSERT_SAVED_ROLL_COMMAND_RESULTS.inserted: {
+            return reply(nws`Your command \`${name}\` was saved successfully! You can roll it like \
+              this:\n\`${args.prefix}rollSaved ${name}\`\nor examine it like \
+              this:\n\`${args.prefix}getSaved ${name}\`\nBe aware that your saved commands will \
+              expire and be automatically **deleted** after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of \
+              being rolled or examined last.`, args.message)
+          }
+          case UPSERT_SAVED_ROLL_COMMAND_RESULTS.updated: {
+            return reply(nws`Your command \`${name}\` was successfully updated! You can roll it \
+              like this:\n\`${args.prefix}rollSaved ${name}\`\nor examine it like \
+              this:\n\`${args.prefix}getSaved ${name}\`\nBe aware that your saved commands will \
+              expire and be automatically **deleted** after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of \
+              being rolled or examined last.`, args.message)
+          }
+          case UPSERT_SAVED_ROLL_COMMAND_RESULTS.limit: {
+            return reply(nws`Unfortunately, you already have ${MAX_SAVED_ROLL_COMMANDS_PER_USER} \
+              saved roll commands. You can delete one like this: \
+              \n\`${args.prefix}deleteSaved some-name\``, args.message)
+          }
+          default: {
+            logger.error(`Unknown upsert_saved_roll_command type result`)
+            return reply(nws`Something went wrong. Please contact the bot author.`, args.message)
+          }
+        }
+
       } catch (error) {
         logger.error(`Failed to save a roll command`, error)
         return reply(nws`${ERROR_PREFIX}Failed to save the command. Please contact the bot author.`,

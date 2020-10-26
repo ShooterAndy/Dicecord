@@ -8,10 +8,10 @@ const {
   IS_LOCAL
 } = require('./constants')
 const nws = require('./nws')
-const c = require('./client')
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
+    const Client = require('./client')
     if (!text) {
       return this.sendMessage(LOG_TYPES.error, nws`Tried to log something but forgot to include \
         the text`)
@@ -19,6 +19,10 @@ module.exports = {
     if (!type || Object.values(LOG_TYPES).indexOf(type) === -1) {
       return this.sendMessage(LOG_TYPES.error, nws`Forgot to include the log type for this \
         log message`, text)
+    }
+    if (!Client.client || !Client.client.channels
+      || !Client.client.channels.cache || !Client.client.channels.cache.size) {
+      return this.sendConsoleMessage(type, text, additionalInfo)
     }
     if (IS_LOCAL) {
       this.sendConsoleMessage(type, text, additionalInfo)
@@ -30,7 +34,7 @@ module.exports = {
       return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Administrator id is not set`)
     }
     try {
-      const channel = await c.client.channels.fetch(LOG_CHANNEL_ID)
+      const channel = await Client.client.channels.fetch(LOG_CHANNEL_ID)
       if (!channel) {
         return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Bot is not present on logs \
         channel "${LOG_CHANNEL_ID}"`)

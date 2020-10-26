@@ -11,14 +11,14 @@ const logger = require('../helpers/logger')
 module.exports = async (args) => {
   try {
     const result = await pg.any(SAVED_ROLL_COMMANDS_DB_NAME,
-      `WHERE ${SAVED_ROLL_COMMANDS_COLUMNS.channel_id} = '${args.message.channel.id}'`,
+      `WHERE ${SAVED_ROLL_COMMANDS_COLUMNS.user_id} = '${args.message.author.id}'`,
       [SAVED_ROLL_COMMANDS_COLUMNS.name])
     if (!result || !result.length) {
-      return reply(nws`There are no roll commands saved for this channel yet. Try saving some with \
-        the \`${args.prefix}saveRoll NAME COMMAND\` command!`,
+      return reply(nws`You don't have any roll commands saved yet. Try saving some with \
+        the \`${args.prefix}saveRoll some-name your roll command\` command!`,
         args.message)
     }
-    let text = 'Here\'s the list of all roll commands saved for this channel:\n'
+    let text = 'Here\'s the list of all your saved roll commands:\n'
     result.forEach(command => {
       text += `\`${command.name}\`\n`
     })
