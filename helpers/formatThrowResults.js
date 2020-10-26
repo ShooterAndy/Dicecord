@@ -144,9 +144,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
   let text = ''
 
   let shouldSumStaticMods = false
-  if (!t.childThrows || !t.childThrows.length) {
-    shouldSumStaticMods = showResults
-  }
+  shouldSumStaticMods = showResults
 
   let previousFormulaPart = null
   let isPrecededByOperatorOrNothing = false
@@ -197,13 +195,23 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operands.child: {
         const childThrow = t.childThrows[formulaPart.index]
-        text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
-          OPENING_PARENTHESIS +
-          getFormulaText(childThrow, format, showResults, repeatIndex) +
-          CLOSING_PARENTHESIS
+        const formulaText = getFormulaText(childThrow, format, showResults, repeatIndex)
+        if (formulaText) {
+          text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
+            OPENING_PARENTHESIS + formulaText + CLOSING_PARENTHESIS
+        } else {
+          text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
+            OPENING_PARENTHESIS + format.italicsStart + 0 + format.italicsEnd + CLOSING_PARENTHESIS
+        }
         break
       }
-      case FORMULA_PART_TYPES.operators.sum:
+      case FORMULA_PART_TYPES.operators.sum: {
+        if (!shouldSumStaticMods || (t.formulaParts[index + 1] &&
+          t.formulaParts[index + 1].type !== FORMULA_PART_TYPES.operands.number)) {
+          text += (previousFormulaPart ? format.space + formulaPart.type : '')
+        }
+        break
+      }
       case FORMULA_PART_TYPES.operators.subtract: {
         if (!shouldSumStaticMods || (t.formulaParts[index + 1] &&
           t.formulaParts[index + 1].type !== FORMULA_PART_TYPES.operands.number)) {
@@ -218,13 +226,14 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
   })
 
   if (shouldSumStaticMods && t.staticModifiersSum) {
-    text += format.space
+    text += t.formulaParts.length ? format.space : ''
     if (t.staticModifiersSum < 0) {
        text += FORMULA_PART_TYPES.operators.subtract
-    } else {
+    } else if (t.formulaParts.length) {
       text += FORMULA_PART_TYPES.operators.sum
     }
-    text += format.space + format.italicsStart + Math.abs(t.staticModifiersSum) + format.italicsEnd
+    text += t.formulaParts.length ? format.space : ''
+    text += format.italicsStart + Math.abs(t.staticModifiersSum) + format.italicsEnd
   }
 
   return text
@@ -391,15 +400,51 @@ const checkForNonStaticParts = (t) => {
     || (result.nonStaticPartsNumber > 0 && result.operandsNumber > 1))
 }
 
-const getIntermediateResultsText = (t, format, index) => {
-  let text = ''
+const isOperand = (formulaPart) => {
+  return Object.values(FORMULA_PART_TYPES.operators).indexOf(formulaPart.type) === -1
+}
 
-  if (!checkForNonStaticParts(t)) {
-    return text
+const getNonStaticIntermediateResultsText = (t) => {
+  const nonRedundantThrow = JSON.parse(JSON.stringify(t))
+  const filteredParts = nonRedundantThrow.formulaParts.filter(formulaPart => {
+    return formulaPart.type !== FORMULA_PART_TYPES.operands.number
+  })
+
+  if (nonRedundantThrow.childThrows && nonRedundantThrow.childThrows.length) {
+    nonRedundantThrow.childThrows.forEach((childThrow, index) => {
+      nonRedundantThrow.childThrows[index] = getNonStaticIntermediateResultsText(childThrow)
+    })
   }
 
-  text += getFormulaText(t, format, true, index)
-  return text
+  const nonRedundantParts = []
+  filteredParts.forEach((formulaPart, index) => {
+    const thisPart = JSON.parse(JSON.stringify(formulaPart))
+    const nextPart = index < filteredParts.length - 1 ? filteredParts[index + 1] : null
+    if (isOperand(formulaPart)) {
+      nonRedundantParts.push(thisPart)
+    } else if (nextPart && isOperand(nextPart)) {
+      if (!index) {
+        if (thisPart.type === FORMULA_PART_TYPES.operators.subtract) {
+          nonRedundantParts.push(thisPart)
+        }
+      } else {
+        nonRedundantParts.push(thisPart)
+      }
+    }
+  })
+
+  nonRedundantThrow.formulaParts = nonRedundantParts
+
+  return nonRedundantThrow
+}
+
+const getIntermediateResultsText = (t, format, index) => {
+  if (!checkForNonStaticParts(t)) {
+    return ''
+  }
+
+  const nonRedundantThrow = getNonStaticIntermediateResultsText(t, format, index)
+  return getFormulaText(nonRedundantThrow, format, true, index)
 }
 
 const getFinalResultText = (t, format, index) => {
