@@ -4,7 +4,7 @@ Dicecord is a bot for the [Discord](https://discordapp.com/) instant messenger t
 
 ## Getting Started
 
-Getting this bot on your Discord server is very easy: all you need to do in a normal situation is open [this link](https://discordapp.com/api/oauth2/authorize?client_id=572698679618568193&scope=bot&permissions=0) and allow the bot to join a server you'll select in the page that you'll see there.
+Getting this bot on your Discord server is very easy: all you need to do in a normal situation is open [this link](https://discord.com/api/oauth2/authorize?client_id=572698679618568193&permissions=19520&scope=bot) and allow the bot to join a server you'll select in the page that you'll see there.
 
 ### Prerequisites
 

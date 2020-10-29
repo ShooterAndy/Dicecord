@@ -28,11 +28,14 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
     numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
 
     try {
-      const result = await pg.one(
-        DECKS_DB_NAME,
-        `WHERE ${DECKS_COLUMNS.channel_id} = '${message.channel.id}'`,
-        DECKS_COLUMNS.deck
-      )
+      const result = await pg.db.oneOrNone(
+        'SELECT ${deck~} FROM ${db#} WHERE ${channelId~} = ${channelIdValue}',
+        {
+          deck: DECKS_COLUMNS.deck,
+          db: pg.addPrefix(DECKS_DB_NAME),
+          channelId: DECKS_COLUMNS.channel_id,
+          channelIdValue: message.channel.id
+        })
 
       if (!result || !result[DECKS_COLUMNS.deck]) {
         return reply(nws`${ERROR_PREFIX}Couldn't find a deck for this channel. Please \
@@ -76,12 +79,17 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
         }
 
         try {
-          await pg.upsert(
-            DECKS_DB_NAME,
-            DECKS_COLUMNS.channel_id,
-            [DECKS_COLUMNS.deck],
-            message.channel.id,
-            [JSON.stringify(deck)])
+          // TODO: Add timestamp
+          await pg.db.none(
+            'UPDATE ${db#} SET ${deck~}=${deckValue} WHERE ${channelId~}=${channelIdValue}',
+            {
+              db: pg.addPrefix(DECKS_DB_NAME),
+              deck: DECKS_COLUMNS.deck,
+              deckValue: JSON.stringify(deck),
+              channelId: DECKS_COLUMNS.channel_id,
+              channelIdValue: message.channel.id
+            }
+          )
           if (isPrivate) {
             try {
               const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`

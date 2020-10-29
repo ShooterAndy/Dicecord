@@ -26,7 +26,7 @@ const Client = module.exports = {
   },
 
   async readyBasics (commands) {
-    Client.client = new Discord.Client()
+    Client.client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER'] })
     let prefixes
     try {
       prefixes = await Prefixes.load()
@@ -37,7 +37,7 @@ const Client = module.exports = {
       files.forEach(file => {
         const eventHandler = require(`../events/${file}`)
         const eventName = file.split('.')[0]
-        Client.client.on(eventName, arg => eventHandler(this.client, arg, commands, prefixes))
+        Client.client.on(eventName, args => eventHandler(this.client, args, commands, prefixes))
       });
 
       logger.log('Trying to log in...')

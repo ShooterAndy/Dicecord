@@ -13,9 +13,18 @@ module.exports = async (args) => {
   const name = args.commandText.trim()
   if (name) {
     try {
-      const result = await pg.oneOrNone(SAVED_ROLL_COMMANDS_DB_NAME, nws`WHERE \
-        ${SAVED_ROLL_COMMANDS_COLUMNS.user_id} = '${args.message.author.id}' AND \
-        ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
+      const result = await pg.db.oneOrNone(
+        'SELECT ${name~},${command~} FROM ${db#} ' +
+        'WHERE ${userId~}=${userIdValue} AND ${name~}=${nameValue}',
+        {
+          name: SAVED_ROLL_COMMANDS_COLUMNS.name,
+          command: SAVED_ROLL_COMMANDS_COLUMNS.command,
+          db: pg.addPrefix(SAVED_ROLL_COMMANDS_DB_NAME),
+          userId: SAVED_ROLL_COMMANDS_COLUMNS.user_id,
+          userIdValue: args.message.author.id,
+          nameValue: name
+        }
+      )
       if (!result) {
         return reply(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
           Perhaps it expired after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of not being used? \
@@ -24,11 +33,18 @@ module.exports = async (args) => {
       }
 
       try {
-        await pg.updateTimestamp(
-          SAVED_ROLL_COMMANDS_DB_NAME,
-          SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
-          nws`${SAVED_ROLL_COMMANDS_COLUMNS.user_id} = '${args.message.author.id}' AND \
-          ${SAVED_ROLL_COMMANDS_COLUMNS.name} = '${name}'`)
+        await pg.db.none(
+          'UPDATE ${db#} SET ${timestamp~} = NOW() ' +
+          'WHERE ${userId~} = ${userIdValue} AND ${name~} = ${nameValue}',
+          {
+            db: pg.addPrefix(SAVED_ROLL_COMMANDS_DB_NAME),
+            timestamp: SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
+            userId: SAVED_ROLL_COMMANDS_COLUMNS.user_id,
+            userIdValue: args.message.author.id,
+            name: SAVED_ROLL_COMMANDS_COLUMNS.name,
+            nameValue: name
+          }
+        )
       } catch (error) {
         logger.error(`Failed to update timestamp in ${args.commandName}`, error)
         return reply(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot \ 

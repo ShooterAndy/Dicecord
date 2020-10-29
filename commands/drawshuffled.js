@@ -37,9 +37,16 @@ const processDrawShuffledCommand =
   }
 
   try {
-    const result = await pg.oneOrNone(DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
-      DECK_TYPES_COLUMNS.deck)
-    if (!result || !result.length) {
+    const result = await pg.db.oneOrNone(
+      'SELECT ${deck~} FROM ${db#} WHERE ${deckId~} = ${deckIdValue}',
+      {
+        deck: DECK_TYPES_COLUMNS.deck,
+        db: pg.addPrefix(DECK_TYPES_DB_NAME),
+        deckId: DECK_TYPES_COLUMNS.id,
+        deckIdValue: deckId
+      }
+    )
+    if (!result || !result.deck) {
       return reply(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
       types via the \`${prefix}listDeckTypes\` command. Or did you write that as a comment? \
       Please note that specifying the deck type is now required before writing a comment, so it \
@@ -47,7 +54,14 @@ const processDrawShuffledCommand =
       here\`.`, message)
     }
 
-    const deck = _.shuffle(JSON.parse(result.deck))
+    let deck
+    try {
+      deck = _.shuffle(JSON.parse(result.deck))
+    } catch (error) {
+      logger.error(`Failed to parse the "${deckId}" deck`, error)
+      return reply(`${ERROR_PREFIX}Failed to parse the deck. Please contact the bot author.`,
+        message)
+    }
     numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
     if (numberOfCardsToDraw > result.deck.length) {
       return reply(nws`${ERROR_PREFIX}Not enough cards in the deck (requested \

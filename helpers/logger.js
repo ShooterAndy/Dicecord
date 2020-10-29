@@ -52,7 +52,7 @@ module.exports = {
           message = `<@${ADMINISTRATOR_ID}>\`\`\`fix\n ${message}\`\`\``
         }
         if (additionalInfo) {
-          message += `\n${message}`
+          message += `\`\`\`${additionalInfo}\`\`\``
         }
 
         return channel.send(message, { split: true })
@@ -77,7 +77,7 @@ module.exports = {
     }
     let message = `${LOG_PREFIX}${type}: ${text}`
     if (additionalInfo) {
-      message += `\n${message}`
+      message += `\n${additionalInfo}`
     }
     switch (type) {
       case LOG_TYPES.error: {

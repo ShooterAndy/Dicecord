@@ -3,7 +3,7 @@ const _ = require('underscore')
 const formatThrowResults = require('../helpers/formatThrowResults')
 
 const nws = require('../helpers/nws')
-const replyHelper = require('../helpers/reply')
+const reply = require('../helpers/reply')
 const logger = require('../helpers/logger')
 
 const {
@@ -115,14 +115,6 @@ module.exports = args => {
 /* ================================================================================================
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 ================================================================================================ */
-const reply = async (text) => {
-  try {
-    return await replyHelper(text, message)
-  } catch (error) {
-    throw error
-  }
-}
-
 const addWarning = (text) => {
   const existingWarning = warnings.find(warning => warning === text)
   if (!existingWarning) {

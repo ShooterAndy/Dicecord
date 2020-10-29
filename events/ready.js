@@ -27,9 +27,14 @@ const transformHoursToMs = (hours) => {
 
 const deleteExpiredSavedRollCommands = async () => {
   try {
-    const result = await pg.deleteAny(SAVED_ROLL_COMMANDS_DB_NAME, nws`WHERE \
-            ${SAVED_ROLL_COMMANDS_COLUMNS.timestamp} < NOW() - INTERVAL \
-            '${SAVED_ROLL_COMMANDS_EXPIRE_AFTER}'`)
+    const result = await pg.db.any(
+      'DELETE FROM ${db#} WHERE ${timestamp~} < NOW() - INTERVAL ${interval} RETURNING *',
+      {
+        db: SAVED_ROLL_COMMANDS_DB_NAME,
+        timestamp: SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
+        interval: SAVED_ROLL_COMMANDS_EXPIRE_AFTER
+      }
+    )
     if (result && result.length) {
       logger.log(nws`Deleted ${result.length} saved roll commands older than \
                 ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER}.`)

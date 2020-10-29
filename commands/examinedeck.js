@@ -21,19 +21,43 @@ module.exports = async (args) => {
       return reply(nws`${ERROR_PREFIX}Please enter the name of the deck you wish to \
         examine, for example:\n\`${args.prefix}${args.commandName} poker-color\``, args.message)
     }
-    const result = await pg.oneOrNone(
-      DECK_TYPES_DB_NAME,
-      `WHERE id = '${deckId}'`,
-      DECK_TYPES_COLUMNS.description +
-      (shouldShowCards ? (',' + DECK_TYPES_COLUMNS.deck) : '')
-    )
-    if (!result || !result.length) {
+    let result
+    if (shouldShowCards) {
+      result = await pg.db.oneOrNone(
+        'SELECT ${description~},${deck~} FROM ${db#} WHERE ${deckId~} = ${deckIdValue}',
+        {
+          description: DECK_TYPES_COLUMNS.description,
+          deck: DECK_TYPES_COLUMNS.deck,
+          db: pg.addPrefix(DECK_TYPES_DB_NAME),
+          deckId: DECK_TYPES_COLUMNS.id,
+          deckIdValue: deckId
+        }
+      )
+    } else {
+      result = await pg.db.oneOrNone(
+        'SELECT ${description~} FROM ${db#} WHERE ${deckId~} = ${deckIdValue}',
+        {
+          description: DECK_TYPES_COLUMNS.description,
+          db: pg.addPrefix(DECK_TYPES_DB_NAME),
+          deckId: DECK_TYPES_COLUMNS.id,
+          deckIdValue: deckId
+        }
+      )
+    }
+
+    if (!result || !result.description) {
       return reply(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
       types via the \`${args.prefix}listDeckTypes\` command.`, args.message)
     }
     let text = '`' + deckId + '`:\n> ' + result.description + '\n'
     if (shouldShowCards) {
-      text += '\n Cards in this deck:\n > ' + JSON.parse(result.deck).join(', ') + '\n'
+      try {
+        text += '\n Cards in this deck:\n > ' + JSON.parse(result.deck).join(', ') + '\n'
+      } catch (error) {
+        logger.error(`Failed to parse "${deckId}" deck`, error)
+        return reply(`${ERROR_PREFIX}Failed to parse the deck. Please contact the bout author`,
+          args.message)
+      }
     } else {
       text += 'You can see the full deck by using the `' + args.prefix + 'examineDeck -full ' +
         deckId + '`'

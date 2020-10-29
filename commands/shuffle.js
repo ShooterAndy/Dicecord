@@ -22,8 +22,15 @@ module.exports = async (args) => {
 
 const processShuffleCommand = async (message, deckId, prefix) => {
   try {
-    const result = await pg.oneOrNone(DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
-      DECK_TYPES_COLUMNS.deck)
+    const result = await pg.db.oneOrNone(
+      'SELECT ${deck~} FROM ${db#} WHERE ${deckId~} = ${deckIdValue}',
+      {
+        deck: DECK_TYPES_COLUMNS.deck,
+        db: pg.addPrefix(DECK_TYPES_DB_NAME),
+        deckId: DECK_TYPES_COLUMNS.id,
+        deckIdValue: deckId
+      }
+    )
     if (!result || !result.deck) {
       return reply(`No deck \`${deckId}\` exists.`, message)
     }
@@ -37,12 +44,20 @@ const processShuffleCommand = async (message, deckId, prefix) => {
         message)
     }
     try {
-      await pg.upsert(
-        DECKS_DB_NAME,
-        DECKS_COLUMNS.channel_id,
-        [DECKS_COLUMNS.deck, DECKS_COLUMNS.type_id],
-        message.channel.id,
-        [JSON.stringify(deck), deckId]);
+      // TODO: Add timestamp
+      await pg.db.none(
+        'INSERT INTO ${db#} (${channelId~}, ${deck~}, ${type~}) ' +
+        'VALUES (${channelIdValue}, ${deckValue}, ${typeValue}) ' +
+        'ON CONFLICT (${channelId~}) ' +
+        'DO UPDATE SET ${deck~}=excluded.${deck~}, ${type~}=excluded.${type~}', {
+          db: pg.addPrefix(DECKS_DB_NAME),
+          channelId: DECKS_COLUMNS.channel_id,
+          deck: DECKS_COLUMNS.deck,
+          type: DECKS_COLUMNS.type_id,
+          channelIdValue: message.channel.id,
+          deckValue: JSON.stringify(deck),
+          typeValue: deckId
+        })
       return reply('Your `' + deckId + '` deck was shuffled!', message)
     } catch(error) {
       logger.error(nws`Failed to update the deck for channel ${message.channel.id}`, error)

@@ -17,10 +17,20 @@ module.exports = async (args) => {
       const name = commandText.slice(0, indexOfFirstSpace).trim().toLowerCase()
       const command = commandText.slice(indexOfFirstSpace).trim()
       try {
-        const result = await pg.upsertSavedRollCommand(
-          [args.message.author.id, name, command]
-        )
-        switch (result) {
+        const result = await pg.db.one(
+          'SELECT upsert_saved_roll_command(${userId}, ${name}, ${command}, ${limit})',
+          {
+            userId: args.message.author.id,
+            name,
+            command,
+            limit: MAX_SAVED_ROLL_COMMANDS_PER_USER
+          })
+        if (!result || !result.upsert_saved_roll_command) {
+          logger.error(`The result of upsert_saved_roll_command appears to be empty`)
+          return reply(`Failed to save your roll. Please contact the bot author.`,
+            args.message)
+        }
+        switch (result.upsert_saved_roll_command) {
           case UPSERT_SAVED_ROLL_COMMAND_RESULTS.inserted: {
             return reply(nws`Your command \`${name}\` was saved successfully! You can roll it like \
               this:\n\`${args.prefix}rollSaved ${name}\`\nor examine it like \

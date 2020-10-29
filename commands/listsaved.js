@@ -10,9 +10,15 @@ const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   try {
-    const result = await pg.any(SAVED_ROLL_COMMANDS_DB_NAME,
-      `WHERE ${SAVED_ROLL_COMMANDS_COLUMNS.user_id} = '${args.message.author.id}'`,
-      [SAVED_ROLL_COMMANDS_COLUMNS.name])
+    const result = await pg.db.any(
+      'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue}',
+      {
+        name: SAVED_ROLL_COMMANDS_COLUMNS.name,
+        db: pg.addPrefix(SAVED_ROLL_COMMANDS_DB_NAME),
+        userId: SAVED_ROLL_COMMANDS_COLUMNS.user_id,
+        userIdValue: args.message.author.id
+      })
+
     if (!result || !result.length) {
       return reply(nws`You don't have any roll commands saved yet. Try saving some with \
         the \`${args.prefix}saveRoll some-name your roll command\` command!`,

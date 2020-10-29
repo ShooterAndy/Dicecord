@@ -10,11 +10,9 @@ const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   try {
-    const result = await pg.any(
-      DECK_TYPES_DB_NAME,
-      `ORDER BY ${DECK_TYPES_COLUMNS.id} ASC`,
-      DECK_TYPES_COLUMNS.id
-    )
+    const result = await pg.db.any(
+      'SELECT ${id~} FROM ${db#} ORDER BY ${id~} ASC',
+      { id: DECK_TYPES_COLUMNS.id, db: pg.addPrefix(DECK_TYPES_DB_NAME) })
     if (!result || !result.length) {
       logger.error(`The list of deck types appears to be empty`)
       return reply(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
