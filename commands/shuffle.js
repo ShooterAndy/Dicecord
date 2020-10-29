@@ -24,11 +24,18 @@ const processShuffleCommand = async (message, deckId, prefix) => {
   try {
     const result = await pg.oneOrNone(DECK_TYPES_DB_NAME, `WHERE id = '${deckId}'`,
       DECK_TYPES_COLUMNS.deck)
-    if (!result || !result.length) {
+    if (!result || !result.deck) {
       return reply(`No deck \`${deckId}\` exists.`, message)
     }
 
-    const deck = _.shuffle(JSON.parse(result.deck))
+    let deck = []
+    try {
+      deck = _.shuffle(JSON.parse(result.deck))
+    } catch (error) {
+      logger.error(`Failed to parse ${deckId} deck for shuffle`, error)
+      return reply(`${ERROR_PREFIX}Failed to get the deck. Please contact the bot author.`,
+        message)
+    }
     try {
       await pg.upsert(
         DECKS_DB_NAME,

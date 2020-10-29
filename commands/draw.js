@@ -13,10 +13,11 @@ module.exports = async (args) => {
   const numberOfCardsToDraw = args.commandText.trim().split(' ')[0]
   const comment = args.commandText.trim().slice(numberOfCardsToDraw.length).trim()
   const verb = args.verb || 'draw'
-  await processDrawCommand(args.message, numberOfCardsToDraw, comment, verb)
+  const isPrivate = args.isPrivate || false
+  await processDrawCommand(args.message, numberOfCardsToDraw, comment, verb, isPrivate)
 };
 
-const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb) => {
+const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, isPrivate) => {
   let text = '';
   const pastVerb = verb === 'deal' ? 'dealt' : 'drew'
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
@@ -58,11 +59,21 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb) =
           cardOrCards = 'card'
         }
         text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw + ' ' + cardOrCards +
-          ' from the deck (' + deck.length + ' left): '
-        if (comment) {
-          text += '\n`' + comment + ':`'
+          ' from the deck (' + deck.length + ' left)'
+        if (!isPrivate) {
+          text += `: \n`
+          if (comment) {
+            text += `\`${comment}:\` `
+          }
+          text += drawnCards.join(', ') + '.'
+        } else {
+          if (comment) {
+            text += ` with this comment:\n\`${comment}\``
+          } else {
+            text += '.'
+          }
+          text += `\nThe results were sent to your DMs.`
         }
-        text += drawnCards.join(', ') + '.'
 
         try {
           await pg.upsert(
@@ -71,6 +82,16 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb) =
             [DECKS_COLUMNS.deck],
             message.channel.id,
             [JSON.stringify(deck)])
+          if (isPrivate) {
+            try {
+              const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
+              const privateText = `${commentary}${drawnCards.join(', ')}`
+              await message.author.send(privateText, {split: true})
+            } catch (error) {
+              logger.error(nws`Failed to send a DM to "${message.author.id}"`, error)
+              return reply(`${ERROR_PREFIX}Failed to send you a DM.`, message)
+            }
+          }
           return reply(text, message)
         } catch (error) {
           logger.error(nws`Failed to update the deck for channel "${message.channel.id}"`, error)
