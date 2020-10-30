@@ -4,14 +4,25 @@ const {
   NO_NOT_FOUND_ROLE_NAME
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
+const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
 module.exports = async (client, message, commands, prefixes) => {
-  if(!message.author) { // What in the hell?
+  if (message.partial) {
+    // If the message was removed the fetching might result in an API error, which we need to handle
+    try {
+      await message.fetch()
+    } catch (error) {
+      logger.error('Something went wrong when fetching a message', error)
+      // Return as `reaction.message.author` may be undefined/null
+      return
+    }
+  }
+  if (!message.author) { // What in the hell?
     logger.error(`Message "${message.content}" doesn't seem to have an author???`)
     return
   }
-  if(message.author.bot) { // Do not reply to bots
+  if (message.author.bot) { // Do not reply to bots
     return
   }
 
@@ -49,30 +60,14 @@ module.exports = async (client, message, commands, prefixes) => {
             message.guild &&
             message.guild.id === '264445053596991498' /* Bot List channel */
           )) {
-          return reply(`${ERROR_PREFIX}Command "${commandName}" not found.`, message)
+          return reply(nws`${ERROR_PREFIX}Command "${commandName}" not found. You can see the list \
+            of all available commands via a \`${prefix}help\` command.`, message)
         }
       }
       if (message.guild) {
-        try {
-          const roles = await message.guild.roles.fetch()
-          let shouldSendNotFoundMessage = true
-          const dontShowNotFoundErrorRole = roles.cache.array().find(
-            (role) => role.name === NO_NOT_FOUND_ROLE_NAME
-          )
-          if (dontShowNotFoundErrorRole) {
-            const hasDontShowNotFoundErrorRole =
-              !!message.guild.member(client.user).roles.cache.array().find(
-                (role) => role.id === dontShowNotFoundErrorRole.id
-              )
-            if (hasDontShowNotFoundErrorRole) {
-              shouldSendNotFoundMessage = false
-            }
-          }
-          if (shouldSendNotFoundMessage) {
-            sendNotFoundErrorMessage()
-          }
-        } catch(error) {
-          logger.error(`Could not fetch the list of roles:`, error)
+        if (!message.guild.member(client.user).roles.cache.array().find(
+          (role) => role.name === NO_NOT_FOUND_ROLE_NAME)) {
+          sendNotFoundErrorMessage()
         }
       } else {
         sendNotFoundErrorMessage()

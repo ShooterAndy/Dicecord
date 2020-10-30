@@ -5,6 +5,7 @@ const formatThrowResults = require('../helpers/formatThrowResults')
 const nws = require('../helpers/nws')
 const reply = require('../helpers/reply')
 const logger = require('../helpers/logger')
+const pg = require('../helpers/pgHandler')
 
 const {
   HANDLED_ERROR_TYPE_NAME,
@@ -44,6 +45,9 @@ const {
 
   YES_EMOJI,
   NO_EMOJI,
+  B_EMOJI,
+  M_EMOJI,
+  REPEAT_EMOJI,
 
   THROW_SEPARATOR,
   THROW_SEPARATOR_VS,
@@ -70,7 +74,11 @@ const {
   RESULT_TYPES,
   SPECIAL_THROW_RESULTS,
 
-  DEFAULT_THROW_RESULT_FORMAT_NAME
+  DEFAULT_THROW_RESULT_FORMAT_NAME,
+
+  MESSAGES_DB_NAME,
+  MESSAGES_COLUMNS,
+  MESSAGE_TYPES
 } = require('../helpers/constants')
 
 // Global variables
@@ -84,31 +92,65 @@ let commandName = null
 
 // -------------------------------------------------------------------------------------------------
 
-module.exports = args => {
-  message = args.message
-  botClientUser = args.client.user
-  prefix = args.prefix
-  commandName = args.commandName
+module.exports = {
+  processMessage (args) {
+    message = args.message
+    botClientUser = args.client.user
+    prefix = args.prefix
+    commandName = args.commandName
 
-  warnings = []
-  throws = []
+    warnings = []
+    throws = []
 
-  topLevelCatcher(processWholeCommand, args.commandText)
+    try {
+      topLevelCatcher(processWholeCommand, args.commandText)
 
-  // TODO: double-check what happens here with both the error and the warnings shown
-  try {
-    if (warnings.length) {
-      topLevelCatcher(showWarnings)
-    } else {
-      topLevelCatcher(calculateWholeCommand)
+      // TODO: double-check what happens here with both the error and the warnings shown
       if (warnings.length) {
         topLevelCatcher(showWarnings)
       } else {
+        topLevelCatcher(calculateWholeCommand)
         topLevelCatcher(showResults)
       }
+    } catch (error) {
+      logger.error(`Top level error in ${commandName} command`, error)
     }
-  } catch (error) {
-    logger.error(`Top level error in ${commandName} command`, error)
+  },
+
+  goOnFromWarning (args) {
+    message = args.message
+    botClientUser = args.client.user
+    prefix = args.prefix
+    commandName = args.commandName
+    throws = args.throws
+
+    warnings = []
+
+    try {
+      topLevelCatcher(calculateWholeCommand)
+      topLevelCatcher(showResults)
+    } catch (error) {
+      logger.error(`Top level error in goOnFromWarning`, error)
+    }
+  },
+
+  repeatRollCommand (args) {
+    message = args.message
+    botClientUser = args.client.user
+    prefix = args.prefix
+    commandName = args.commandName
+    throws = args.throws
+
+    removeResults()
+
+    warnings = []
+
+    try {
+      topLevelCatcher(calculateWholeCommand)
+      topLevelCatcher(showResults)
+    } catch (error) {
+      logger.error(`Top level error in repeatRollCommand`, error)
+    }
   }
 }
 
@@ -141,31 +183,44 @@ const showWarnings = async () => {
         warningsText += '.'
       }
     })
-    warningsText += '\nDo you still wish to proceed?'
-    const warningsMessage = await reply(warningsText, message)
-    await Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
-    const filter = (reaction, user) =>
-      (reaction.emoji.name === YES_EMOJI || reaction.emoji.name === NO_EMOJI)
-      && user.id === message.author.id
-    warningsMessage.awaitReactions(filter, { max: 1 })
-      .then(collected => {
-        catcher(reactToWarningsResponse, { warningsMessage, collected })
-      })
-      .catch(err => { throw(err) })
-  }
-}
-
-const reactToWarningsResponse = (args) => {
-  // TODO: figure out what I want to do here
-  args.warningsMessage.delete().then(() => {
-    console.log(`-- > REACTIONS: ${JSON.stringify(args.collected.array())}`)
-    if (args.collected.array()[0].key === YES_EMOJI) {
-      // do stuff
+    const validCommandText = getCommandText()
+    if (validCommandText) {
+      warningsText += '\nDo you still wish to proceed? Your command would be:'
+      warningsText += '```' + validCommandText + '```'
     } else {
-      return reply(nws`Okay, here's your original message, please copy and edit it as needed:
-            \`\`\`${message.content}\`\`\``, message)
+      warningsText += nws`\nThis will make your command empty. Please refer to \ 
+        \`${prefix}help ${commandName}\` for help.`
     }
-  }).catch(err => { throw(err) })
+    const warningsMessage = await reply(warningsText, message)
+    if (warningsMessage && validCommandText) {
+      try {
+        const pairs = {}
+        pairs[MESSAGES_COLUMNS.message_id] = warningsMessage.id
+        pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
+        pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.warning
+        pairs[MESSAGES_COLUMNS.content] = JSON.stringify({
+          messageId: message.id,
+          prefix: prefix,
+          commandName: commandName,
+          throws: throws
+        })
+        pairs[MESSAGES_COLUMNS.user_id] = message.author.id
+        await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
+          {
+            db: pg.addPrefix(MESSAGES_DB_NAME),
+            pairs
+          })
+      } catch (error) {
+        logger.error(`Failed to save a warning message`, error)
+        return
+      }
+      try {
+        await Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
+      } catch (error) {
+        logger.error(`Failed to react to a warning message`, error)
+      }
+    }
+  }
 }
 
 const showError = (text) => {
@@ -226,6 +281,60 @@ const w = text => {
   return new Warning(text)
 }
 
+const removeResults = () => {
+  if (!throws || !throws.length) {
+    return
+  }
+
+  throws.forEach((t) => {
+    removeFormulaResults(t)
+  })
+}
+
+const removeAnyResults = level => {
+  if (level.specialResults) {
+    delete level.specialResults
+  }
+  if (level.results) {
+    delete level.results
+  }
+  if (level.finalResults) {
+    delete level.finalResults
+  }
+  if (level.staticModifiersSum) {
+    delete level.staticModifiersSum
+  }
+  if (level.vsResults) {
+    delete level.vsResults
+  }
+  if (level.isSkipped) {
+    delete level.isSkipped
+  }
+}
+
+const removeFormulaResults = t => {
+  removeAnyResults(t)
+
+  if (!t.formulaParts || !t.formulaParts.length) {
+    return
+  }
+
+  if (t.childThrows && t.childThrows.length) {
+    t.childThrows.forEach(childThrow => {
+      removeFormulaResults(childThrow)
+    })
+  }
+
+  t.formulaParts.forEach(formulaPart => {
+    removeAnyResults(formulaPart)
+  })
+
+  if (t.vsValues && t.vsValues.length) {
+    t.vsValues.forEach((vsThrow, index) => {
+      removeFormulaResults(vsThrow)
+    })
+  }
+}
 /* ================================================================================================
                                         PROCESSING STUFF
 ================================================================================================ */
@@ -1366,18 +1475,20 @@ const calculateThrow = (thisThrow) => {
       }
 
       let vsResult = (finalResult >= vsValue ? VS_CHECK_RESULTS.success : VS_CHECK_RESULTS.failure)
-      thisThrow.specialResults[i].forEach(specialResult => {
-        switch (specialResult) {
-          case SPECIAL_THROW_RESULTS.criticalSuccessDnD4: {
-            vsResult = VS_CHECK_RESULTS.criticalDnD4
-            break
+      if (thisThrow.specialResults) {
+        thisThrow.specialResults[i].forEach(specialResult => {
+          switch (specialResult) {
+            case SPECIAL_THROW_RESULTS.criticalSuccessDnD4: {
+              vsResult = VS_CHECK_RESULTS.criticalDnD4
+              break
+            }
+            case SPECIAL_THROW_RESULTS.criticalFailureDnD4: {
+              vsResult = VS_CHECK_RESULTS.botchDnD4
+              break
+            }
           }
-          case SPECIAL_THROW_RESULTS.criticalFailureDnD4: {
-            vsResult = VS_CHECK_RESULTS.botchDnD4
-            break
-          }
-        }
-      })
+        })
+      }
       thisThrow.vsResults.push(vsResult)
     }
   }
@@ -1592,13 +1703,165 @@ const roll = (dieSides) => {
                                         DISPLAYING STUFF
 ================================================================================================ */
 
-const showResults = () => {
-  // TODO: add buttons
-  if (throws && throws.length) {
-    return reply(formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}), message)
+const getCommandText = () => {
+  if (!throws || !throws.length) {
+    return ''
   }
+
+  let text = ''
+  throws.forEach((t, index) => {
+    if (index > 0) {
+      if (t.isConditional) {
+        text += ' ' + THROW_SEPARATOR_VS + ' '
+      } else {
+        text += THROW_SEPARATOR + ' '
+      }
+    }
+    text += getThrowFormulaText(t)
+    if (t.comment) {
+      if (t.shouldAppendComment) {
+        text += ' ' + APPEND_COMMENT_SEPARATOR + ' '
+      } else {
+        text += ' ' + COMMENT_SEPARATOR + ' '
+      }
+      text += t.comment
+    }
+  })
+
+  return text
 }
 
+const getThrowFormulaText = t => {
+  if (!t.formulaParts || !t.formulaParts.length) {
+    return ''
+  }
+
+  const childThrowsTexts = []
+  if (t.childThrows && t.childThrows.length) {
+    t.childThrows.forEach(childThrow => {
+      childThrowsTexts.push(getThrowFormulaText(childThrow))
+    })
+  }
+
+  let text = ''
+  t.formulaParts.forEach(formulaPart => {
+    switch (formulaPart.type) {
+      case FORMULA_PART_TYPES.operators.subtract:
+      case FORMULA_PART_TYPES.operators.sum: {
+        text += ' ' + formulaPart.type + ' '
+        break
+      }
+      case FORMULA_PART_TYPES.operands.number: {
+        text += formulaPart.value.toString()
+        break
+      }
+      case FORMULA_PART_TYPES.operands.child: {
+        text += OPENING_PARENTHESIS + childThrowsTexts[formulaPart.index] + CLOSING_PARENTHESIS
+        break
+      }
+      case FORMULA_PART_TYPES.operands.normalDice: {
+        text += formulaPart.number.toString() + NORMAL_DICE_SYMBOL + formulaPart.sides.toString()
+        if (formulaPart.diceMods && formulaPart.diceMods.length) {
+          formulaPart.diceMods.forEach(diceMod => {
+            text += diceMod.type + diceMod.value.toString()
+          })
+        }
+        break
+      }
+      case FORMULA_PART_TYPES.operands.fudgeDice: {
+        text += FUDGE_DICE_SYMBOLS[0]
+        if (formulaPart.diceMods && formulaPart.diceMods.length) {
+          formulaPart.diceMods.forEach(diceMod => {
+            text += diceMod.type + diceMod.value.toString()
+          })
+        }
+        break
+      }
+      case FORMULA_PART_TYPES.operands.dnd4Dice: {
+        text += DND4_SYMBOL
+        if (formulaPart.diceMods && formulaPart.diceMods.length) {
+          formulaPart.diceMods.forEach(diceMod => {
+            if (!diceMod.default) {
+              text += diceMod.type + diceMod.value.toString()
+            }
+          })
+        }
+        break
+      }
+      case FORMULA_PART_TYPES.operands.rnkDice: {
+        const keepHighestMod = formulaPart.diceMods.find(
+          diceMod => diceMod.type === DICE_MODIFIERS.keepHighest
+        )
+        text += formulaPart.number.toString() + RNK_DICE_SYMBOL +
+          (keepHighestMod.value || 'ERROR').toString()
+        if (formulaPart.diceMods && formulaPart.diceMods.length) {
+          formulaPart.diceMods.forEach(diceMod => {
+            if (!diceMod.default && diceMod.type !== DICE_MODIFIERS.keepHighest) {
+              text += diceMod.type + diceMod.value.toString()
+            }
+          })
+        }
+        break
+      }
+    }
+  })
+
+  if (t.repeatNumber && t.repeatNumber > 1
+    && (!t.vsValues || !t.vsValues.length || t.repeatNumber !== t.vsValues.length)) {
+      text += ' ' + REPEAT_THROW_SEPARATOR + ' ' + t.repeatNumber.toString()
+  }
+
+  if (t.vsValues && t.vsValues.length) {
+    text += ' ' + VERSUS_SEPARATOR + ' '
+    t.vsValues.forEach((vsThrow, index) => {
+      text += getThrowFormulaText(vsThrow)
+      if (index < t.vsValues.length - 1) {
+        text += VERSUS_PARTS_SEPARATOR + ' '
+      }
+    })
+  }
+  return text
+}
+
+const showResults = async () => {
+  if (!throws || !throws.length) {
+    return
+  }
+  const replyMessage = await reply(
+    formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}), message)
+  if (!replyMessage) {
+    return
+  }
+
+  try {
+    const pairs = {}
+    pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
+    pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
+    pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult
+    pairs[MESSAGES_COLUMNS.content] = JSON.stringify({
+      messageId: message.id,
+      prefix: prefix,
+      commandName: commandName,
+      throws: throws
+    })
+    pairs[MESSAGES_COLUMNS.user_id] = message.author.id
+    await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
+      {
+        db: pg.addPrefix(MESSAGES_DB_NAME),
+        pairs
+      })
+  } catch (error) {
+    logger.error(`Failed to save a roll results message`, error)
+    return
+  }
+  try {
+    await Promise.all([
+      replyMessage.react(B_EMOJI), replyMessage.react(M_EMOJI), replyMessage.react(REPEAT_EMOJI)
+    ])
+  } catch (error) {
+    logger.error(`Failed to react to a roll results message`, error)
+  }
+}
 
 /* ================================================================================================
                                         OTHER STUFF

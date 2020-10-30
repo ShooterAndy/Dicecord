@@ -37,6 +37,21 @@ module.exports.UPSERT_SAVED_ROLL_COMMAND_RESULTS = {
   limit: 'limit'
 }
 
+module.exports.MESSAGES_DB_NAME = 'messages'
+module.exports.MESSAGES_COLUMNS = {
+  message_id: 'message_id',
+  channel_id: 'channel_id',
+  timestamp: 'timestamp',
+  type: 'type',
+  content: 'content',
+  user_id: 'user_id'
+}
+module.exports.MESSAGE_TYPES = {
+  warning: 'warning',
+  rollResult: 'roll'
+}
+module.exports.WARNING_MESSAGE_EXPIRE_AFTER = '5 minutes'
+module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER = '10 minutes'
 // -------------------------------------------------------------------------------------------------
 
 module.exports.DEFAULT_PREFIX = '!'
@@ -136,6 +151,9 @@ module.exports.FUDGE_DICE_SYMBOLS = [
 
 module.exports.YES_EMOJI = '✅'
 module.exports.NO_EMOJI = '🚫'
+module.exports.B_EMOJI = '🅱️'
+module.exports.M_EMOJI = 'Ⓜ'
+module.exports.REPEAT_EMOJI = '♻'
 
 // These symbols have to be case independent
 module.exports.COMMENT_SEPARATOR = '?'
@@ -201,6 +219,7 @@ this.SPECIAL_CONDITIONS[this.SPECIAL_THROW_RESULTS.criticalSuccessDnD4] = [
 // -------------------------------------------------------------------------------------------------
 module.exports.THROW_RESULTS_FORMATS = {
   discord: {
+    name: 'discord',
     boldStart: '**',
     boldEnd: '**',
     italicsStart: '_',
@@ -225,9 +244,11 @@ module.exports.THROW_RESULTS_FORMATS = {
     resultsStart: '[',
     resultsEnd: ']',
     vs: 'vs',
-    conditionalThrowSeparator: '→'
+    conditionalThrowSeparator: '→',
+    addThrowSeparatorAfterListEnd: false
   },
   markdown: {
+    name: 'markdown',
     boldStart: '**',
     boldEnd: '**',
     italicsStart: '_',
@@ -254,9 +275,11 @@ module.exports.THROW_RESULTS_FORMATS = {
     vs: 'vs',
     conditionalThrowSeparator: '→',
     replaceLinebreaks: false,
-    multipleListStarts: true
+    multipleListStarts: true,
+    addThrowSeparatorAfterListEnd: false
   },
   bbcode: {
+    name: 'bbcode',
     boldStart: '[b]',
     boldEnd: '[/b]',
     italicsStart: '[i]',
@@ -273,7 +296,7 @@ module.exports.THROW_RESULTS_FORMATS = {
     underlineEnd: '[/u]',
     throwsStart: '[ul][li]',
     throwSeparator: '[/li][li]',
-    throwsEnd: '[/li]',
+    throwsEnd: '[/li][/ul]',
     space: ' ',
     explosion: '💥',
     critical: '✨',
@@ -283,7 +306,8 @@ module.exports.THROW_RESULTS_FORMATS = {
     vs: 'vs',
     conditionalThrowSeparator: '→',
     replaceLinebreaks: true,
-    multipleListStarts: false
+    multipleListStarts: false,
+    addThrowSeparatorAfterListEnd: true
   }
 }
 module.exports.DEFAULT_THROW_RESULT_FORMAT_NAME = Object.keys(this.THROW_RESULTS_FORMATS)[0]

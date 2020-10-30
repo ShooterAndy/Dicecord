@@ -5,7 +5,12 @@ const logger = require('../helpers/logger')
 const {
   SAVED_ROLL_COMMANDS_DB_NAME,
   SAVED_ROLL_COMMANDS_COLUMNS,
-  SAVED_ROLL_COMMANDS_EXPIRE_AFTER
+  SAVED_ROLL_COMMANDS_EXPIRE_AFTER,
+  MESSAGES_DB_NAME,
+  MESSAGES_COLUMNS,
+  MESSAGE_TYPES,
+  WARNING_MESSAGE_EXPIRE_AFTER,
+  ROLL_RESULTS_MESSAGE_EXPIRE_AFTER
 } = require('../helpers/constants')
 
 const tryToSetActivity = async (client) => {
@@ -44,6 +49,76 @@ const deleteExpiredSavedRollCommands = async () => {
   }
 }
 
+const removeWarningInteractivity = async (client, warning) => {
+  let channel
+  try {
+    channel = await client.channels.fetch(warning[MESSAGES_COLUMNS.channel_id])
+  } catch (error) {
+    logger.error(`Failed to fetch channel for a warning`, error)
+    return
+  }
+  let message
+  try {
+    message = await channel.messages.fetch(warning[MESSAGES_COLUMNS.message_id])
+  } catch (error) {
+    logger.error(`Failed to fetch a warning message`, error)
+    return
+  }
+
+  try {
+    await message.delete()
+  } catch (error) {
+    logger.error(`Failed to delete a warning message`, error)
+  }
+}
+
+const deleteExpiredWarningMessages = async (client) => {
+  try {
+    const result = await pg.db.any(
+      'DELETE FROM ${db#} ' +
+      'WHERE ${timestamp~} < NOW() - INTERVAL ${interval} AND ${type~} = ${typeValue} RETURNING *',
+      {
+        db: MESSAGES_DB_NAME,
+        type: MESSAGES_COLUMNS.type,
+        typeValue: MESSAGE_TYPES.warning,
+        timestamp: MESSAGES_COLUMNS.timestamp,
+        interval: WARNING_MESSAGE_EXPIRE_AFTER
+      }
+    )
+    if (result && result.length) {
+      logger.log(nws`Deleted ${result.length} warnings older than \
+                ${WARNING_MESSAGE_EXPIRE_AFTER}.`)
+      result.forEach(warning => {
+        removeWarningInteractivity(client, warning)
+      })
+    }
+  } catch (error) {
+    logger.error(`Failed to delete expired warnings`, error)
+  }
+}
+
+const deleteExpiredRollResultMessages = async (client) => {
+  try {
+    const result = await pg.db.any(
+      'DELETE FROM ${db#} ' +
+      'WHERE ${timestamp~} < NOW() - INTERVAL ${interval} AND ${type~} = ${typeValue} RETURNING *',
+      {
+        db: MESSAGES_DB_NAME,
+        type: MESSAGES_COLUMNS.type,
+        typeValue: MESSAGE_TYPES.rollResult,
+        timestamp: MESSAGES_COLUMNS.timestamp,
+        interval: ROLL_RESULTS_MESSAGE_EXPIRE_AFTER
+      }
+    )
+    if (result && result.length) {
+      logger.log(nws`Deleted ${result.length} roll results older than \
+                ${ROLL_RESULTS_MESSAGE_EXPIRE_AFTER}.`)
+    }
+  } catch (error) {
+    logger.error(`Failed to delete expired roll results`, error)
+  }
+}
+
 module.exports = async (client) => {
   logger.log(`Successfully logged in as ${client.user.tag}`)
 
@@ -73,8 +148,14 @@ module.exports = async (client) => {
   await tryToSetActivity(client)
 
   await deleteExpiredSavedRollCommands()
+  await deleteExpiredWarningMessages(client)
 
   setInterval(() => {
     deleteExpiredSavedRollCommands()
   }, transformHoursToMs(6))
+
+  setInterval(() => {
+    deleteExpiredWarningMessages(client)
+    deleteExpiredRollResultMessages(client)
+  }, transformMinutesToMs(5))
 };

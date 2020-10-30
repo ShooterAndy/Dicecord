@@ -1,8 +1,4 @@
-const PostGresPromise = require('pg-promise')({
-  query(e) {
-    console.log('QUERY:', e.query);
-  }
-})
+const PostGresPromise = require('pg-promise')()
 const prefix = require('./constants').DB_PREFIX
 
 module.exports = {

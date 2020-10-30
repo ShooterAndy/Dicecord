@@ -28,35 +28,38 @@ const getFormattedTextFromThrows = (throws, format) => {
     return 'no throws were made.'
   }
 
-  let text = format.throwsStart
+  let text = ''
   const filteredThrows = throws.filter(t => !t.isSkipped)
+  let hasUnconditionalThrows = false
   filteredThrows.forEach((t, index) => {
     const throwText = getFormattedTextFromThrow(t, format, filteredThrows[index + 1])
     text += throwText
+    if (throwText && index < filteredThrows.length - 1) {
+      if (filteredThrows[index + 1].isConditional) {
+        text += format.space + format.conditionalThrowSeparator + format.space
+      } else {
+        hasUnconditionalThrows = true
+        if (format.addThrowSeparatorAfterListEnd || !t.repeatNumber || t.repeatNumber < 2) {
+          text += format.throwSeparator
+        }
+      }
+    }
   })
+  if (hasUnconditionalThrows) {
+    text = format.throwsStart + text + format.throwsEnd
+  }
 
   return text
 }
 
 const getFormattedTextFromThrow = (t, format, nextThrow) => {
   const isLast = !nextThrow
-  const appendSeparators = (text) => {
-    if (!isLast) {
-      if (nextThrow.isConditional) {
-        text += format.space + format.conditionalThrowSeparator + format.space
-      } else {
-        text += format.throwSeparator
-      }
-    } else {
-      text += format.throwsEnd
-    }
-    return text
-  }
+
   if (!t.formulaParts || !t.formulaParts.length) {
     if (!t.comment) {
       return ''
     }
-    return appendSeparators(format.codeStart + t.comment + format.codeEnd)
+    return format.codeStart + t.comment + format.codeEnd
   }
 
   const isSingleNumber = () => {
@@ -103,10 +106,6 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
       } else {
         text += '.' + format.listItemEnd
       }
-
-      if (!isLast && (i === t.repeatNumber - 1) && nextThrow.isConditional) {
-        text += format.conditionalThrowSeparator + format.space
-      }
     }
     text += format.listEnd
   } else {
@@ -133,8 +132,6 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     if (t.comment && t.shouldAppendComment) {
       text += format.space + format.codeStart + t.comment + format.codeEnd
     }
-
-    text = appendSeparators(text)
   }
 
   return text
@@ -448,6 +445,9 @@ const getIntermediateResultsText = (t, format, index) => {
 }
 
 const getFinalResultText = (t, format, index) => {
+  if (!t.finalResults || !t.finalResults.length) {
+    return ''
+  }
   let text = format.boldStart + t.finalResults[index].toString() + format.boldEnd
   if (t.specialResults && t.specialResults.length
     && t.specialResults[index] && t.specialResults[index].length) {
