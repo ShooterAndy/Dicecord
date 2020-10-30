@@ -11,12 +11,12 @@ module.exports = async (text, message) => {
         return
       }
     }
-    const doReply = require('./shouldReply')()
+    const doReply = require('./shouldReply')(message)
     let messages
     if (doReply) {
       messages = await message.reply(`\n${text}`, { split: true })
     } else {
-      messages = message.channel.send(text, { split: true })
+      messages = await message.channel.send(text, { split: true })
     }
     return messages[messages.length - 1]
   } catch (error) {
