@@ -47,7 +47,7 @@ module.exports = async (client, message, commands, prefixes) => {
       const commandText = message.content.slice(commandName.length + prefix.length).trim()
       const command = commands[commandName]
       if (typeof command !== 'function') {
-        logger.error(`"${commandName} is apparently not a function`)
+        logger.error(`"${commandName}" is apparently not a function`)
         return reply(nws`Something went wrong trying to process your command. Please contact the \
           bot author`, message)
       }

@@ -96,66 +96,68 @@ let originalCommandText = 'EMPTY'
 
 // -------------------------------------------------------------------------------------------------
 
-module.exports = {
-  processMessage (args) {
-    message = args.message
-    botClientUser = args.client.user
-    prefix = args.prefix
-    commandName = args.commandName
+module.exports = (args) => {
+  processMessage(args)
+}
 
-    warnings = []
-    throws = []
+const processMessage = module.exports.processMessage = (args) => {
+  message = args.message
+  botClientUser = args.client.user
+  prefix = args.prefix
+  commandName = args.commandName
 
-    originalCommandText = args.commandText
+  warnings = []
+  throws = []
 
-    try {
-      topLevelCatcher(processWholeCommand, args.commandText)
+  originalCommandText = args.commandText
 
-      if (warnings.length) {
-        topLevelCatcher(showWarnings)
-      } else {
-        topLevelCatcher(calculateWholeCommand)
-        topLevelCatcher(showResults)
-      }
-    } catch (error) {
-      logger.error(`Top level error in ${commandName} command`, error)
-    }
-  },
+  try {
+    topLevelCatcher(processWholeCommand, args.commandText)
 
-  goOnFromWarning (args) {
-    message = args.message
-    botClientUser = args.client.user
-    prefix = args.prefix
-    commandName = args.commandName
-    throws = args.throws
-
-    warnings = []
-
-    try {
+    if (warnings.length) {
+      topLevelCatcher(showWarnings)
+    } else {
       topLevelCatcher(calculateWholeCommand)
       topLevelCatcher(showResults)
-    } catch (error) {
-      logger.error(`Top level error in goOnFromWarning`, error)
     }
-  },
+  } catch (error) {
+    logger.error(`Top level error in ${commandName} command`, error)
+  }
+}
 
-  repeatRollCommand (args) {
-    message = args.message
-    botClientUser = args.client.user
-    prefix = args.prefix
-    commandName = args.commandName
-    throws = args.throws
+module.exports.goOnFromWarning = (args) => {
+  message = args.message
+  botClientUser = args.client.user
+  prefix = args.prefix
+  commandName = args.commandName
+  throws = args.throws
 
-    removeResults()
+  warnings = []
 
-    warnings = []
+  try {
+    topLevelCatcher(calculateWholeCommand)
+    topLevelCatcher(showResults)
+  } catch (error) {
+    logger.error(`Top level error in goOnFromWarning`, error)
+  }
+}
 
-    try {
-      topLevelCatcher(calculateWholeCommand)
-      topLevelCatcher(showResults)
-    } catch (error) {
-      logger.error(`Top level error in repeatRollCommand`, error)
-    }
+module.exports.repeatRollCommand = (args) => {
+  message = args.message
+  botClientUser = args.client.user
+  prefix = args.prefix
+  commandName = args.commandName
+  throws = args.throws
+
+  removeResults()
+
+  warnings = []
+
+  try {
+    topLevelCatcher(calculateWholeCommand)
+    topLevelCatcher(showResults)
+  } catch (error) {
+    logger.error(`Top level error in repeatRollCommand`, error)
   }
 }
 
