@@ -10,8 +10,13 @@ const {
   MESSAGES_COLUMNS,
   MESSAGE_TYPES,
   WARNING_MESSAGE_EXPIRE_AFTER,
-  ROLL_RESULTS_MESSAGE_EXPIRE_AFTER
+  ROLL_RESULTS_MESSAGE_EXPIRE_AFTER,
+  DECKS_DB_NAME,
+  DECKS_COLUMNS,
+  DECKS_EXPIRE_AFTER,
+  USE_INTERACTIVE_REACTIONS
 } = require('../helpers/constants')
+const Client = require('../helpers/client')
 
 const tryToSetActivity = async (client) => {
   try {
@@ -72,7 +77,7 @@ const removeWarningInteractivity = async (client, warning) => {
   }
 }
 
-const deleteExpiredWarningMessages = async (client) => {
+const deleteExpiredWarningMessages = async () => {
   try {
     const result = await pg.db.any(
       'DELETE FROM ${db#} ' +
@@ -86,10 +91,13 @@ const deleteExpiredWarningMessages = async (client) => {
       }
     )
     if (result && result.length) {
-      logger.log(nws`Deleted ${result.length} warnings older than \
-                ${WARNING_MESSAGE_EXPIRE_AFTER}.`)
+      /*logger.log(nws`Deleted ${result.length} warnings older than \
+                ${WARNING_MESSAGE_EXPIRE_AFTER}.`)*/
       result.forEach(warning => {
-        removeWarningInteractivity(client, warning)
+        const channelId = warning[MESSAGES_COLUMNS.channel_id]
+        const messageId = warning[MESSAGES_COLUMNS.message_id]
+        delete Client.reactionsCache[channelId+ '_' + messageId]
+        removeWarningInteractivity(Client.client, warning)
       })
     }
   } catch (error) {
@@ -97,7 +105,7 @@ const deleteExpiredWarningMessages = async (client) => {
   }
 }
 
-const deleteExpiredRollResultMessages = async (client) => {
+const deleteExpiredRollResultMessages = async () => {
   try {
     const result = await pg.db.any(
       'DELETE FROM ${db#} ' +
@@ -111,11 +119,35 @@ const deleteExpiredRollResultMessages = async (client) => {
       }
     )
     if (result && result.length) {
-      logger.log(nws`Deleted ${result.length} roll results older than \
-                ${ROLL_RESULTS_MESSAGE_EXPIRE_AFTER}.`)
+      /*logger.log(nws`Deleted ${result.length} roll results older than \
+                ${ROLL_RESULTS_MESSAGE_EXPIRE_AFTER}.`)*/
+      result.forEach(rollResult => {
+        const channelId = rollResult[MESSAGES_COLUMNS.channel_id]
+        const messageId = rollResult[MESSAGES_COLUMNS.message_id]
+        delete Client.reactionsCache[channelId+ '_' + messageId]
+      })
     }
   } catch (error) {
     logger.error(`Failed to delete expired roll results`, error)
+  }
+}
+
+const deleteExpiredDecks = async () => {
+  try {
+    const result = await pg.db.any(
+      'DELETE FROM ${db#} WHERE ${timestamp~} < NOW() - INTERVAL ${interval} RETURNING *',
+      {
+        db: DECKS_DB_NAME,
+        timestamp: DECKS_COLUMNS.timestamp,
+        interval: DECKS_EXPIRE_AFTER
+      }
+    )
+    if (result && result.length) {
+      /*logger.log(nws`Deleted ${result.length} decks older than \
+                ${ROLL_RESULTS_MESSAGE_EXPIRE_AFTER}.`)*/
+    }
+  } catch (error) {
+    logger.error(`Failed to delete expired decks`, error)
   }
 }
 
@@ -145,17 +177,26 @@ module.exports = async (client) => {
     }
   }, transformMinutesToMs(30))
 
-  await tryToSetActivity(client)
+  setInterval(async () => {
+    await tryToSetActivity(client)
+  }, transformMinutesToMs(15))
 
-  await deleteExpiredSavedRollCommands()
-  await deleteExpiredWarningMessages(client)
-
-  setInterval(() => {
-    deleteExpiredSavedRollCommands()
+  await deleteExpiredDecks()
+  setInterval(async () => {
+    await deleteExpiredDecks()
   }, transformHoursToMs(6))
 
-  setInterval(() => {
-    deleteExpiredWarningMessages(client)
-    deleteExpiredRollResultMessages(client)
-  }, transformMinutesToMs(5))
+  if (USE_INTERACTIVE_REACTIONS) {
+    await deleteExpiredSavedRollCommands()
+    await deleteExpiredWarningMessages()
+
+    setInterval(() => {
+      deleteExpiredSavedRollCommands()
+    }, transformHoursToMs(6))
+
+    setInterval(() => {
+      deleteExpiredWarningMessages()
+      deleteExpiredRollResultMessages()
+    }, transformMinutesToMs(5))
+  }
 };

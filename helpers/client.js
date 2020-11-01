@@ -1,7 +1,7 @@
 const Discord = require('discord.js')
 const Prefixes = require('./prefixes')
 const fs = require('fs')
-const { LOG_PREFIX } = require('./constants')
+const { LOG_PREFIX, USE_PARTIALS } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
 
@@ -27,7 +27,11 @@ const Client = module.exports = {
   },
 
   async readyBasics (commands) {
-    Client.client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER'] })
+    let options = {}
+    if (USE_PARTIALS) {
+      options = { partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER'] }
+    }
+    Client.client = new Discord.Client(options)
     let prefixes
     try {
       prefixes = await Prefixes.load()

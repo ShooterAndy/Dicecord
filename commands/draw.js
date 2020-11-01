@@ -79,15 +79,16 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
         }
 
         try {
-          // TODO: Add timestamp
           await pg.db.none(
-            'UPDATE ${db#} SET ${deck~}=${deckValue} WHERE ${channelId~}=${channelIdValue}',
+            'UPDATE ${db#} SET ${deck~} = ${deckValue}, ${timestamp~} = NOW() ' +
+            'WHERE ${channelId~}=${channelIdValue}',
             {
               db: pg.addPrefix(DECKS_DB_NAME),
               deck: DECKS_COLUMNS.deck,
               deckValue: JSON.stringify(deck),
               channelId: DECKS_COLUMNS.channel_id,
-              channelIdValue: message.channel.id
+              channelIdValue: message.channel.id,
+              timestamp: DECKS_COLUMNS.timestamp
             }
           )
           if (isPrivate) {

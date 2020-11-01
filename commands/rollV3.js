@@ -59,6 +59,7 @@ const {
   VS_CHECK_RESULTS,
 
   REPEAT_THROW_SEPARATOR,
+  REPEAT_THROW_SEPARATOR_AOE,
 
   OPENING_PARENTHESIS,
   CLOSING_PARENTHESIS,
@@ -78,7 +79,9 @@ const {
 
   MESSAGES_DB_NAME,
   MESSAGES_COLUMNS,
-  MESSAGE_TYPES
+  MESSAGE_TYPES,
+
+  USE_INTERACTIVE_REACTIONS
 } = require('../helpers/constants')
 
 // Global variables
@@ -89,6 +92,7 @@ let message = null
 let botClientUser = null
 let prefix = null
 let commandName = null
+let originalCommandText = 'EMPTY'
 
 // -------------------------------------------------------------------------------------------------
 
@@ -102,10 +106,11 @@ module.exports = {
     warnings = []
     throws = []
 
+    originalCommandText = args.commandText
+
     try {
       topLevelCatcher(processWholeCommand, args.commandText)
 
-      // TODO: double-check what happens here with both the error and the warnings shown
       if (warnings.length) {
         topLevelCatcher(showWarnings)
       } else {
@@ -183,16 +188,21 @@ const showWarnings = async () => {
         warningsText += '.'
       }
     })
-    const validCommandText = getCommandText()
-    if (validCommandText) {
-      warningsText += '\nDo you still wish to proceed? Your command would be:'
-      warningsText += '```' + validCommandText + '```'
-    } else {
-      warningsText += nws`\nThis will make your command empty. Please refer to \ 
+    let validCommandText
+    if (USE_INTERACTIVE_REACTIONS) {
+      validCommandText = getCommandText()
+      if (validCommandText) {
+        warningsText += '\nDo you still wish to proceed? Your command would be:'
+        warningsText += '```' + validCommandText + '```'
+      } else {
+        warningsText += nws`\nThis will make your command empty. Please refer to \ 
         \`${prefix}help ${commandName}\` for help.`
+      }
+    } else {
+      warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
     }
     const warningsMessage = await reply(warningsText, message)
-    if (warningsMessage && validCommandText) {
+    if (warningsMessage && validCommandText && USE_INTERACTIVE_REACTIONS) {
       try {
         const pairs = {}
         pairs[MESSAGES_COLUMNS.message_id] = warningsMessage.id
@@ -393,7 +403,7 @@ const processWholeCommand = unprocessedCommand => {
     }
   })
   throws = _.filter(throws, t => !t.markedForDeletion)
-  console.log('THROWS:\n' + JSON.stringify(throws))
+  //console.log('THROWS:\n' + JSON.stringify(throws))
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -507,20 +517,18 @@ const processRepeatThrowPart = thisThrow => {
   if (repeatThrowParts && repeatThrowParts.length) {
     if (repeatThrowParts.length > 1) {
       addWarning(nws`your throw command \`${thisThrow.originalFormula}\` seemed to have more \
-        than one \`${REPEAT_THROW_SEPARATOR}\` in it, so they will all be ignored`)
-      thisThrow.formula = thisThrow.formula.split(REPEAT_THROW_SEPARATOR)[0].trim()
+        than one repeat throw separator (\`${REPEAT_THROW_SEPARATOR}\` or \
+        \`${REPEAT_THROW_SEPARATOR_AOE}\`) in it, so they will all be ignored`)
+      thisThrow.formula = thisThrow.formula.replace(getRepeatThrowRegex(), '')
       return
     }
 
-    const separatorIndex = thisThrow.formula.indexOf(REPEAT_THROW_SEPARATOR)
-    thisThrow.formula = (thisThrow.formula.slice(0, separatorIndex) +
-      thisThrow.formula.slice(separatorIndex + repeatThrowParts[0].length)).trim()
+    thisThrow.formula = thisThrow.formula.replace(getRepeatThrowRegex(), '')
 
     requestedRepeatNumber =
-      Number(repeatThrowParts[0].slice(REPEAT_THROW_SEPARATOR.length).trim())
+      Number(repeatThrowParts[0].replace(getRepeatThrowSeparatorRegex(), '').trim())
 
-    // TODO: Double-check edge cases here (and in vs parts)
-    if (requestedRepeatNumber >= MAX_REPEAT_THROWS) {
+    if (requestedRepeatNumber > MAX_REPEAT_THROWS) {
       addWarning(nws`you cannot have more than \`${MAX_REPEAT_THROWS}\` repeated throws in \
         \`${thisThrow.originalFormula}\`, so this will be ignored`)
       return
@@ -667,8 +675,6 @@ const processRollFormula = thisThrow => {
         be ignored`)
   }*/
   processRollStructureElement(thisThrow)
-
-  // TODO: Add a check for whether the throw and its children have any operands
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -814,7 +820,6 @@ const processDiceOperand = (unparsedFormula) => {
       return catcher(processFudgeDice, { unparsedFormula, startingFudgeDiceSymbol })
     }
   }
-  // TODO: handle other cases here
   throw w(nws`\`${unparsedFormula}\` was not recognized as a valid dice formula, so it will \
     be ignored. ${getTypoOrCommentHint()}`)
 }
@@ -1335,9 +1340,6 @@ const processDiceModifier = (args) => {
       throw w(nws`\`${modName}\` in \`${dice.formula}\` is not a recognized roll modifier, \
             so it will be ignored. ${getTypoOrCommentHint()}`)
     }
-
-    //TODO: Write the check for incompatible modifiers
-    // critical is incompatible with counting and explosions
   }
 }
 
@@ -1372,7 +1374,7 @@ const calculateWholeCommand = () => {
     previousThrow = t
   })
 
-  console.log(`RESULTS:\n${JSON.stringify(throws)}`)
+  //console.log(`RESULTS:\n${JSON.stringify(throws)}`)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1833,33 +1835,35 @@ const showResults = async () => {
     return
   }
 
-  try {
-    const pairs = {}
-    pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
-    pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
-    pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult
-    pairs[MESSAGES_COLUMNS.content] = JSON.stringify({
-      messageId: message.id,
-      prefix: prefix,
-      commandName: commandName,
-      throws: throws
-    })
-    pairs[MESSAGES_COLUMNS.user_id] = message.author.id
-    await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
-      {
-        db: pg.addPrefix(MESSAGES_DB_NAME),
-        pairs
+  if (USE_INTERACTIVE_REACTIONS) {
+    try {
+      const pairs = {}
+      pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
+      pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
+      pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult
+      pairs[MESSAGES_COLUMNS.content] = JSON.stringify({
+        messageId: message.id,
+        prefix: prefix,
+        commandName: commandName,
+        throws: throws
       })
-  } catch (error) {
-    logger.error(`Failed to save a roll results message`, error)
-    return
-  }
-  try {
-    await Promise.all([
-      replyMessage.react(B_EMOJI), replyMessage.react(M_EMOJI), replyMessage.react(REPEAT_EMOJI)
-    ])
-  } catch (error) {
-    logger.error(`Failed to react to a roll results message`, error)
+      pairs[MESSAGES_COLUMNS.user_id] = message.author.id
+      await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
+        {
+          db: pg.addPrefix(MESSAGES_DB_NAME),
+          pairs
+        })
+    } catch (error) {
+      logger.error(`Failed to save a roll results message`, error)
+      return
+    }
+    try {
+      await Promise.all([
+        replyMessage.react(B_EMOJI), replyMessage.react(M_EMOJI), replyMessage.react(REPEAT_EMOJI)
+      ])
+    } catch (error) {
+      logger.error(`Failed to react to a roll results message`, error)
+    }
   }
 }
 
@@ -1886,8 +1890,16 @@ const getDisallowedSymbolsRegex = () => {
   return new RegExp(regexString, 'gi')
 }
 
+const getRepeatThrowSeparatorRegex = (shouldReturnString) => {
+  const regex = `(\\${REPEAT_THROW_SEPARATOR}|(${REPEAT_THROW_SEPARATOR_AOE}))`
+  if (shouldReturnString) {
+    return regex
+  }
+  else return new RegExp(regex, 'gi')
+}
+
 const getRepeatThrowRegex = () => {
-  const regexString = `\\${REPEAT_THROW_SEPARATOR}\\s?\\d+`
+  const regexString = `${getRepeatThrowSeparatorRegex(true)}\\s?\\d+`
   return new RegExp(regexString, 'gi')
 }
 

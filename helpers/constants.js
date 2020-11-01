@@ -1,4 +1,5 @@
-module.exports.IS_LOCAL = process.env.IS_LOCAL || false
+module.exports.IS_LOCAL = process.env.IS_LOCAL === 'true' || false
+module.exports.USE_INTERACTIVE_REACTIONS = process.env.USE_INTERACTIVE_REACTIONS === 'true' || false
 
 // -------------------------------------------------------------------------------------------------
 
@@ -23,7 +24,13 @@ module.exports.DECK_TYPES_DB_NAME = 'deck_types'
 module.exports.DECK_TYPES_COLUMNS = { id: 'id', deck: 'deck', description: 'description' }
 
 module.exports.DECKS_DB_NAME = 'decks'
-module.exports.DECKS_COLUMNS = { channel_id: 'channel_id', deck: 'deck', type_id: 'type_id' }
+module.exports.DECKS_COLUMNS = {
+  channel_id: 'channel_id',
+  deck: 'deck',
+  type_id: 'type_id',
+  timestamp: 'timestamp'
+}
+module.exports.DECKS_EXPIRE_AFTER = '30 days'
 
 module.exports.SAVED_ROLL_COMMANDS_DB_NAME = 'saved_roll_commands'
 module.exports.SAVED_ROLL_COMMANDS_COLUMNS = {
@@ -166,6 +173,7 @@ module.exports.THROW_SEPARATOR_VS = '=>'
 module.exports.VERSUS_SEPARATOR = 'vs'
 module.exports.VERSUS_PARTS_SEPARATOR = ','
 module.exports.REPEAT_THROW_SEPARATOR = '|'
+module.exports.REPEAT_THROW_SEPARATOR_AOE = 'aoe'
 
 // -------------------------------------------------------------------------------------------------
 // If the symbols in this section are expanded, don't forget to expand ALLOWED_SYMBOLS
@@ -256,7 +264,7 @@ module.exports.THROW_RESULTS_FORMATS = {
     italicsEnd: '_',
     listStart: '',
     listEnd: '',
-    listItemStart: ' * ',
+    listItemStart: '\n * ',
     listItemEnd: '',
     codeStart: '',
     codeEnd: '',

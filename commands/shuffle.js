@@ -44,19 +44,20 @@ const processShuffleCommand = async (message, deckId, prefix) => {
         message)
     }
     try {
-      // TODO: Add timestamp
       await pg.db.none(
-        'INSERT INTO ${db#} (${channelId~}, ${deck~}, ${type~}) ' +
-        'VALUES (${channelIdValue}, ${deckValue}, ${typeValue}) ' +
+        'INSERT INTO ${db#} (${channelId~}, ${deck~}, ${type~}, ${timestamp~}) ' +
+        'VALUES (${channelIdValue}, ${deckValue}, ${typeValue}, NOW()) ' +
         'ON CONFLICT (${channelId~}) ' +
-        'DO UPDATE SET ${deck~}=excluded.${deck~}, ${type~}=excluded.${type~}', {
+        'DO UPDATE SET ${deck~}=excluded.${deck~}, ${type~}=excluded.${type~}, ' +
+        '${timestamp~}=excluded.${timestamp~}', {
           db: pg.addPrefix(DECKS_DB_NAME),
           channelId: DECKS_COLUMNS.channel_id,
           deck: DECKS_COLUMNS.deck,
           type: DECKS_COLUMNS.type_id,
           channelIdValue: message.channel.id,
           deckValue: JSON.stringify(deck),
-          typeValue: deckId
+          typeValue: deckId,
+          timestamp: DECKS_COLUMNS.timestamp
         })
       return reply('Your `' + deckId + '` deck was shuffled!', message)
     } catch(error) {

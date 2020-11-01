@@ -9,7 +9,8 @@ const {
   B_EMOJI,
   M_EMOJI,
   REPEAT_EMOJI,
-  THROW_RESULTS_FORMATS
+  THROW_RESULTS_FORMATS,
+  USE_PARTIALS
 } = require('../helpers/constants')
 const roll = require('../commands/rollV3')
 const reply = require('../helpers/reply')
@@ -28,28 +29,16 @@ module.exports = async (client, reaction, user) => {
     }
   }
 
-  let users = reaction.users.cache
-
   if (reaction.partial) { // handle partial stuff
     try {
       await reaction.fetch()
     } catch (error) {
       return logger.error('Something went wrong when fetching the message for a reaction', error)
     }
-    try {
-      users = await reaction.users.fetch()
-    } catch (error) {
-      return logger.error('Something went wrong when fetching the users for a reaction', error)
-    }
   }
 
   if (reaction.message.author.id !== client.user.id) {
     return // if the reaction is to a message not left by the bot, ignore it
-  }
-
-  if (users.array().length < 2
-    || !users.array().find(u => u.id === client.user.id)) {
-    return // if the reaction doesn't include both the bot AND someone else, ignore it
   }
 
   let result
