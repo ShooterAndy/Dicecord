@@ -21,7 +21,7 @@ All the commands this bot will respond to should be prefixed with the ```!``` sy
 The currently available commands are:
 
 * ```!help``` &mdash; provides information about this bot. Add a command name to learn more about it, like ```!help roll```.
-* [!roll (!r)](https://github.com/ShooterAndy/Dicecord/blob/master/help/roll.md) &mdash; rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
+* [!roll (!r)](https://github.com/ShooterAndy/Dicecord/blob/master/detailedHelp/roll.md) &mdash; rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
 * [!order (!o)](https://github.com/ShooterAndy/Dicecord/blob/master/help/order.md) — randomly re-orders a comma-separated list.
 * [!pick (!p)](https://github.com/ShooterAndy/Dicecord/blob/master/help/pick.md) &mdash; picks a random item from a comma-separated list.
 * [!listDeckTypes (!ldt)](https://github.com/ShooterAndy/Dicecord/blob/master/help/listdecktypes.md) &mdash; lists all existing deck types.
@@ -30,8 +30,12 @@ The currently available commands are:
 * [!draw (!d)](https://github.com/ShooterAndy/Dicecord/blob/master/help/draw.md) &mdash; draws the requested amount of cards from the saved deck.
 * [!deal](https://github.com/ShooterAndy/Dicecord/blob/master/help/deal.md) &mdash; deals the requested amount of cards from the saved deck.
 * [!drawShuffled (!drsh)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawshuffled.md) &mdash; draws the requested amount of cards from a fresh deck.
+* [!drawPrivate (!drpr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawprivate.md) &mdash; draws the requested amount of cards from the saved deck and DMs them to you.
 * [!bbcode](https://github.com/ShooterAndy/Dicecord/blob/master/help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
 * [!markdown (!md)](https://github.com/ShooterAndy/Dicecord/blob/master/help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
+* [!saveRoll (!sr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/saveroll.md) &mdash; saves a roll command for later use.
+* [!getSaved (!gs)](https://github.com/ShooterAndy/Dicecord/blob/master/help/getsaved.md) &mdash; returns the text of a saved roll command.
+* [!rollSaved (!rs)](https://github.com/ShooterAndy/Dicecord/blob/master/help/rollsaved.md) &mdash; rolls a saved roll command.
 * [!setPrefix](https://github.com/ShooterAndy/Dicecord/blob/master/help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild, _administrator-only!_ 
 
 ## Settings
