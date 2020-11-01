@@ -39,13 +39,19 @@ module.exports = async (client, message, commands, prefixes) => {
         hasPermissions = false
       }
     }
-    const commandName = message.content.split(' ')[0].slice(prefix.length)
-    if (commandName && commandName.length && commands[commandName.toLowerCase()]) {
+    const commandName = message.content.split(' ')[0].slice(prefix.length).toLowerCase()
+    if (commandName && commandName.length && commands[commandName]) {
       if(!hasPermissions) {
         return
       }
       const commandText = message.content.slice(commandName.length + prefix.length).trim()
-      return commands[commandName.toLowerCase()]({
+      const command = commands[commandName]
+      if (typeof command !== 'function') {
+        logger.error(`"${commandName} is apparently not a function`)
+        return reply(nws`Something went wrong trying to process your command. Please contact the \
+          bot author`, message)
+      }
+      return command({
         message: message,
         commandName: commandName,
         commandText: commandText,
