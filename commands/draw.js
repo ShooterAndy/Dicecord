@@ -3,7 +3,8 @@ const pg = require('../helpers/pgHandler')
 const {
   DECKS_DB_NAME,
   DECKS_COLUMNS,
-  ERROR_PREFIX
+  ERROR_PREFIX,
+  DECKS_EXPIRE_AFTER
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
@@ -14,10 +15,11 @@ module.exports = async (args) => {
   const comment = args.commandText.trim().slice(numberOfCardsToDraw.length).trim()
   const verb = args.verb || 'draw'
   const isPrivate = args.isPrivate || false
-  await processDrawCommand(args.message, numberOfCardsToDraw, comment, verb, isPrivate)
+  await processDrawCommand(args.message, numberOfCardsToDraw, comment, verb, isPrivate, args.prefix)
 };
 
-const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, isPrivate) => {
+const processDrawCommand =
+  async (message, numberOfCardsToDraw, comment, verb, isPrivate, prefix) => {
   let text = '';
   const pastVerb = verb === 'deal' ? 'dealt' : 'drew'
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
@@ -39,7 +41,8 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
 
       if (!result || !result[DECKS_COLUMNS.deck]) {
         return reply(nws`${ERROR_PREFIX}Couldn't find a deck for this channel. Please \
-          \`!shuffle\` one first.`, message)
+          \`${prefix}shuffle\` one first. If there was a deck, perhaps it expired and was \
+          automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`, message)
       }
       let deck = []
       try {

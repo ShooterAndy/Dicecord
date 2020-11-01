@@ -2,6 +2,7 @@ const {
   UPSERT_SAVED_ROLL_COMMAND_RESULTS,
   MAX_SAVED_ROLL_COMMANDS_PER_USER,
   SAVED_ROLL_COMMANDS_EXPIRE_AFTER,
+  MAX_SAVED_ROLL_COMMAND_NAME_LENGTH,
   ERROR_PREFIX
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
@@ -15,6 +16,14 @@ module.exports = async (args) => {
     const indexOfFirstSpace = commandText.indexOf(' ')
     if (indexOfFirstSpace !== -1) {
       const name = commandText.slice(0, indexOfFirstSpace).trim().toLowerCase()
+      if (!name.match(/^[a-z0-9\-_]+$/)) {
+        return reply(nws`Please use only latin characters, numbers, as well as the \`-\` and \`_\`\
+         characters in command name.`, args.message)
+      }
+      if (name.length > MAX_SAVED_ROLL_COMMAND_NAME_LENGTH) {
+        return reply(nws`Please pick a name with less than ${MAX_SAVED_ROLL_COMMAND_NAME_LENGTH} \
+          characters in it.`, args.message)
+      }
       const command = commandText.slice(indexOfFirstSpace).trim()
       try {
         const result = await pg.db.one(

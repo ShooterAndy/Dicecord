@@ -43,6 +43,7 @@ module.exports.UPSERT_SAVED_ROLL_COMMAND_RESULTS = {
   updated: 'updated',
   limit: 'limit'
 }
+module.exports.MAX_SAVED_ROLL_COMMAND_NAME_LENGTH = 16
 
 module.exports.MESSAGES_DB_NAME = 'messages'
 module.exports.MESSAGES_COLUMNS = {

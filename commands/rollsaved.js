@@ -11,7 +11,7 @@ const roll = require('./r')
 const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
-  const name = args.commandText.trim()
+  const name = args.commandText.trim().toLowerCase()
   if (name) {
     try {
       const result = await pg.db.oneOrNone(

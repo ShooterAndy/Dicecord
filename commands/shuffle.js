@@ -5,7 +5,8 @@ const {
   DECK_TYPES_COLUMNS,
   DECKS_DB_NAME,
   DECKS_COLUMNS,
-  ERROR_PREFIX
+  ERROR_PREFIX,
+  DECKS_EXPIRE_AFTER
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
@@ -32,7 +33,8 @@ const processShuffleCommand = async (message, deckId, prefix) => {
       }
     )
     if (!result || !result.deck) {
-      return reply(`No deck \`${deckId}\` exists.`, message)
+      return reply(nws`No deck type \`${deckId}\` exists. You could list all existing deck \
+        types by using the \`${prefix}listDeckTypes\` command.`, message)
     }
 
     let deck = []
@@ -59,7 +61,9 @@ const processShuffleCommand = async (message, deckId, prefix) => {
           typeValue: deckId,
           timestamp: DECKS_COLUMNS.timestamp
         })
-      return reply('Your `' + deckId + '` deck was shuffled!', message)
+      return reply(nws`Your \`${deckId}\` deck was shuffled!\nPlease be aware that this saved deck \
+        will expire and be automatically deleted after ${DECKS_EXPIRE_AFTER} of last being \
+        drawn from.`, message)
     } catch(error) {
       logger.error(nws`Failed to update the deck for channel ${message.channel.id}`, error)
       return reply(`${ERROR_PREFIX} Failed to save the deck.`, message)

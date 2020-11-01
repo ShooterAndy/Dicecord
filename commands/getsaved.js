@@ -10,7 +10,7 @@ const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
-  const name = args.commandText.trim()
+  const name = args.commandText.trim().toLowerCase()
   if (name) {
     try {
       const result = await pg.db.oneOrNone(
@@ -51,8 +51,9 @@ module.exports = async (args) => {
           author.`, args.message)
       }
 
-      return reply(nws`Here's the \`${name}\` saved command:\n\`\`\`${result.command}\`\`\`\n\
-        You can roll it via \`${args.prefix}rollSaved ${name}\``, args.message)
+      return reply(nws`Here's the \`${name}\` saved \
+        command:\n\`\`\`${args.prefix}roll ${result.command}\`\`\`\nYou can roll it \
+        via \`${args.prefix}rollSaved ${name}\``, args.message)
     } catch (error) {
       logger.error(`Failed to get saved roll command`, error)
       return reply(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,

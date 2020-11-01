@@ -12,7 +12,7 @@ const {
   THROW_RESULTS_FORMATS,
   USE_PARTIALS
 } = require('../helpers/constants')
-const roll = require('../commands/rollV3')
+const roll = require('../commands/roll')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
 const Client = require('../helpers/client')

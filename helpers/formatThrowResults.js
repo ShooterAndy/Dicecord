@@ -291,6 +291,7 @@ const getDiceResultsText = (throwResults, throwType, format) => {
 
   throwResults.forEach((throwResult, index) => {
     const isLast = (index === throwResults.length - 1)
+    const nextResult = isLast ? null : throwResults[index + 1]
     if (throwResult.explosions) {
       text += getDiceResultsText(throwResult.explosions, throwType, format)
     } else {
@@ -300,7 +301,10 @@ const getDiceResultsText = (throwResults, throwType, format) => {
           break
         }
         case RESULT_TYPES.ignored: {
-          text += format.strikethroughStart + getDiceResultText(throwResult, throwType) +
+          if (index === 0) {
+            text += format.strikethroughStart
+          }
+          text += getDiceResultText(throwResult, throwType) +
             format.strikethroughEnd
           break
         }
@@ -323,7 +327,11 @@ const getDiceResultsText = (throwResults, throwType, format) => {
     if (!isLast
       && throwResult.type !== RESULT_TYPES.exploded
       && throwType !== FORMULA_PART_TYPES.operands.fudgeDice) {
-      text += format.space + FORMULA_PART_TYPES.operators.sum + format.space
+      text += format.space
+      if (nextResult.type === RESULT_TYPES.ignored) {
+        text += format.strikethroughStart
+      }
+      text += FORMULA_PART_TYPES.operators.sum + format.space
     }
   })
 

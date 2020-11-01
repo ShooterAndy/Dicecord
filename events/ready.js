@@ -21,8 +21,9 @@ const Client = require('../helpers/client')
 const tryToSetActivity = async (client) => {
   try {
     await client.user.setActivity('v' + packageJSON.version + ', type !help')
-    logger.log('Successfully set activity')
+    /*logger.log('Successfully set activity')*/
   } catch (error) {
+    logger.error('Failed to set activity', error)
     await tryToSetActivity(client)
   }
 }
@@ -177,6 +178,7 @@ module.exports = async (client) => {
     }
   }, transformMinutesToMs(30))
 
+  await tryToSetActivity(client)
   setInterval(async () => {
     await tryToSetActivity(client)
   }, transformMinutesToMs(15))
