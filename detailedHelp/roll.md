@@ -1,15 +1,11 @@
-
-#Roll command
-
-##Basics
-
+# Roll command
+## Basics
 The **roll** command, abbreviated as `r`, is an extremely versatile way to roll dice. It allows you
 to roll several kinds of dice at the same time, apply bonuses and penalties, have repeated and
 conditional rolls, etc. Please read through this document thoroughly to understand the full
 range of possibilities that it offers.
 
 ## Parts of the roll command
-
 Before we establish how to roll dice, let's quickly define some terms we will be using later. Each 
 time you enter a roll command, it can have several "levels". Let's go over them from highest to 
 lowest:
@@ -23,10 +19,8 @@ dice throws (see the "Rolling dice" section below).
       * **Die throw** — each dice throw can consist of several individual dice, each of which has 
       its own _die throw results_.
       
-##Formula
-
-###Basics of operands and operators
-
+## Formula
+### Basics of operands and operators
 Each throw you request has a formula to it. It can be as simple as a single number, or very complex.
 The parts of the formula (aka operands) are separated from each other by the `+` or `-` operators,
 such as here:
@@ -37,8 +31,7 @@ Or here:
 
 ```!r 1 + 2 - 3```
 
-###Using parentheses
-
+### Using parentheses
 You can use parentheses in your formula, just as they are used in arithmetic normally, so, for
 example, this command:
 
@@ -50,10 +43,8 @@ Would be equivalent to this one:
 
 The maximum level of depth for parentheses is 5.
 
-##Rolling dice
-
-###Basics of rolling dice
-
+## Rolling dice
+### Basics of rolling dice
 The **roll** command allows you to roll (almost) any number of dice with (almost) any number of 
 sides. The actual lower limit is 1 for both number and sides, and the upper limits are 100 for the
 number of rolled dice and 10,000 for the number of die sides.
@@ -77,8 +68,7 @@ Rolling 4 ten-sided dice would look like this: `!r 4d10` and produce something l
 
 As you can see, the results are grouped between the `[` and `]` symbols.
 
-###Static bonuses and penalties
-
+### Static bonuses and penalties
 You can apply static bonuses and penalties to a die throw by using the `+` and `-` operands. This 
 command, for example, will roll one twenty-sided die and add 5 to the result of that roll:
 
@@ -92,8 +82,7 @@ You can combine dice, bonuses and penalties in any way you want (see the "Formul
 
 ```!r 5 + 2d10 - (4 - 1d6) ```
 
-###Dice modifiers
-
+### Dice modifiers
 You can apply various modifiers to a die roll. Each dice modifier consists of a short abbreviation 
 and a numerical parameter, such as `e5`. These are the currently available dice modifiers: 
 
@@ -159,10 +148,8 @@ in a dice throw has its result equal to or lower than the parameter value.
 the die is re-rolled if the die roll result is less than _or equal to_ the parameter value. Used 
 as a short-hand for fourth edition Dungeons and Dragons. 
 
-###Special dice
-
-####FUDGE dice
-
+### Special dice
+#### FUDGE dice
 In principle, FUDGE dice are three-sided dice with the values on their sides being `+`, `-` or `0`.
 A roll of FUDGE dice uses four of such dice, and then combines their values, counting `+` as 1,
 `-` as -1, and `0` as 0.
@@ -178,8 +165,7 @@ You can add static bonuses and penalties to a FUDGE dice roll, just as you can t
 
 You cannot use dice modifiers with FUDGE dice.
 
-####Roll and Keep dice
-
+#### Roll and Keep dice
 Some game systems, such as "Legend of Five Rings" and "Seventh Sea" use Roll and Keep dice:
 
 ```!r 4k2```
@@ -190,8 +176,7 @@ for an explanation of what that means) on a natural 10. This behavior can be cha
 `e` dice modifier, for example, `!r 4k2e9` will mean that any of the rolled dice will explode on a 
 natural 9 or 10; on the other hand, `!r 4k2e0` will disable explosions altogether.
 
-####Dungeons and Dragons (fourth edition) dice
-
+#### Dungeons and Dragons (fourth edition) dice
 This shorthand allows you to roll one twenty-sided die which will have a critical success on a
 natural 20 and a critical failure on a natural 1:
 
@@ -200,8 +185,7 @@ natural 20 and a critical failure on a natural 1:
 As of now, the other effects, such as maximizing the roll results in a conditional throw on a 
 critical success, are not yet implemented.
 
-##Repeating a command part
-
+## Repeating a command part
 An entire command part with multiple dice and static modifiers can be repeated a number of times by 
 using a `|` symbol followed by a number at the end of the formula, like this:
 
@@ -217,8 +201,7 @@ highest of this number, and the number of versus checks is used to calculate the
 
 As a backwards-compatibility feature, `aoe` is a synonym for the `|` symbol.
 
-##Versus-checks
-
+## Versus-checks
 The total result of a command part can be compared to a value, and the result of that comparison 
 can be displayed using the versus-checks. Simply put `vs` followed by some numerical value after 
 the formula (and after the repeat-clause, see "Repeating a command part" section above). For 
@@ -264,8 +247,7 @@ You can also use entire formulas for versus checks:
 The result of the versus-checks can affect the next command part. See the "Conditional command 
 parts" section for more information about that.
 
-##Comments
-
+## Comments
 A command part can have a comment that will be displayed in the results. To add a comment to a 
 command part, add a `?` symbol and follow it with your comment's text. For example:
 
@@ -289,8 +271,7 @@ prepended, as usual. For that, use `?!` instead of the `?` symbol, like so:
 Which will return:
 > 1d20 + 5 - 2d6 = 15 - [1 + 2] + _5_ = **17** `Some Comment`
 
-##Multiple command parts
-
+## Multiple command parts
 Your roll command can have multiple command parts that are independent of each other and therefore 
 produce independent results. Each command part is separated from another by the `;` symbol. For 
 example:
@@ -303,8 +284,7 @@ added together and will be displayed separately like so:
 > 1d20 + 2 = 1 + _2_ = **3**;
 > 2d6 - 3 = [5 + 5] - _3_ = **7**.
 
-##Conditional command parts
-
+## Conditional command parts
 A command part can be calculated or ignored based on the result of a versus-check (see the 
 "Versus-checks" section above for more information about them) in a previous command part. A basic 
 example of this in action is a roll of damage being conditional on whether an attack roll was 
@@ -330,8 +310,7 @@ You can chain conditional command parts together like this:
 In this case, if the versus-check in the first command part fails, both of the command parts after 
 it will be skipped.
 
-##Reply interactivity
-
+## Reply interactivity
 Once Dicecord finished processing your roll command (and if all goes well), it will send you a 
 reply with the results of your roll command. Additionally, however, it will provide you some things
 you can do with these results. It will do that by adding reactions to its reply. If you click on 
@@ -345,8 +324,7 @@ forums)
 Note that due to some technical limitations, the interactivity will only be functional for 10 
 minutes after the reply.
 
-##Warnings
-
+## Warnings
 If your roll command contains some things that Dicecord could not properly parse or that do not 
 make sense to it, before rolling it, it will reply to you with the list of all the warnings it 
 found. It will provide you with what the roll command that it understood will look like, and it 
