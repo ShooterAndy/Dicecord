@@ -27,12 +27,16 @@ const Prefixes = module.exports = {
   },
   set: async (guildId, prefix) => {
     try {
-      await pgHandler.upsert(
-        PREFIXES_DB_NAME,
-        PREFIXES_COLUMNS.guild_id,
-        [PREFIXES_COLUMNS.prefix],
-        guildId,
-        [prefix])
+      await pgHandler.db.none(
+        'INSERT INTO ${db#} (${guildId~}, ${prefix~}) ' +
+        'VALUES (${guildIdValue}, ${prefixValue}) ON CONFLICT (${guildId~}) ' +
+        'DO UPDATE SET ${prefix~}=excluded.${prefix~}', {
+          db: pgHandler.addPrefix(PREFIXES_DB_NAME),
+          guildId: PREFIXES_COLUMNS.guild_id,
+          prefix: PREFIXES_COLUMNS.prefix,
+          guildIdValue: guildId,
+          prefixValue: prefix
+        })
       Prefixes.prefixes = await Prefixes.load()
     } catch(error) {
       throw error
