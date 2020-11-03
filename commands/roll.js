@@ -1887,8 +1887,8 @@ const showResults = async () => {
         replyMessage.react(B_EMOJI), replyMessage.react(M_EMOJI), replyMessage.react(REPEAT_EMOJI)
       ])
     } catch (error) {
-      if (error !== 'DiscordAPIError: Missing Access') {
-        logger.error(`Failed to react to a roll results message`, error)
+      if (error) {
+        logger.error(`Failed to react to a roll results message`, JSON.stringify(error))
       }
     }
   }
