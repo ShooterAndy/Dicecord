@@ -229,7 +229,9 @@ const showWarnings = async () => {
       try {
         await Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
       } catch (error) {
-        logger.error(`Failed to react to a warning message`, error)
+        if (error === 'DiscordAPIError: Missing Access') {
+          logger.error(`Failed to react to a warning message`, error)
+        }
       }
     }
   }
@@ -1885,7 +1887,9 @@ const showResults = async () => {
         replyMessage.react(B_EMOJI), replyMessage.react(M_EMOJI), replyMessage.react(REPEAT_EMOJI)
       ])
     } catch (error) {
-      logger.error(`Failed to react to a roll results message`, error)
+      if (error === 'DiscordAPIError: Missing Access') {
+        logger.error(`Failed to react to a roll results message`, error)
+      }
     }
   }
 }
