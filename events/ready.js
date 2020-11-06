@@ -60,21 +60,33 @@ const removeWarningInteractivity = async (client, warning) => {
   try {
     channel = await client.channels.fetch(warning[MESSAGES_COLUMNS.channel_id])
   } catch (error) {
-    logger.error(`Failed to fetch channel for a warning`, error)
+    if (error && error.name === 'DiscordAPIError') {
+      logger.warn(`Failed to fetch channel for a warning`, error)
+    } else {
+      logger.error(`Failed to fetch channel for a warning`, error)
+    }
     return
   }
   let message
   try {
     message = await channel.messages.fetch(warning[MESSAGES_COLUMNS.message_id])
   } catch (error) {
-    logger.error(`Failed to fetch a warning message`, error)
+    if (error && error.name === 'DiscordAPIError') {
+      logger.warn(`Failed to fetch a warning message`, error)
+    } else {
+      logger.error(`Failed to fetch a warning message`, error)
+    }
     return
   }
 
   try {
     await message.delete()
   } catch (error) {
-    logger.error(`Failed to delete a warning message`, error)
+    if (error && error.name === 'DiscordAPIError') {
+      logger.warn(`Failed to delete a warning message`, error)
+    } else {
+      logger.error(`Failed to delete a warning message`, error)
+    }
   }
 }
 

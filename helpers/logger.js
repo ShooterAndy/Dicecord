@@ -49,9 +49,12 @@ module.exports = {
           message = `<@${ADMINISTRATOR_ID}>\`\`\`diff\n- ${message}\`\`\``
         }
         if (type === LOG_TYPES.warning) {
-          message = `<@${ADMINISTRATOR_ID}>\`\`\`fix\n ${message}\`\`\``
+          message = `\`\`\`fix\n ${message}\`\`\``
         }
         if (additionalInfo) {
+          if (typeof additionalInfo === 'object') {
+            additionalInfo = JSON.stringify(additionalInfo)
+          }
           message += `\`\`\`${additionalInfo}\`\`\``
         }
 
