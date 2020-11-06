@@ -404,29 +404,6 @@ const processWholeCommand = unprocessedCommand => {
       t.markedForDeletion = true
     }
 
-  if (t.repeatNumber && t.vsValues && t.vsValues.length) {
-    if (t.vsValues.length < t.repeatNumber) {
-      const lastVsValue = t.vsValues[t.vsValues.length - 1]
-      const difference = t.repeatNumber - t.vsValues.length
-      if (lastVsValue.shouldRepeat) {
-        for (let i = 0; i < difference; i++) {
-          t.vsValues.push(JSON.parse(JSON.stringify(lastVsValue)))
-        }
-      } else if (lastVsValue.shouldReRoll) {
-        for (let i = 0; i < difference; i++) {
-          const vsValueObject = {
-            originalFormula: lastVsValue.originalFormula,
-            formula: lastVsValue.formula
-          }
-          const result = catcher(processRollFormula, vsValueObject)
-          if (!(result instanceof Warning)) {
-            t.vsValues.push(vsValueObject)
-          }
-        }
-      }
-    }
-  }
-
     result = catcher(processRollFormula, t)
     if (result instanceof Warning) {
       // In case something serious was caught, let's remove the throw
@@ -434,6 +411,7 @@ const processWholeCommand = unprocessedCommand => {
     }
   })
   throws = _.filter(throws, t => !t.markedForDeletion)
+
   //console.log('THROWS:\n' + JSON.stringify(throws))
 }
 
@@ -1427,6 +1405,29 @@ const calculateWholeCommand = () => {
         t.vsValues.forEach(vsThrow => {
           catcher(calculateThrow, vsThrow)
         })
+
+        // Rolling/copying for our additional, omitted versus checks
+        if (t.repeatNumber && t.vsValues.length < t.repeatNumber) {
+          const lastVsValue = t.vsValues[t.vsValues.length - 1]
+          const difference = t.repeatNumber - t.vsValues.length
+          if (lastVsValue.shouldRepeat) {
+            for (let i = 0; i < difference; i++) {
+              t.vsValues.push(JSON.parse(JSON.stringify(lastVsValue)))
+            }
+          } else if (lastVsValue.shouldReRoll) {
+            for (let i = 0; i < difference; i++) {
+              const copiedVsValue = JSON.parse(JSON.stringify(lastVsValue))
+              copiedVsValue.shouldReRoll = false
+              copiedVsValue.shouldRepeat = false
+              removeAnyResults(copiedVsValue)
+              copiedVsValue.formulaParts.forEach(formulaPart => {
+                removeAnyResults(formulaPart)
+              })
+              catcher(calculateThrow, copiedVsValue)
+              t.vsValues.push(copiedVsValue)
+            }
+          }
+        }
       }
       catcher(calculateThrow, t)
     } else {
@@ -1435,7 +1436,7 @@ const calculateWholeCommand = () => {
     previousThrow = t
   })
 
-  //console.log(`RESULTS:\n${JSON.stringify(throws)}`)
+  console.log(`RESULTS:\n${JSON.stringify(throws)}`)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1884,6 +1885,11 @@ const getThrowFormulaText = t => {
         text += VERSUS_PARTS_SEPARATOR + ' '
       }
     })
+    if (t.vsValues[t.vsValues.length - 1].shouldRepeat) {
+      text += VERSUS_REPEATER
+    } else if (t.vsValues[t.vsValues.length - 1].shouldReRoll) {
+      text += VERSUS_REROLLER
+    }
   }
   return text
 }

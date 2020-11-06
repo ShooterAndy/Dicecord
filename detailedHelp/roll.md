@@ -310,6 +310,42 @@ You can chain conditional command parts together like this:
 In this case, if the versus-check in the first command part fails, both of the command parts after 
 it will be skipped.
 
+You can also repeat and re-roll versus checks without having to type them multiple times. For 
+example, let's say you want to roll one six-sided die ten times and compare each roll against a
+value of 5. Instead of doing this:
+
+```!r 1d6 vs 5, 5, 5, 5, 5, 5, 5, 5, 5, 5```
+
+You can do this:
+
+```!r 1d6 | 10 vs 5=```
+
+This even works if you have to check against a few different values before checking against the
+repeated one:
+
+```!r 1d6 | 3 vs 4, 5=```
+> 1d6 (3 rolls):
+> * Roll 1: **5** vs 4, **success**;
+> * Roll 2: **1** vs 5, _failure_;
+> * Roll 3: **5** vs 5, **success**.
+
+This also works if you use a formula with dice in it: the result of the roll will be repeated for
+each versus check:
+
+```!r 1d6 | 3 vs 5=```
+> 1d6 (3 rolls):
+> * Roll 1: **3** vs 5, _failure_;
+> * Roll 2: **6** vs 5, **success**;
+> * Roll 3: **3** vs 5, _failure_.
+
+If you want your throw in the versus check re-rolled each time, you can use `...` instead of `=`:
+
+```!r 1d6 | 3 vs 1d6...```
+> 1d6 (3 rolls):
+> * Roll 1: **5** vs 3, **success**;
+> * Roll 2: **3** vs 4, _failure_;
+> * Roll 3: **1** vs 2, _failure_.
+
 ## Reply interactivity
 Once Dicecord finished processing your roll command (and if all goes well), it will send you a 
 reply with the results of your roll command. Additionally, however, it will provide you some things
