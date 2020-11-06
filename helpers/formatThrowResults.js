@@ -52,6 +52,21 @@ const getFormattedTextFromThrows = (throws, format) => {
   return text
 }
 
+const getFormattedCommentText = (comment, format) => {
+  comment = comment.replace(/\*\*(.*?(?:\*\*|$))/gm, format.boldStart + '$1')
+    .replace(/\*\*/gm, format.boldEnd)
+  comment = comment.replace(/\*(.*?(?:\*|$))/gm, format.italicsStart + '$1')
+    .replace(/\*/gm, format.italicsEnd)
+  comment = comment.replace(/__(.*?(?:__|$))/gm, format.underlineStart + '$1')
+      .replace(/__/gm, format.underlineEnd)
+  comment = comment.replace(/_(.*?(?:_|$))/gm, format.italicsStart + '$1')
+    .replace(/_/gm, format.italicsEnd)
+  comment =
+    comment.replace(/~~(.*?(?:~~|$))/gm, format.strikethroughStart + '$1')
+    .replace(/~~/gm, format.strikethroughEnd)
+  return comment
+}
+
 const getFormattedTextFromThrow = (t, format, nextThrow) => {
   const isLast = !nextThrow
 
@@ -59,7 +74,7 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     if (!t.comment) {
       return ''
     }
-    return format.codeStart + t.comment + format.codeEnd
+    return format.codeStart + getFormattedCommentText(t.comment, format) + format.codeEnd
   }
 
   const isSingleNumber = () => {
@@ -80,7 +95,8 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
 
   if (t.repeatNumber && t.repeatNumber > 1) {
     if (t.comment) {
-      text = format.codeStart + t.comment + ':' + format.codeEnd + format.space
+      text = format.codeStart + getFormattedCommentText(t.comment, format) + ':' + format.codeEnd +
+        format.space
     }
     text += formulaText + ' (' + t.repeatNumber + ' rolls):\n' + format.listStart
     for (let i = 0; i < t.repeatNumber; i++) {
@@ -110,7 +126,8 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     text += format.listEnd
   } else {
     if (t.comment && !t.shouldAppendComment) {
-      text = format.codeStart + t.comment + ':' + format.codeEnd + format.space
+      text = format.codeStart + getFormattedCommentText(t.comment, format) + ':' + format.codeEnd +
+        format.space
     }
     text += formulaText
     const intermediateResultText = getIntermediateResultsText(t, format, 0, 1)
@@ -130,7 +147,8 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     }
 
     if (t.comment && t.shouldAppendComment) {
-      text += format.space + format.codeStart + t.comment + format.codeEnd
+      text += format.space + format.codeStart + getFormattedCommentText(t.comment, format) +
+        format.codeEnd
     }
   }
 
