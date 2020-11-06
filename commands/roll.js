@@ -56,6 +56,8 @@ const {
 
   VERSUS_SEPARATOR,
   VERSUS_PARTS_SEPARATOR,
+  VERSUS_REPEATER,
+  VERSUS_REROLLER,
   VS_CHECK_RESULTS,
 
   REPEAT_THROW_SEPARATOR,
@@ -402,6 +404,29 @@ const processWholeCommand = unprocessedCommand => {
       t.markedForDeletion = true
     }
 
+  if (t.repeatNumber && t.vsValues && t.vsValues.length) {
+    if (t.vsValues.length < t.repeatNumber) {
+      const lastVsValue = t.vsValues[t.vsValues.length - 1]
+      const difference = t.repeatNumber - t.vsValues.length
+      if (lastVsValue.shouldRepeat) {
+        for (let i = 0; i < difference; i++) {
+          t.vsValues.push(JSON.parse(JSON.stringify(lastVsValue)))
+        }
+      } else if (lastVsValue.shouldReRoll) {
+        for (let i = 0; i < difference; i++) {
+          const vsValueObject = {
+            originalFormula: lastVsValue.originalFormula,
+            formula: lastVsValue.formula
+          }
+          const result = catcher(processRollFormula, vsValueObject)
+          if (!(result instanceof Warning)) {
+            t.vsValues.push(vsValueObject)
+          }
+        }
+      }
+    }
+  }
+
     result = catcher(processRollFormula, t)
     if (result instanceof Warning) {
       // In case something serious was caught, let's remove the throw
@@ -495,14 +520,25 @@ const processVsPart = thisThrow => {
   }
   thisThrow.vsValues = []
   vsValues.forEach(vsValue => {
-    const trimmedVsValue = vsValue.trim()
-    if(!trimmedVsValue) {
+    let trimmedVsValue = vsValue.trim()
+    if (!trimmedVsValue) {
       addWarning(nws`one of the versus values after the \`${VERSUS_SEPARATOR} in \
             \`${thisThrow.originalFormula}\` was empty, so it will be ignored`)
     } else {
+      let shouldRepeat = false
+      let shouldReRoll = false
+      if (trimmedVsValue.endsWith(VERSUS_REPEATER)) {
+        shouldRepeat = true
+        trimmedVsValue = trimmedVsValue.replace(VERSUS_REPEATER, '')
+      } else if (trimmedVsValue.endsWith(VERSUS_REROLLER)) {
+        shouldReRoll = true
+        trimmedVsValue = trimmedVsValue.replace(VERSUS_REROLLER, '')
+      }
       const vsValueObject = {
         originalFormula: trimmedVsValue,
-        formula: trimmedVsValue
+        formula: trimmedVsValue,
+        shouldRepeat,
+        shouldReRoll
       }
       const result = catcher(processRollFormula, vsValueObject)
       if (!(result instanceof Warning)) {

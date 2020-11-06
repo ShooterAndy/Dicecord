@@ -14,7 +14,8 @@ const {
   DECKS_DB_NAME,
   DECKS_COLUMNS,
   DECKS_EXPIRE_AFTER,
-  USE_INTERACTIVE_REACTIONS
+  USE_INTERACTIVE_REACTIONS,
+  IS_LOCAL
 } = require('../helpers/constants')
 const Client = require('../helpers/client')
 
@@ -195,22 +196,24 @@ module.exports = async (client) => {
     await tryToSetActivity(client)
   }, transformMinutesToMs(15))
 
-  await deleteExpiredDecks()
-  setInterval(async () => {
+  if (!IS_LOCAL) {
     await deleteExpiredDecks()
-  }, transformHoursToMs(6))
-
-  if (USE_INTERACTIVE_REACTIONS) {
-    await deleteExpiredSavedRollCommands()
-    await deleteExpiredWarningMessages()
-
-    setInterval(() => {
-      deleteExpiredSavedRollCommands()
+    setInterval(async () => {
+      await deleteExpiredDecks()
     }, transformHoursToMs(6))
 
-    setInterval(() => {
-      deleteExpiredWarningMessages()
-      deleteExpiredRollResultMessages()
-    }, transformMinutesToMs(5))
+    if (USE_INTERACTIVE_REACTIONS) {
+      await deleteExpiredSavedRollCommands()
+      await deleteExpiredWarningMessages()
+
+      setInterval(() => {
+        deleteExpiredSavedRollCommands()
+      }, transformHoursToMs(6))
+
+      setInterval(() => {
+        deleteExpiredWarningMessages()
+        deleteExpiredRollResultMessages()
+      }, transformMinutesToMs(5))
+    }
   }
 };
