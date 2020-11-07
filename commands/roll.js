@@ -1436,7 +1436,7 @@ const calculateWholeCommand = () => {
     previousThrow = t
   })
 
-  console.log(`RESULTS:\n${JSON.stringify(throws)}`)
+  //console.log(`RESULTS:\n${JSON.stringify(throws)}`)
 }
 
 // -------------------------------------------------------------------------------------------------

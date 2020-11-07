@@ -125,11 +125,12 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     }
     text += format.listEnd
   } else {
+    let commentText = ''
     if (t.comment && !t.shouldAppendComment) {
-      text = format.codeStart + getFormattedCommentText(t.comment, format) + ':' + format.codeEnd +
-        format.space
+      commentText = format.codeStart + getFormattedCommentText(t.comment, format) + ':' +
+        format.codeEnd + format.space
     }
-    text += formulaText
+    text += commentText + formulaText
     const intermediateResultText = getIntermediateResultsText(t, format, 0, 1)
 
     if (intermediateResultText) {
@@ -141,7 +142,7 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     // NOTE: This is kind of a hack, and if it turns out this causes bugs, there should be an actual
     // check here for whether the throw consists of only one number (optionally with a minus before)
     if (isSingleNumber()) {
-      text = finalResultText
+      text = commentText + finalResultText
     } else {
       text += format.space + '=' + format.space + finalResultText
     }
