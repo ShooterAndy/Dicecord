@@ -11,6 +11,15 @@ const nws = require('./nws')
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
+    // Filtering out common errors to prevent log spam
+    if (additionalInfo && additionalInfo.name === 'DiscordAPIError'
+      && (additionalInfo.message === 'Missing Access'
+        || additionalInfo.message === 'Missing Permissions'
+        || additionalInfo.message === 'Unknown Message'
+        || additionalInfo.code === 503)) {
+      return
+    }
+
     const Client = require('./client')
     if (!text) {
       return this.sendMessage(LOG_TYPES.error, nws`Tried to log something but forgot to include \
