@@ -266,7 +266,7 @@ repeated one:
 This also works if you use a formula with dice in it: the result of the roll will be repeated for
 each versus check:
 
-```!r 1d6 | 3 vs 5=```
+```!r 1d6 | 3 vs 1d6=```
 > 1d6 (3 rolls):
 > * Roll 1: **3** vs 5, _failure_;
 > * Roll 2: **6** vs 5, **success**;
