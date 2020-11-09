@@ -41,10 +41,10 @@ module.exports = async (client, reaction, user) => {
     return // if the reaction is to a message not left by the bot, ignore it
   }
 
-  let result
-  if (Client.reactionsCache[reaction.message.channel.id + '_' + reaction.message.id]) {
-    result = Client.reactionsCache[reaction.message.channel.id + '_' + reaction.message.id]
-  } else {
+  let result = Client.reactionsCache[reaction.message.channel.id + '_' + reaction.message.id]
+  if (result === null) { // Already deleted, don't try again
+    return
+  } else if (result === undefined) { // Not cached yet
     try {
       result = await pg.db.oneOrNone(
         'SELECT ${type~}, ${content~} FROM ${db#} WHERE ${messageId~} = ${messageIdValue} ' +

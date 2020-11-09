@@ -166,6 +166,17 @@ module.exports.repeatRollCommand = (args) => {
 /* ================================================================================================
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 ================================================================================================ */
+const clearEverything = () => {
+  warnings = []
+  throws = []
+
+  message = null
+  botClientUser = null
+  prefix = null
+  commandName = null
+  originalCommandText = null
+}
+
 const addWarning = (text) => {
   const existingWarning = warnings.find(warning => warning === text)
   if (!existingWarning) {
@@ -219,6 +230,7 @@ const showWarnings = async () => {
           throws: throws
         })
         pairs[MESSAGES_COLUMNS.user_id] = message.author.id
+        clearEverything()
         await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
           {
             db: pg.addPrefix(MESSAGES_DB_NAME),
@@ -237,6 +249,8 @@ const showWarnings = async () => {
           logger.error(`Failed to react to a warning message`, error)
         }
       }
+    } else {
+      clearEverything()
     }
   }
 }
@@ -1901,6 +1915,7 @@ const showResults = async () => {
   const replyMessage = await reply(
     formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}), message)
   if (!replyMessage) {
+    clearEverything()
     return
   }
 
@@ -1917,6 +1932,7 @@ const showResults = async () => {
         throws: throws
       })
       pairs[MESSAGES_COLUMNS.user_id] = message.author.id
+      clearEverything()
       await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
         {
           db: pg.addPrefix(MESSAGES_DB_NAME),
@@ -1937,6 +1953,8 @@ const showResults = async () => {
         logger.error(`Failed to react to a warning message`, error)
       }
     }
+  } else {
+    clearEverything()
   }
 }
 

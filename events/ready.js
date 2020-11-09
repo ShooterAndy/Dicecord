@@ -19,13 +19,13 @@ const {
 } = require('../helpers/constants')
 const Client = require('../helpers/client')
 
-const tryToSetActivity = async (client) => {
+const tryToSetActivity = async () => {
   try {
-    await client.user.setActivity('v' + packageJSON.version + ', type !help')
+    await Client.client.user.setActivity('v' + packageJSON.version + ', type !help')
     /*logger.log('Successfully set activity')*/
   } catch (error) {
     logger.error('Failed to set activity', error)
-    await tryToSetActivity(client)
+    await tryToSetActivity(Client.client)
   }
 }
 
@@ -110,7 +110,7 @@ const deleteExpiredWarningMessages = async () => {
       result.forEach(warning => {
         const channelId = warning[MESSAGES_COLUMNS.channel_id]
         const messageId = warning[MESSAGES_COLUMNS.message_id]
-        delete Client.reactionsCache[channelId+ '_' + messageId]
+        Client.reactionsCache[channelId+ '_' + messageId] = null
         removeWarningInteractivity(Client.client, warning)
       })
     }
@@ -138,7 +138,7 @@ const deleteExpiredRollResultMessages = async () => {
       result.forEach(rollResult => {
         const channelId = rollResult[MESSAGES_COLUMNS.channel_id]
         const messageId = rollResult[MESSAGES_COLUMNS.message_id]
-        delete Client.reactionsCache[channelId+ '_' + messageId]
+        Client.reactionsCache[channelId+ '_' + messageId] = null
       })
     }
   } catch (error) {
@@ -191,9 +191,9 @@ module.exports = async (client) => {
     }
   }, transformMinutesToMs(30))
 
-  await tryToSetActivity(client)
+  await tryToSetActivity()
   setInterval(async () => {
-    await tryToSetActivity(client)
+    await tryToSetActivity()
   }, transformMinutesToMs(15))
 
   if (!IS_LOCAL) {
