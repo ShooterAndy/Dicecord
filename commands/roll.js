@@ -256,8 +256,9 @@ const showWarnings = async () => {
 }
 
 const showError = (text) => {
-  return reply(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it \ 
+  reply(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it \ 
     as needed:\n\`\`\`${message.content}\`\`\``, message)
+  clearEverything()
 }
 
 const showUncaughtError = (error) => {
@@ -266,8 +267,9 @@ const showUncaughtError = (error) => {
   } else {
     logger.error(`Unknown error was thrown in roll command`, (new Error()).stack)
   }
-  return reply(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
+  reply(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
     message)
+  clearEverything()
 }
 
 const topLevelCatcher = (fn, args) => {
