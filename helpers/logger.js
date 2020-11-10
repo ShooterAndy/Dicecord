@@ -61,7 +61,7 @@ module.exports = {
           message = `\`\`\`fix\n ${message}\`\`\``
         }
         if (additionalInfo) {
-          if (typeof additionalInfo === 'object') {
+          if (typeof additionalInfo === 'object' && Object.keys(additionalInfo).length) {
             additionalInfo = JSON.stringify(additionalInfo)
           }
           message += `\`\`\`${additionalInfo}\`\`\``
@@ -89,6 +89,9 @@ module.exports = {
     }
     let message = `${LOG_PREFIX}${type}: ${text}`
     if (additionalInfo) {
+      if (typeof additionalInfo === 'object' && Object.keys(additionalInfo).length) {
+        additionalInfo = JSON.stringify(additionalInfo)
+      }
       message += `\n${additionalInfo}`
     }
     switch (type) {

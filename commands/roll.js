@@ -1922,8 +1922,8 @@ const showResults = async () => {
   }
 
   if (USE_INTERACTIVE_REACTIONS) {
+    const pairs = {}
     try {
-      const pairs = {}
       pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
       pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
       pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult
@@ -1935,6 +1935,11 @@ const showResults = async () => {
       })
       pairs[MESSAGES_COLUMNS.user_id] = message.author.id
       clearEverything()
+    } catch (error) {
+      logger.error(`Failed to set pairs for a roll results message`, error)
+      return
+    }
+    try {
       await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
         {
           db: pg.addPrefix(MESSAGES_DB_NAME),
