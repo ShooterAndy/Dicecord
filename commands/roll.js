@@ -114,13 +114,14 @@ const processMessage = module.exports.processMessage = (args) => {
   originalCommandText = args.commandText
 
   try {
-    topLevelCatcher(processWholeCommand, args.commandText)
-
-    if (warnings.length) {
-      topLevelCatcher(showWarnings)
-    } else {
-      topLevelCatcher(calculateWholeCommand)
-      topLevelCatcher(showResults)
+    if (topLevelCatcher(processWholeCommand, args.commandText)) {
+      if (warnings.length) {
+        topLevelCatcher(showWarnings)
+      } else {
+        if (topLevelCatcher(calculateWholeCommand)) {
+          topLevelCatcher(showResults)
+        }
+      }
     }
   } catch (error) {
     logger.error(`Top level error in ${commandName} command`, error)
@@ -137,8 +138,9 @@ module.exports.goOnFromWarning = (args) => {
   warnings = []
 
   try {
-    topLevelCatcher(calculateWholeCommand)
-    topLevelCatcher(showResults)
+    if (topLevelCatcher(calculateWholeCommand)) {
+      topLevelCatcher(showResults)
+    }
   } catch (error) {
     logger.error(`Top level error in goOnFromWarning`, error)
   }
@@ -156,8 +158,9 @@ module.exports.repeatRollCommand = (args) => {
   warnings = []
 
   try {
-    topLevelCatcher(calculateWholeCommand)
-    topLevelCatcher(showResults)
+    if (topLevelCatcher(calculateWholeCommand)) {
+      topLevelCatcher(showResults)
+    }
   } catch (error) {
     logger.error(`Top level error in repeatRollCommand`, error)
   }
@@ -274,11 +277,13 @@ const showUncaughtError = (error) => {
 
 const topLevelCatcher = (fn, args) => {
   try {
-    return fn(args)
+    const result = fn(args)
+    return result === undefined ? true : result
   } catch (error) {
     if (error &&
       error.name === HANDLED_ERROR_TYPE_NAME || error.name === HANDLED_WARNING_TYPE_NAME) {
       showError(error.message)
+      return false
     } else {
       showUncaughtError(error)
       throw error
