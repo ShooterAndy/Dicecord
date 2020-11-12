@@ -1919,6 +1919,9 @@ const showResults = async () => {
   if (!throws || !throws.length) {
     return
   }
+  if (!message) {
+    logger.error(`No message in roll showResults`, new Error().stack)
+  }
   const replyMessage = await reply(
     formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}), message)
   if (!replyMessage) {
@@ -1929,6 +1932,9 @@ const showResults = async () => {
   if (USE_INTERACTIVE_REACTIONS) {
     const pairs = {}
     try {
+      if (!message) {
+        logger.error(`No message in roll showResults 2`, new Error().stack)
+      }
       pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
       pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
       pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult

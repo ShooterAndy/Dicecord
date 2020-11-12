@@ -8,7 +8,7 @@ module.exports = async (text, message) => {
     if (message.channel && message.guild) { // Do we even have a permission to reply?
       if(!message.guild.me
         || !message.channel.permissionsFor(message.guild.me).has('SEND_MESSAGES')) {
-        return
+        return null
       }
     }
     const doReply = require('./shouldReply')(message)
