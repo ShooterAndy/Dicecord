@@ -1919,13 +1919,12 @@ const showResults = async () => {
   if (!throws || !throws.length) {
     return
   }
-  if (!message) {
-    logger.error(`No message in roll showResults`, new Error().stack)
-  }
   const replyMessage = await reply(
-    formatThrowResults({throws, DEFAULT_THROW_RESULT_FORMAT_NAME}), message)
+    formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME }),
+    message)
   if (!replyMessage) {
     clearEverything()
+    logger.error(`Failed to reply in roll showResults`, new Error().stack)
     return
   }
 
