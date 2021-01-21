@@ -96,6 +96,8 @@ let prefix = null
 let commandName = null
 let originalCommandText = 'EMPTY'
 
+let clearCode = 0
+
 // -------------------------------------------------------------------------------------------------
 
 module.exports = (args) => {
@@ -112,6 +114,11 @@ const processMessage = module.exports.processMessage = (args) => {
   throws = []
 
   originalCommandText = args.commandText
+
+  if (!message) {
+    logger.error('No message in processMessage')
+    return
+  }
 
   try {
     if (topLevelCatcher(processWholeCommand, args.commandText)) {
@@ -135,6 +142,11 @@ module.exports.goOnFromWarning = (args) => {
   commandName = args.commandName
   throws = args.throws
 
+  if (!message) {
+    logger.error('No message in goOnFromWarning')
+    return
+  }
+
   warnings = []
 
   try {
@@ -153,6 +165,11 @@ module.exports.repeatRollCommand = (args) => {
   commandName = args.commandName
   throws = args.throws
 
+  if (!message) {
+    logger.error('No message in repeatRollCommand')
+    return
+  }
+
   removeResults()
 
   warnings = []
@@ -169,7 +186,7 @@ module.exports.repeatRollCommand = (args) => {
 /* ================================================================================================
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 ================================================================================================ */
-const clearEverything = () => {
+const clearEverything = (code) => {
   warnings = []
   throws = []
 
@@ -178,6 +195,8 @@ const clearEverything = () => {
   prefix = null
   commandName = null
   originalCommandText = null
+
+  clearCode = code
 }
 
 const addWarning = (text) => {
@@ -233,7 +252,7 @@ const showWarnings = async () => {
           throws: throws
         })
         pairs[MESSAGES_COLUMNS.user_id] = message.author.id
-        clearEverything()
+        clearEverything(1)
         await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
           {
             db: pg.addPrefix(MESSAGES_DB_NAME),
@@ -253,7 +272,7 @@ const showWarnings = async () => {
         }
       }
     } else {
-      clearEverything()
+      clearEverything(2)
     }
   }
 }
@@ -261,7 +280,7 @@ const showWarnings = async () => {
 const showError = (text) => {
   reply(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it \ 
     as needed:\n\`\`\`${message.content}\`\`\``, message)
-  clearEverything()
+  clearEverything(3)
 }
 
 const showUncaughtError = (error) => {
@@ -272,7 +291,7 @@ const showUncaughtError = (error) => {
   }
   reply(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
     message)
-  clearEverything()
+  clearEverything(4)
 }
 
 const topLevelCatcher = (fn, args) => {
@@ -1920,10 +1939,9 @@ const showResults = async () => {
     return
   }
   const replyMessage = await reply(
-    formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME }),
-    message)
+    formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME }), message)
   if (!replyMessage) {
-    clearEverything()
+    clearEverything(5)
     logger.error(`Failed to reply in roll showResults`, new Error().stack)
     return
   }
@@ -1932,7 +1950,7 @@ const showResults = async () => {
     const pairs = {}
     try {
       if (!message) {
-        logger.error(`No message in roll showResults 2`, new Error().stack)
+        logger.error(`No message in roll showResults 2, clearCode: ${clearCode}`, new Error().stack)
       }
       pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
       pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
@@ -1944,7 +1962,7 @@ const showResults = async () => {
         throws: throws
       })
       pairs[MESSAGES_COLUMNS.user_id] = message.author.id
-      clearEverything()
+      clearEverything(6)
     } catch (error) {
       logger.error(`Failed to set pairs for a roll results message`, error)
       return
@@ -1971,7 +1989,7 @@ const showResults = async () => {
       }
     }
   } else {
-    clearEverything()
+    clearEverything(7)
   }
 }
 
