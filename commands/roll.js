@@ -96,7 +96,10 @@ let prefix = null
 let commandName = null
 let originalCommandText = 'EMPTY'
 
+
+// TODO: remove later!
 let clearCode = 0
+let resultsCode = 0
 
 // -------------------------------------------------------------------------------------------------
 
@@ -126,6 +129,7 @@ const processMessage = module.exports.processMessage = (args) => {
         topLevelCatcher(showWarnings)
       } else {
         if (topLevelCatcher(calculateWholeCommand)) {
+          resultsCode = 1
           topLevelCatcher(showResults)
         }
       }
@@ -151,6 +155,7 @@ module.exports.goOnFromWarning = (args) => {
 
   try {
     if (topLevelCatcher(calculateWholeCommand)) {
+      resultsCode = 2
       topLevelCatcher(showResults)
     }
   } catch (error) {
@@ -176,6 +181,7 @@ module.exports.repeatRollCommand = (args) => {
 
   try {
     if (topLevelCatcher(calculateWholeCommand)) {
+      resultsCode = 3
       topLevelCatcher(showResults)
     }
   } catch (error) {
@@ -1938,6 +1944,7 @@ const showResults = async () => {
   if (!throws || !throws.length) {
     return
   }
+
   const replyMessage = await reply(
     formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME }), message)
   if (!replyMessage) {
@@ -1946,23 +1953,26 @@ const showResults = async () => {
     return
   }
 
+  if (!message) {
+    logger.error(`No message in roll showResults, clearCode: ${clearCode}, resultsCode: ${resultsCode}`, new Error().stack)
+  }
+  const messageId = message.id
+  const authorId = message.author.id
+  clearEverything(6)
+
   if (USE_INTERACTIVE_REACTIONS) {
     const pairs = {}
     try {
-      if (!message) {
-        logger.error(`No message in roll showResults 2, clearCode: ${clearCode}`, new Error().stack)
-      }
       pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
-      pairs[MESSAGES_COLUMNS.channel_id] = message.channel.id
+      pairs[MESSAGES_COLUMNS.channel_id] = replyMessage.channel.id
       pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult
       pairs[MESSAGES_COLUMNS.content] = JSON.stringify({
-        messageId: message.id,
+        messageId: messageId,
         prefix: prefix,
         commandName: commandName,
         throws: throws
       })
-      pairs[MESSAGES_COLUMNS.user_id] = message.author.id
-      clearEverything(6)
+      pairs[MESSAGES_COLUMNS.user_id] = authorId
     } catch (error) {
       logger.error(`Failed to set pairs for a roll results message`, error)
       return
@@ -1988,8 +1998,6 @@ const showResults = async () => {
         logger.error(`Failed to react to a warning message`, error)
       }
     }
-  } else {
-    clearEverything(7)
   }
 }
 
