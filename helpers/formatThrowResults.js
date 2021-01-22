@@ -156,11 +156,11 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
   return text
 }
 
-const getFormulaText = (t, format, showResults, repeatIndex) => {
+const getFormulaText = (t, format, shouldShowResults, repeatIndex) => {
   let text = ''
 
   let shouldSumStaticMods = false
-  shouldSumStaticMods = showResults
+  shouldSumStaticMods = shouldShowResults
 
   let previousFormulaPart = null
   let isPrecededByOperatorOrNothing = false
@@ -175,7 +175,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operands.fudgeDice: {
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
-        if (showResults) {
+        if (shouldShowResults) {
           text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
         } else {
           text += `${FUDGE_DICE_NUMBER}${NORMAL_DICE_SYMBOL}${FUDGE_SYMBOL.toUpperCase()}`
@@ -184,7 +184,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operands.normalDice: {
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
-        if (showResults) {
+        if (shouldShowResults) {
           text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
         } else {
           text += getNormalDiceFormulaText(formulaPart)
@@ -193,7 +193,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operands.dnd4Dice: {
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
-        if (showResults) {
+        if (shouldShowResults) {
           text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
         } else {
           text += getDnDDiceFormulaText(formulaPart)
@@ -202,7 +202,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operands.rnkDice: {
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
-        if (showResults) {
+        if (shouldShowResults) {
           text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
         } else {
           text += getRnKDiceFormulaText(formulaPart)
@@ -211,7 +211,7 @@ const getFormulaText = (t, format, showResults, repeatIndex) => {
       }
       case FORMULA_PART_TYPES.operands.child: {
         const childThrow = t.childThrows[formulaPart.index]
-        const formulaText = getFormulaText(childThrow, format, showResults, repeatIndex)
+        const formulaText = getFormulaText(childThrow, format, shouldShowResults, repeatIndex)
         if (formulaText) {
           text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format) +
             OPENING_PARENTHESIS + formulaText + CLOSING_PARENTHESIS

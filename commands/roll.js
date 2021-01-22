@@ -100,6 +100,7 @@ let originalCommandText = 'EMPTY'
 // TODO: remove later!
 let clearCode = 0
 let resultsCode = 0
+let clearedMessageInfo = {}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -193,6 +194,8 @@ module.exports.repeatRollCommand = (args) => {
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 ================================================================================================ */
 const clearEverything = (code) => {
+  clearedMessageInfo = { message, code, resultsCode }
+
   warnings = []
   throws = []
 
@@ -1954,7 +1957,7 @@ const showResults = async () => {
   }
 
   if (!message) {
-    logger.error(`No message in roll showResults, clearCode: ${clearCode}, resultsCode: ${resultsCode}`, new Error().stack)
+    logger.error(`No message in roll showResults, current clearCode: ${clearCode}, current resultsCode: ${resultsCode}, previous clearCode: ${clearedMessageInfo.code}, previous resultsCode: ${clearedMessageInfo.resultsCode}`, new Error().stack)
   }
   const messageId = message.id
   const authorId = message.author.id
