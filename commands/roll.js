@@ -1961,7 +1961,6 @@ const showResults = async () => {
   }
   const messageId = message.id
   const authorId = message.author.id
-  clearEverything(6)
 
   if (USE_INTERACTIVE_REACTIONS) {
     const pairs = {}
@@ -1976,8 +1975,10 @@ const showResults = async () => {
         throws: throws
       })
       pairs[MESSAGES_COLUMNS.user_id] = authorId
+      clearEverything(6)
     } catch (error) {
       logger.error(`Failed to set pairs for a roll results message`, error)
+      clearEverything(7)
       return
     }
     try {
@@ -2001,6 +2002,8 @@ const showResults = async () => {
         logger.error(`Failed to react to a warning message`, error)
       }
     }
+  } else {
+    clearEverything(8)
   }
 }
 
