@@ -22,6 +22,9 @@ const processDrawCommand =
   async (message, numberOfCardsToDraw, comment, verb, isPrivate, prefix) => {
   let text = '';
   const pastVerb = verb === 'deal' ? 'dealt' : 'drew'
+  if (numberOfCardsToDraw === '') {
+    numberOfCardsToDraw = 1
+  }
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
     return reply(nws`${ERROR_PREFIX}${numberOfCardsToDraw} is not a valid number of cards to \
       ${verb}.`, message)

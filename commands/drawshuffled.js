@@ -31,7 +31,10 @@ module.exports = async (args) => {
 
 const processDrawShuffledCommand =
   async (message, numberOfCardsToDraw, deckId, comment, prefix, commandName) => {
-  if (isNaN(numberOfCardsToDraw)) {
+  if (numberOfCardsToDraw === '') {
+    numberOfCardsToDraw = 1
+  }
+  if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
     return reply(nws`${ERROR_PREFIX}"${numberOfCardsToDraw}" is not a valid number of cards to \
       draw.`, message)
   }
