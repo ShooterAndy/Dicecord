@@ -8,7 +8,7 @@ const {
 module.exports = args => {
   let helpFileName = '!'
   if(args.commandText.trim().length > 0) {
-    helpFileName = args.commandText.trim()
+    helpFileName = args.commandText.trim().toLowerCase()
   }
   helpFileName += '.md'
 
