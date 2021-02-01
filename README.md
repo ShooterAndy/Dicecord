@@ -36,6 +36,7 @@ The currently available commands are:
 * [!saveRoll (!sr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/saveroll.md) &mdash; saves a roll command for later use.
 * [!getSaved (!gs)](https://github.com/ShooterAndy/Dicecord/blob/master/help/getsaved.md) &mdash; returns the text of a saved roll command.
 * [!rollSaved (!rs)](https://github.com/ShooterAndy/Dicecord/blob/master/help/rollsaved.md) &mdash; rolls a saved roll command.
+* [!deleteSaved (!ds)](https://github.com/ShooterAndy/Dicecord/blob/master/help/deletesaved.md) &mdash; deletes a saved roll command.
 * [!setPrefix](https://github.com/ShooterAndy/Dicecord/blob/master/help/setprefix.md) &mdash; sets the command prefix (```!``` by default) this bot will use in this Guild, _administrator-only!_ 
 
 ## Settings
