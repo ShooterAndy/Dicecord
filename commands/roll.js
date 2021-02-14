@@ -125,13 +125,13 @@ const processMessage = module.exports.processMessage = async (args) => {
   }
 
   try {
-    if (topLevelCatcher(processWholeCommand, args.commandText)) {
+    if (await topLevelCatcher(processWholeCommand, args.commandText)) {
       if (warnings.length) {
-        topLevelCatcher(showWarnings)
+        await topLevelCatcher(showWarnings)
       } else {
-        if (topLevelCatcher(calculateWholeCommand)) {
+        if (await topLevelCatcher(calculateWholeCommand)) {
           resultsCode = 1
-          topLevelCatcher(showResults)
+          await topLevelCatcher(showResults)
         }
       }
     }
@@ -155,9 +155,9 @@ module.exports.goOnFromWarning = async (args) => {
   warnings = []
 
   try {
-    if (topLevelCatcher(calculateWholeCommand)) {
+    if (await topLevelCatcher(calculateWholeCommand)) {
       resultsCode = 2
-      topLevelCatcher(showResults)
+      await topLevelCatcher(showResults)
     }
   } catch (error) {
     logger.error(`Top level error in goOnFromWarning`, error)
@@ -181,9 +181,9 @@ module.exports.repeatRollCommand = async (args) => {
   warnings = []
 
   try {
-    if (topLevelCatcher(calculateWholeCommand)) {
+    if (await topLevelCatcher(calculateWholeCommand)) {
       resultsCode = 3
-      topLevelCatcher(showResults)
+      await topLevelCatcher(showResults)
     }
   } catch (error) {
     logger.error(`Top level error in repeatRollCommand`, error)
@@ -303,9 +303,9 @@ const showUncaughtError = (error) => {
   clearEverything(4)
 }
 
-const topLevelCatcher = (fn, args) => {
+const topLevelCatcher = async (fn, args) => {
   try {
-    const result = fn(args)
+    const result = await fn(args)
     return result === undefined ? true : result
   } catch (error) {
     if (error &&
