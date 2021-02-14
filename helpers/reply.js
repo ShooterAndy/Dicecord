@@ -18,6 +18,9 @@ module.exports = async (text, message) => {
     } else {
       messages = await message.channel.send(text, { split: true })
     }
+    if (!message) {
+      logger.error(`Empty message in reply: "${text}", doReply: ${doReply}`)
+    }
     return messages[messages.length - 1]
   } catch (error) {
     logger.error(`Failed to send a message in reply function call`, error)
