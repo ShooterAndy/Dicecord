@@ -38,7 +38,7 @@ const Client = module.exports = {
     } catch (error) {
       logger.error(`Couldn't read the prefixes table`, error)
     }
-    fs.readdir('./events/', async (err, files) => {
+    await fs.readdir('./events/', async (err, files) => {
 
       Client.client.on('error', async error =>
         await require(`../events/error`)(Client.client, error))

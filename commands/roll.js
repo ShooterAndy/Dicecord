@@ -131,6 +131,7 @@ const processMessage = module.exports.processMessage = async (args) => {
       } else {
         if (await topLevelCatcher(calculateWholeCommand)) {
           resultsCode = 1
+          if (!message) { logger.error(`No message before showResults, resultsCode 1, clearCode ${clearCode}`) }
           await topLevelCatcher(showResults)
         }
       }
@@ -157,6 +158,7 @@ module.exports.goOnFromWarning = async (args) => {
   try {
     if (await topLevelCatcher(calculateWholeCommand)) {
       resultsCode = 2
+      if (!message) { logger.error(`No message before showResults, resultsCode 2, clearCode ${clearCode}`) }
       await topLevelCatcher(showResults)
     }
   } catch (error) {
@@ -183,6 +185,7 @@ module.exports.repeatRollCommand = async (args) => {
   try {
     if (await topLevelCatcher(calculateWholeCommand)) {
       resultsCode = 3
+      if (!message) { logger.error(`No message before showResults, resultsCode 3, clearCode ${clearCode}`) }
       await topLevelCatcher(showResults)
     }
   } catch (error) {
@@ -1958,6 +1961,7 @@ const showResults = async () => {
 
   if (!message) {
     logger.error(`No message in roll showResults, current clearCode: ${clearCode}, current resultsCode: ${resultsCode}, previous clearCode: ${clearedMessageInfo.code}, previous resultsCode: ${clearedMessageInfo.resultsCode}`, new Error().stack)
+    return
   }
   const messageId = message.id
   const authorId = message.author.id
