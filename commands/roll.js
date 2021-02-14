@@ -197,7 +197,8 @@ module.exports.repeatRollCommand = async (args) => {
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 ================================================================================================ */
 const clearEverything = (code) => {
-  clearedMessageInfo = { message, code, resultsCode }
+  clearedMessageInfo = { code, resultsCode }
+  clearedMessageInfo.message = JSON.parse(JSON.stringify(message))
 
   warnings = []
   throws = []
