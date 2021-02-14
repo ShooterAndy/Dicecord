@@ -24,5 +24,6 @@ module.exports = async (text, message) => {
     return messages[messages.length - 1]
   } catch (error) {
     logger.error(`Failed to send a message in reply function call`, error)
+    return null
   }
 }
