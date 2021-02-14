@@ -38,17 +38,19 @@ const Client = module.exports = {
     } catch (error) {
       logger.error(`Couldn't read the prefixes table`, error)
     }
-    fs.readdir('./events/', (err, files) => {
+    fs.readdir('./events/', async (err, files) => {
 
-      Client.client.on('error', error => require(`../events/error`)(Client.client, error))
-      Client.client.on('ready', () => require(`../events/ready`)(Client.client))
-      Client.client.on('message', message =>
-        require(`../events/message`)(Client.client, message, commands, prefixes))
-      Client.client.on('messageReactionAdd', (messageReaction, user) =>
-        require('../events/messageReactionAdd')(Client.client, messageReaction, user))
+      Client.client.on('error', async error =>
+        await require(`../events/error`)(Client.client, error))
+      Client.client.on('ready', async () =>
+        await require(`../events/ready`)(Client.client))
+      Client.client.on('message', async message =>
+        await require(`../events/message`)(Client.client, message, commands, prefixes))
+      Client.client.on('messageReactionAdd', async (messageReaction, user) =>
+        await require('../events/messageReactionAdd')(Client.client, messageReaction, user))
 
       logger.log('Trying to log in...')
-      Client.tryToLogIn(0, null, null)
+      await Client.tryToLogIn(0, null, null)
     })
   }
 }

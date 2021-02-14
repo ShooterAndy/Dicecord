@@ -104,11 +104,11 @@ let clearedMessageInfo = {}
 
 // -------------------------------------------------------------------------------------------------
 
-module.exports = (args) => {
-  processMessage(args)
+module.exports = async (args) => {
+  await processMessage(args)
 }
 
-const processMessage = module.exports.processMessage = (args) => {
+const processMessage = module.exports.processMessage = async (args) => {
   message = args.message
   botClientUser = args.client.user
   prefix = args.prefix
@@ -140,7 +140,7 @@ const processMessage = module.exports.processMessage = (args) => {
   }
 }
 
-module.exports.goOnFromWarning = (args) => {
+module.exports.goOnFromWarning = async (args) => {
   message = args.message
   botClientUser = args.client.user
   prefix = args.prefix
@@ -164,7 +164,7 @@ module.exports.goOnFromWarning = (args) => {
   }
 }
 
-module.exports.repeatRollCommand = (args) => {
+module.exports.repeatRollCommand = async (args) => {
   message = args.message
   botClientUser = args.client.user
   prefix = args.prefix
