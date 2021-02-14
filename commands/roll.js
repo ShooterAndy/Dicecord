@@ -1948,20 +1948,25 @@ const getThrowFormulaText = t => {
 }
 
 const showResults = async () => {
+  let errorLog = ''
+  if (!message) { errorLog += '1' }
   if (!throws || !throws.length) {
     return
   }
+  if (!message) { errorLog += '2' }
 
   const replyMessage = await reply(
     formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME }), message)
+  if (!message) { errorLog += '3' }
   if (!replyMessage) {
     clearEverything(5)
     logger.error(`Failed to reply in roll showResults`, new Error().stack)
     return
   }
+  if (!message) { errorLog += '4' }
 
   if (!message) {
-    logger.error(`No message in roll showResults, current clearCode: ${clearCode}, current resultsCode: ${resultsCode}, previous clearCode: ${clearedMessageInfo.code}, previous resultsCode: ${clearedMessageInfo.resultsCode}`, new Error().stack)
+    logger.error(`No message in roll showResults, current clearCode: ${clearCode}, current resultsCode: ${resultsCode}, previous clearCode: ${clearedMessageInfo.code}, previous resultsCode: ${clearedMessageInfo.resultsCode}, errorLog: ${errorLog}`, new Error().stack)
     return
   }
   const messageId = message.id
