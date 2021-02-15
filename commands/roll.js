@@ -1957,7 +1957,9 @@ const showResults = async () => {
 
   const formattedThrowResults = formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
   if (!message) { errorLog += '3' }
+  const storedMessage = JSON.parse(JSON.stringify(message))
   const replyMessage = await reply(formattedThrowResults, message)
+  message = JSON.parse(JSON.stringify(storedMessage))
   if (!message) { errorLog += '4' }
   if (!replyMessage) {
     clearEverything(5)
@@ -1971,7 +1973,7 @@ const showResults = async () => {
     return
   }
   const messageId = message.id
-  const authorId = message.author.id
+  const authorId = message.author ? message.author.id : message.authorID
 
   if (USE_INTERACTIVE_REACTIONS) {
     const pairs = {}
