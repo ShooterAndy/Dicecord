@@ -1958,19 +1958,24 @@ const showResults = async () => {
   const formattedThrowResults = formatThrowResults({ throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
   if (!message) { errorLog += '3' }
   const storedMessage = JSON.parse(JSON.stringify(message))
-  const replyMessage = await reply(formattedThrowResults, message)
-  message = JSON.parse(JSON.stringify(storedMessage))
   if (!message) { errorLog += '4' }
+  const replyMessage = await reply(formattedThrowResults, message).catch(error => {
+    clearEverything(9)
+    throw error
+  })
+  if (!message) { errorLog += '5' }
+  message = JSON.parse(JSON.stringify(storedMessage))
+  if (!message) { errorLog += '6' }
   if (!replyMessage) {
     clearEverything(5)
-    logger.error(`Failed to reply in roll showResults`, new Error().stack)
-    return
+    throw `Failed to reply in roll showResults`
   }
-  if (!message) { errorLog += '5' }
+  if (!message) { errorLog += '7' }
 
   if (!message) {
-    logger.error(`No message in roll showResults, current clearCode: ${clearCode}, current resultsCode: ${resultsCode}, previous clearCode: ${clearedMessageInfo.code}, previous resultsCode: ${clearedMessageInfo.resultsCode}, errorLog: ${errorLog}`, new Error().stack)
-    return
+    throw nws`No message in roll showResults, current clearCode: ${clearCode}, current \
+    resultsCode: ${resultsCode}, previous clearCode: ${clearedMessageInfo.code}, previous \
+    resultsCode: ${clearedMessageInfo.resultsCode}, errorLog: ${errorLog}`
   }
   const messageId = message.id
   const authorId = message.author ? message.author.id : message.authorID
@@ -1990,9 +1995,8 @@ const showResults = async () => {
       pairs[MESSAGES_COLUMNS.user_id] = authorId
       clearEverything(6)
     } catch (error) {
-      logger.error(`Failed to set pairs for a roll results message`, error)
       clearEverything(7)
-      return
+      throw `Failed to set pairs for a roll results message:\n${error}`
     }
     try {
       await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
@@ -2001,8 +2005,7 @@ const showResults = async () => {
           pairs
         })
     } catch (error) {
-      logger.error(`Failed to save a roll results message`, error)
-      return
+      throw `Failed to save a roll results message:\n${error}`
     }
     try {
       await Promise.all([
