@@ -74,39 +74,41 @@ const processReaction = async (reaction, result) => {
   let originalMessage
 
   if (!result[MESSAGES_COLUMNS.content]) {
-    return logger.error(`Empty reaction content`)
+    return logger.error(`Empty reaction content, result:\n${JSON.stringify(result)}`)
   }
   const contentString = result[MESSAGES_COLUMNS.content]
   if (!contentString) {
-    return logger.error(`Reaction content string empty`)
+    return logger.error(`Reaction content string empty, result:\n${JSON.stringify(result)}`)
   }
 
   try {
     content = JSON.parse(contentString)
   } catch (error) {
-    return logger.error(`Failed to parse a reaction content`, error)
+    return logger.error(`Failed to parse a reaction content, contentString:\n${contentString}`,
+      error)
   }
   const messageId = content.messageId
   if (!messageId) {
-    return logger.error(`No message id in reaction content`)
+    return logger.error(`No message id in reaction content, contentString:\n${contentString}`)
   }
 
   try {
     originalMessage = await reaction.message.channel.messages.fetch(messageId)
   } catch (error) {
-    return logger.error(`Failed to find original message for reaction`, error)
+    return logger.error(`Failed to find original message for reaction (messageId: ${messageId})`,
+      error)
   }
   if (!originalMessage) {
-    return logger.error(`Couldn't find original message for reaction`)
+    return logger.error(`Couldn't find original message for reaction (messageId: ${messageId})`)
   }
   if (!content.throws || !content.throws.length) {
-    return logger.error(`Content throws empty in a reaction`)
+    return logger.error(`Content throws empty in a reaction (messageId: ${messageId})`)
   }
   if (!content.prefix) {
-    return logger.error(`Content prefix empty in a reaction`)
+    return logger.error(`Content prefix empty in a reaction (messageId: ${messageId})`)
   }
   if (!content.commandName) {
-    return logger.error(`Content command name empty in a reaction`)
+    return logger.error(`Content command name empty in a reaction (messageId: ${messageId})`)
   }
 
   switch (result[MESSAGES_COLUMNS.type]) {
