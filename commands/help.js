@@ -19,7 +19,7 @@ module.exports = args => {
         args.message)
     }
     else {
-      return reply(data, args.message)
+      return reply(data, args.message, true)
     }
   })
 }

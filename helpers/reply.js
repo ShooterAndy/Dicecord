@@ -1,6 +1,6 @@
 const logger = require('./logger')
 
-module.exports = async (text, message) => {
+module.exports = async (text, message, shouldSuppressEmbeds) => {
   if (!text || !message) {
     throw `No text or message in reply function call`
   }
@@ -21,6 +21,7 @@ module.exports = async (text, message) => {
     if (!message) {
       logger.error(`Empty message in reply: "${text}", doReply: ${doReply}`)
     }
+    messages.forEach(m => m.suppressEmbeds(shouldSuppressEmbeds))
     return messages[messages.length - 1]
   } catch (error) {
     throw `Failed to send a message in reply function call:\n${error}`
