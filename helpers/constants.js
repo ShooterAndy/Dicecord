@@ -68,6 +68,7 @@ module.exports.DEFAULT_PREFIX = '!'
 
 module.exports.NO_NOT_FOUND_ROLE_NAME = 'DICECORD_NO_NOT_FOUND'
 module.exports.DO_NOT_REPLY_ROLE_NAME = 'DICECORD_DO_NOT_REPLY'
+module.exports.NO_REACTIONS_ROLE_NAME = 'DICECORD_NO_REACTIONS'
 
 // -------------------------------------------------------------------------------------------------
 

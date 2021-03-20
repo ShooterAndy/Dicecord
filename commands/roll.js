@@ -6,6 +6,7 @@ const nws = require('../helpers/nws')
 const reply = require('../helpers/reply')
 const logger = require('../helpers/logger')
 const pg = require('../helpers/pgHandler')
+const shouldUseReactions = require('../helpers/shouldUseReactions')
 
 const {
   HANDLED_ERROR_TYPE_NAME,
@@ -81,9 +82,7 @@ const {
 
   MESSAGES_DB_NAME,
   MESSAGES_COLUMNS,
-  MESSAGE_TYPES,
-
-  USE_INTERACTIVE_REACTIONS
+  MESSAGE_TYPES
 } = require('../helpers/constants')
 
 // Global variables
@@ -239,7 +238,7 @@ const showWarnings = async () => {
       }
     })
     let validCommandText
-    if (USE_INTERACTIVE_REACTIONS) {
+    if (shouldUseReactions(message)) {
       validCommandText = getCommandText()
       if (validCommandText) {
         warningsText += '\nDo you still wish to proceed? Your command would be:'
@@ -252,7 +251,7 @@ const showWarnings = async () => {
       warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
     }
     const warningsMessage = await reply(warningsText, message)
-    if (warningsMessage && validCommandText && USE_INTERACTIVE_REACTIONS) {
+    if (warningsMessage && validCommandText && shouldUseReactions(message)) {
       try {
         const pairs = {}
         pairs[MESSAGES_COLUMNS.message_id] = warningsMessage.id
@@ -1980,7 +1979,7 @@ const showResults = async () => {
   const messageId = message.id
   const authorId = message.author ? message.author.id : message.authorID
 
-  if (USE_INTERACTIVE_REACTIONS) {
+  if (shouldUseReactions(message)) {
     const pairs = {}
     try {
       pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
