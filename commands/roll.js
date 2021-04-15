@@ -92,14 +92,12 @@ let rollNameSpace = function () {
   let throws = []
 
   let message = null
-  let botClientUser = null
   let prefix = null
   let commandName = null
   let originalCommandText = 'EMPTY'
 
   const processMessage =  async (args) => {
     message = args.message
-    botClientUser = args.client.user
     prefix = args.prefix
     commandName = args.commandName
 
@@ -130,7 +128,6 @@ let rollNameSpace = function () {
 
   const goOnFromWarning = async (args) => {
     message = args.message
-    botClientUser = args.client.user
     prefix = args.prefix
     commandName = args.commandName
     throws = args.throws
@@ -153,7 +150,6 @@ let rollNameSpace = function () {
 
   const repeatRollCommand = async (args) => {
     message = args.message
-    botClientUser = args.client.user
     prefix = args.prefix
     commandName = args.commandName
     throws = args.throws
@@ -180,7 +176,13 @@ let rollNameSpace = function () {
                                   TECHNICAL STUFF (LIKE ERROR HANDLING)
   =============================================================================================== */
   const clearEverything = () => {
-    clearRollNameSpace();
+    warnings = null
+    throws = null
+
+    message = null
+    prefix = null
+    commandName = null
+    originalCommandText = null
   }
 
   const addWarning = (text) => {
@@ -2054,7 +2056,3 @@ module.exports = async (args) => {
 module.exports.processMessage = rollNameSpace.processMessage
 module.exports.goOnFromWarning = rollNameSpace.goOnFromWarning
 module.exports.repeatRollCommand = rollNameSpace.repeatRollCommand
-
-const clearRollNameSpace = function () {
-  rollNameSpace = null;
-}
