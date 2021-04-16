@@ -1,8 +1,11 @@
 const logger = require('./logger')
 
 module.exports = async (text, message, shouldSuppressEmbeds) => {
+  if (!text) {
+    throw `No text in reply function call`
+  }
   if (!text || !message) {
-    throw `No text or message in reply function call`
+    throw `No message in reply function call for text "${text}"`
   }
   try {
     if (message.channel && message.guild) { // Do we even have a permission to reply?

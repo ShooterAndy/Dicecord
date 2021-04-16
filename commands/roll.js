@@ -963,6 +963,7 @@ let rollNameSpace = function () {
     }
 
     dice.diceMods.push({
+      default: false,
       type: DICE_MODIFIERS.keepHighest,
       value: keepNumber
     })
@@ -1928,12 +1929,10 @@ let rollNameSpace = function () {
     const formattedThrowResults = formatThrowResults(
       { throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
     const replyMessage = await reply(formattedThrowResults, message).catch(error => {
-      clearEverything()
       throw error
     })
 
     if (!replyMessage) {
-      clearEverything()
       throw `Failed to reply in roll showResults`
     }
 
@@ -1941,7 +1940,7 @@ let rollNameSpace = function () {
       throw nws`No message in roll showResults`
     }
     const messageId = message.id
-    const authorId = message.author ? message.author.id : message.authorID
+    const authorId = message.author ? message.author.id : message['authorID']
 
     if (shouldUseReactions(message)) {
       const pairs = {}
@@ -1958,7 +1957,6 @@ let rollNameSpace = function () {
         pairs[MESSAGES_COLUMNS.user_id] = authorId
         clearEverything()
       } catch (error) {
-        clearEverything()
         throw `Failed to set pairs for a roll results message:\n${error}`
       }
       try {
