@@ -176,13 +176,13 @@ let rollNameSpace = function () {
                                   TECHNICAL STUFF (LIKE ERROR HANDLING)
   =============================================================================================== */
   const clearEverything = () => {
-    warnings = null
+    /*warnings = null
     throws = null
 
     message = null
     prefix = null
     commandName = null
-    originalCommandText = null
+    originalCommandText = null*/
   }
 
   const addWarning = (text) => {
