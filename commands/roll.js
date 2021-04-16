@@ -238,12 +238,12 @@ let rollNameSpace = function () {
             throws: throws
           })
           pairs[MESSAGES_COLUMNS.user_id] = message.author.id
-          clearEverything()
           await pg.db.none('INSERT INTO ${db#} (${pairs~}) VALUES (${pairs:list})',
             {
               db: pg.addPrefix(MESSAGES_DB_NAME),
               pairs
             })
+          clearEverything()
         } catch (error) {
           logger.error(`Failed to save a warning message`, error)
           return
@@ -1955,7 +1955,6 @@ let rollNameSpace = function () {
           throws: throws
         })
         pairs[MESSAGES_COLUMNS.user_id] = authorId
-        clearEverything()
       } catch (error) {
         throw `Failed to set pairs for a roll results message:\n${error}`
       }
@@ -1965,6 +1964,7 @@ let rollNameSpace = function () {
             db: pg.addPrefix(MESSAGES_DB_NAME),
             pairs
           })
+        clearEverything()
       } catch (error) {
         throw `Failed to save a roll results message:\n${error}`
       }

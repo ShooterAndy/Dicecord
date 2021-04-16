@@ -73,10 +73,10 @@ module.exports = async (client, message, commands, prefixes) => {
       if (message.guild) {
         if (!message.guild.member(client.user).roles.cache.array().find(
           (role) => role.name === NO_NOT_FOUND_ROLE_NAME)) {
-          sendNotFoundErrorMessage()
+          await sendNotFoundErrorMessage()
         }
       } else {
-        sendNotFoundErrorMessage()
+        await sendNotFoundErrorMessage()
       }
     }
   }
