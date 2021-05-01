@@ -19,6 +19,8 @@ module.exports.DB_PREFIX = 'public'
 module.exports.PREFIXES_DB_NAME = 'prefixes'
 module.exports.PREFIXES_COLUMNS = { guild_id: 'guild_id', prefix: 'prefix' }
 
+module.exports.CUSTOM_DECK_TYPE = 'custom'
+module.exports.CARD_SEPARATOR = ','
 module.exports.DEFAULT_DECK_TYPE = 'poker'
 module.exports.DECK_TYPES_DB_NAME = 'deck_types'
 module.exports.DECK_TYPES_COLUMNS = { id: 'id', deck: 'deck', description: 'description' }
