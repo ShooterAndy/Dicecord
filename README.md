@@ -26,11 +26,12 @@ The currently available commands are:
 * [!pick (!p)](https://github.com/ShooterAndy/Dicecord/blob/master/help/pick.md) &mdash; picks a random item from a comma-separated list.
 * [!listDeckTypes (!ldt)](https://github.com/ShooterAndy/Dicecord/blob/master/help/listdecktypes.md) &mdash; lists all existing deck types.
 * [!examineDeck (!ed)](https://github.com/ShooterAndy/Dicecord/blob/master/help/examinedeck.md) &mdash; shows a brief description of the requested type of deck (optionally can show the list of cards).
-* [!shuffle (!s)](https://github.com/ShooterAndy/Dicecord/blob/master/help/shuffle.md) &mdash;  shuffles a deck of cards of a specific type and saves it.
+* [!shuffle (!s)](https://github.com/ShooterAndy/Dicecord/blob/master/help/shuffle.md) &mdash;  shuffles a deck of cards of a specific type (or a custom deck) and saves it.
 * [!draw (!d)](https://github.com/ShooterAndy/Dicecord/blob/master/help/draw.md) &mdash; draws the requested amount of cards from the saved deck.
 * [!deal](https://github.com/ShooterAndy/Dicecord/blob/master/help/deal.md) &mdash; deals the requested amount of cards from the saved deck.
 * [!drawShuffled (!drsh)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawshuffled.md) &mdash; draws the requested amount of cards from a fresh deck.
 * [!drawPrivate (!drpr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawprivate.md) &mdash; draws the requested amount of cards from the saved deck and DMs them to you.
+* [!insert (!i)](https://github.com/ShooterAndy/Dicecord/blob/master/help/insert.md) &mdash; inserts specified card(s) into the saved deck at random positions.
 * [!bbcode](https://github.com/ShooterAndy/Dicecord/blob/master/help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
 * [!markdown (!md)](https://github.com/ShooterAndy/Dicecord/blob/master/help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
 * [!saveRoll (!sr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/saveroll.md) &mdash; saves a roll command for later use.
