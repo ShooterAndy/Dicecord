@@ -17,11 +17,16 @@ const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   try {
-    const numberOfCardsToDraw = getNumberOfCardsToDraw(args.commandText, args.message, args.prefix)
+    let numberOfCardsToDraw = getNumberOfCardsToDraw(args.commandText, args.message, args.prefix)
     const mentionsList = getMentionsList(args.message, args.prefix)
     const deckFromDb = await getDeckFromDb(args.message)
     const deck = processDeck(deckFromDb, args.message, args.prefix)
-    let comment = args.commandText.trim().slice(numberOfCardsToDraw.toString().length).trim()
+    let comment = args.commandText.trim()
+    if (numberOfCardsToDraw !== -1) {
+      comment = comment.slice(numberOfCardsToDraw.toString().length).trim()
+    } else {
+      numberOfCardsToDraw = 1
+    }
     comment = getComment(comment)
     const text = await processDealCommand(args.message, deck, mentionsList, numberOfCardsToDraw,
       comment, args.prefix)
@@ -35,11 +40,11 @@ module.exports = async (args) => {
 const getNumberOfCardsToDraw = (commandText, message, prefix) => {
   let numberOfCardsToDraw = commandText.trim().split(' ')[0]
   if (commandText === '') {
-    return 1
+    return -1
   }
   numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
-    return 1
+    return -1
   }
   return numberOfCardsToDraw
 }
@@ -125,16 +130,23 @@ const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDr
     ${totalNumberOfCardsToDraw}, but only ${deck.length} cards left). Please reshuffle (by using \
     \`${prefix}shuffle\`) or deal fewer cards.`
   } else {
+    let authorName = ''
+    if (message.member) {
+      authorName = message.member.displayName
+    } else {
+      authorName = message.author.username
+    }
     for (const mention of mentionsList) {
       let drawnCards = deck.slice(0, numberOfCardsToDraw)
       deck = deck.slice(numberOfCardsToDraw)
       try {
-        let cardOrCards = 'cards'
+        let cardOrCards = 'these cards'
         if (numberOfCardsToDraw === 1) {
-          cardOrCards = 'card'
+          cardOrCards = 'this card'
         }
         const commentary =
-          comment ? `\`${comment}:\`\n` : `You have been dealt these ${cardOrCards}:\n`
+          comment ? `${authorName} → \`${comment}:\`\n` :
+            `You have been dealt ${cardOrCards} by ${authorName}:\n`
         const privateText = `${commentary}${drawnCards.join(', ')}`
         await mention.send(privateText, {split: true})
       } catch (error) {
