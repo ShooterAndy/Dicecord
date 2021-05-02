@@ -31,6 +31,7 @@ The currently available commands are:
 * [!deal](https://github.com/ShooterAndy/Dicecord/blob/master/help/deal.md) &mdash; deals the requested amount of cards from the saved deck.
 * [!drawShuffled (!drsh)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawshuffled.md) &mdash; draws the requested amount of cards from a fresh deck.
 * [!drawPrivate (!drpr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawprivate.md) &mdash; draws the requested amount of cards from the saved deck and DMs them to you.
+* [!dealPrivate (!depr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/dealprivate.md) &mdash; deals the requested amount of cards from the saved deck and DMS them to the mentioned users.
 * [!insert (!i)](https://github.com/ShooterAndy/Dicecord/blob/master/help/insert.md) &mdash; inserts specified card(s) into the saved deck at random positions.
 * [!bbcode](https://github.com/ShooterAndy/Dicecord/blob/master/help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
 * [!markdown (!md)](https://github.com/ShooterAndy/Dicecord/blob/master/help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
@@ -55,7 +56,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the information on specific version changes
 * [auto-changelog](https://github.com/CookPete/auto-changelog) &mdash; used to generate the changelog;
 * [underscore.js](https://underscorejs.org/) &mdash; helps managing objects and arrays;
 * [random](https://github.com/transitive-bullshit/random#readme) &mdash; helps with randomization;
-* [Heroku PostGres](https://elements.heroku.com/addons/heroku-postgresql) &mdash; stores decks and prefixes.
+* [Heroku PostGres](https://elements.heroku.com/addons/heroku-postgresql) &mdash; stores decks and prefixes;
 * [pg-promise](https://github.com/vitaly-t/pg-promise) &mdash; allows for much simpler and more convenient code for PostGres quieries.
 
 ## Versioning

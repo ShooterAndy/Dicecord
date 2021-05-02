@@ -16,105 +16,103 @@ module.exports = async (args) => {
   const verb = args.verb || 'draw'
   const isPrivate = args.isPrivate || false
   await processDrawCommand(args.message, numberOfCardsToDraw, comment, verb, isPrivate, args.prefix)
-};
+}
 
-const processDrawCommand =
-  async (message, numberOfCardsToDraw, comment, verb, isPrivate, prefix) => {
+const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, isPrivate, prefix) =>
+{
   let text = '';
   const pastVerb = verb === 'deal' ? 'dealt' : 'drew'
   if (numberOfCardsToDraw === '') {
     numberOfCardsToDraw = 1
   }
+  numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
     return reply(nws`${ERROR_PREFIX}${numberOfCardsToDraw} is not a valid number of cards to \
-      ${verb}.`, message)
+    ${verb}.`, message)
   }
-  else {
-    numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
+
+  try {
+    const result = await pg.db.oneOrNone(
+      'SELECT ${deck~} FROM ${db#} WHERE ${channelId~} = ${channelIdValue}',
+      {
+        deck: DECKS_COLUMNS.deck,
+        db: pg.addPrefix(DECKS_DB_NAME),
+        channelId: DECKS_COLUMNS.channel_id,
+        channelIdValue: message.channel.id
+      })
+
+    if (!result || !result[DECKS_COLUMNS.deck]) {
+      return reply(nws`${ERROR_PREFIX}Couldn't find a deck for this channel. Please \
+        \`${prefix}shuffle\` one first. If there was a deck, perhaps it expired and was \
+        automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`, message)
+    }
+    let deck = []
+    try {
+      deck = JSON.parse(result[DECKS_COLUMNS.deck]);
+    } catch (error) {
+      logger.error(nws`Failed to parse the deck for channel "${message.channel.id}"`, error)
+      return reply(nws`${ERROR_PREFIX}Failed to process the deck. Please contact the bot author`,
+        message)
+    }
+
+    if (deck.length < numberOfCardsToDraw) {
+      return reply(nws`${ERROR_PREFIX}Not enough cards left in the deck (requested \
+        ${numberOfCardsToDraw}, but only ${deck.length} cards left). Please reshuffle (by using \
+        \`${prefix}shuffle\`) or ${verb} fewer cards.`, message)
+    }
+
+    let drawnCards = deck.slice(0, numberOfCardsToDraw)
+    deck = deck.slice(numberOfCardsToDraw)
+    let cardOrCards = 'cards'
+    if (numberOfCardsToDraw === 1) {
+      cardOrCards = 'card'
+    }
+    text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw + ' ' + cardOrCards +
+      ' from the deck (' + deck.length + ' left)'
+    if (!isPrivate) {
+      text += `: \n`
+      if (comment) {
+        text += `\`${comment}:\` `
+      }
+      text += drawnCards.join(', ') + '.'
+    } else {
+      if (comment) {
+        text += ` with this comment:\n\`${comment}\``
+      } else {
+        text += '.'
+      }
+      text += `\nThe results were sent to your DMs.`
+    }
 
     try {
-      const result = await pg.db.oneOrNone(
-        'SELECT ${deck~} FROM ${db#} WHERE ${channelId~} = ${channelIdValue}',
+      await pg.db.none(
+        'UPDATE ${db#} SET ${deck~} = ${deckValue}, ${timestamp~} = NOW() ' +
+        'WHERE ${channelId~}=${channelIdValue}',
         {
-          deck: DECKS_COLUMNS.deck,
           db: pg.addPrefix(DECKS_DB_NAME),
+          deck: DECKS_COLUMNS.deck,
+          deckValue: JSON.stringify(deck),
           channelId: DECKS_COLUMNS.channel_id,
-          channelIdValue: message.channel.id
-        })
-
-      if (!result || !result[DECKS_COLUMNS.deck]) {
-        return reply(nws`${ERROR_PREFIX}Couldn't find a deck for this channel. Please \
-          \`${prefix}shuffle\` one first. If there was a deck, perhaps it expired and was \
-          automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`, message)
-      }
-      let deck = []
-      try {
-        deck = JSON.parse(result[DECKS_COLUMNS.deck]);
-      } catch (error) {
-        logger.error(nws`Failed to parse the deck for channel "${message.channel.id}"`, error)
-        return reply(nws`${ERROR_PREFIX}Failed to process the deck. Please contact the bot author`,
-          message)
-      }
-
-      if (deck.length < numberOfCardsToDraw) {
-        return reply(nws`${ERROR_PREFIX}Not enough cards left in the deck (requested \
-          ${numberOfCardsToDraw}, but only ${deck.length} cards left). Reshuffle (by using \
-          \`!shuffle\`) or ${verb} fewer cards.`, message)
-      } else {
-        let drawnCards = deck.slice(0, numberOfCardsToDraw)
-        deck = deck.slice(numberOfCardsToDraw)
-        let cardOrCards = 'cards'
-        if (numberOfCardsToDraw === 1) {
-          cardOrCards = 'card'
+          channelIdValue: message.channel.id,
+          timestamp: DECKS_COLUMNS.timestamp
         }
-        text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw + ' ' + cardOrCards +
-          ' from the deck (' + deck.length + ' left)'
-        if (!isPrivate) {
-          text += `: \n`
-          if (comment) {
-            text += `\`${comment}:\` `
-          }
-          text += drawnCards.join(', ') + '.'
-        } else {
-          if (comment) {
-            text += ` with this comment:\n\`${comment}\``
-          } else {
-            text += '.'
-          }
-          text += `\nThe results were sent to your DMs.`
-        }
-
+      )
+      if (isPrivate) {
         try {
-          await pg.db.none(
-            'UPDATE ${db#} SET ${deck~} = ${deckValue}, ${timestamp~} = NOW() ' +
-            'WHERE ${channelId~}=${channelIdValue}',
-            {
-              db: pg.addPrefix(DECKS_DB_NAME),
-              deck: DECKS_COLUMNS.deck,
-              deckValue: JSON.stringify(deck),
-              channelId: DECKS_COLUMNS.channel_id,
-              channelIdValue: message.channel.id,
-              timestamp: DECKS_COLUMNS.timestamp
-            }
-          )
-          if (isPrivate) {
-            try {
-              const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
-              const privateText = `${commentary}${drawnCards.join(', ')}`
-              await message.author.send(privateText, {split: true})
-            } catch (error) {
-              logger.error(nws`Failed to send a DM to "${message.author.id}"`, error)
-              return reply(`${ERROR_PREFIX}Failed to send you a DM.`, message)
-            }
-          }
-          return reply(text, message)
+          const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
+          const privateText = `${commentary}${drawnCards.join(', ')}`
+          await message.author.send(privateText, {split: true})
         } catch (error) {
-          logger.error(nws`Failed to update the deck for channel "${message.channel.id}"`, error)
-          return reply(`${ERROR_PREFIX}Failed to save the deck.`, message)
+          logger.error(nws`Failed to send a DM to "${message.author.id}"`, error)
+          return reply(`${ERROR_PREFIX}Failed to send you a DM.`, message)
         }
       }
-    } catch(error) {
-      logger.error(`Failed to get the deck for channel "${message.channel.id}"`, error)
+      return reply(text, message)
+    } catch (error) {
+      logger.error(nws`Failed to update the deck for channel "${message.channel.id}"`, error)
+      return reply(`${ERROR_PREFIX}Failed to save the deck.`, message)
     }
+  } catch(error) {
+    logger.error(`Failed to get the deck for channel "${message.channel.id}"`, error)
   }
-};
+}
