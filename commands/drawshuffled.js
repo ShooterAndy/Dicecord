@@ -4,7 +4,8 @@ const {
   DECK_TYPES_DB_NAME,
   DECK_TYPES_COLUMNS,
   ERROR_PREFIX,
-  COMMENT_SEPARATOR
+  COMMENT_SEPARATOR,
+  DISCORD_CODE_REGEX
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
 const reply = require('../helpers/reply')
@@ -24,6 +25,7 @@ module.exports = async (args) => {
     if (comment.startsWith(COMMENT_SEPARATOR)) {
       comment = comment.slice(COMMENT_SEPARATOR.length).trim()
     }
+    comment = comment.replace(DISCORD_CODE_REGEX, '')
   }
   await processDrawShuffledCommand(args.message, numberOfCardsToDraw, deckId, comment, args.prefix,
     args.commandName)
@@ -34,9 +36,9 @@ const processDrawShuffledCommand =
   if (numberOfCardsToDraw === '') {
     numberOfCardsToDraw = 1
   }
+  numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
-    return reply(nws`${ERROR_PREFIX}"${numberOfCardsToDraw}" is not a valid number of cards to \
-      draw.`, message)
+    numberOfCardsToDraw = 1
   }
 
   try {

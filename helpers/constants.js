@@ -87,6 +87,12 @@ module.exports.MAX_PICK_NUMBER = 1000
 
 // -------------------------------------------------------------------------------------------------
 
+const DISCORD_CODE_SYMBOL = '`'
+module.exports.DISCORD_CODE_SYMBOL = DISCORD_CODE_SYMBOL
+module.exports.DISCORD_CODE_REGEX = new RegExp(DISCORD_CODE_SYMBOL, 'g')
+
+// -------------------------------------------------------------------------------------------------
+
 module.exports.HANDLED_ERROR_TYPE_NAME = 'HANDLED_ERROR'
 module.exports.HANDLED_WARNING_TYPE_NAME = 'HANDLED_WARNING'
 
@@ -244,8 +250,8 @@ module.exports.THROW_RESULTS_FORMATS = {
     listEnd: '',
     listItemStart: ' * ',
     listItemEnd: '',
-    codeStart: '`',
-    codeEnd: '`',
+    codeStart: DISCORD_CODE_SYMBOL,
+    codeEnd: DISCORD_CODE_SYMBOL,
     strikethroughStart: '~~',
     strikethroughEnd: '~~',
     underlineStart: '__',

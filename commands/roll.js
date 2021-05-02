@@ -82,7 +82,9 @@ const {
 
   MESSAGES_DB_NAME,
   MESSAGES_COLUMNS,
-  MESSAGE_TYPES
+  MESSAGE_TYPES,
+
+  DISCORD_CODE_REGEX
 } = require('../helpers/constants')
 
 // -------------------------------------------------------------------------------------------------
@@ -468,6 +470,7 @@ let rollNameSpace = function () {
     if (indexOfFirstCommentSeparator >= 0) {
       let formula = command.slice(0, indexOfFirstCommentSeparator).trim()
       let comment = command.slice(indexOfFirstCommentSeparator + symbol.length).trim()
+      comment = comment.replace(DISCORD_CODE_REGEX, '')
       /*if (!formula) {
         throw w(nws`no roll specified for one or more of the throws before the \`${symbol}\` \
               symbol, this throw will be ignored`)

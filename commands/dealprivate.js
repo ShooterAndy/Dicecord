@@ -6,7 +6,9 @@ const {
   DECKS_COLUMNS,
   ERROR_PREFIX,
   DECKS_EXPIRE_AFTER,
-  MAX_DEAL_TARGETS
+  MAX_DEAL_TARGETS,
+  COMMENT_SEPARATOR,
+  DISCORD_CODE_REGEX
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
@@ -33,13 +35,11 @@ module.exports = async (args) => {
 const getNumberOfCardsToDraw = (commandText, message, prefix) => {
   let numberOfCardsToDraw = commandText.trim().split(' ')[0]
   if (commandText === '') {
-    throw nws`Please specify a valid number of cards to deal, for example: \`${prefix}dealPrivate \
-    3 @user1, @user2 comment\``
+    return 1
   }
   numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
-    throw nws`${numberOfCardsToDraw} is not a valid number of cards to deal. Please \
-    deal at least one card, for example: \`${prefix}dealPrivate 3 @user1, @user2 comment\``
+    return 1
   }
   return numberOfCardsToDraw
 }
@@ -76,6 +76,10 @@ const getComment = (commandText) => {
   let comment = commandText.replace(MessageMentions.USERS_PATTERN, '').trim()
   if (comment) {
     comment = removeLeadingCommas(comment)
+    comment = comment.replace(DISCORD_CODE_REGEX, '')
+    if (comment.startsWith(COMMENT_SEPARATOR)) {
+      comment = comment.slice(COMMENT_SEPARATOR.length).trim()
+    }
   }
   return comment || ''
 }

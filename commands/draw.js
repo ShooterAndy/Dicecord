@@ -4,7 +4,9 @@ const {
   DECKS_DB_NAME,
   DECKS_COLUMNS,
   ERROR_PREFIX,
-  DECKS_EXPIRE_AFTER
+  DECKS_EXPIRE_AFTER,
+  COMMENT_SEPARATOR,
+  DISCORD_CODE_REGEX
 } = require('../helpers/constants')
 const reply = require('../helpers/reply')
 const nws = require('../helpers/nws')
@@ -12,7 +14,11 @@ const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
   const numberOfCardsToDraw = args.commandText.trim().split(' ')[0]
-  const comment = args.commandText.trim().slice(numberOfCardsToDraw.length).trim()
+  let comment = args.commandText.trim().slice(numberOfCardsToDraw.length).trim()
+  comment = comment.replace(DISCORD_CODE_REGEX, '')
+  if (comment.startsWith(COMMENT_SEPARATOR)) {
+    comment = comment.slice(COMMENT_SEPARATOR.length).trim()
+  }
   const verb = args.verb || 'draw'
   const isPrivate = args.isPrivate || false
   await processDrawCommand(args.message, numberOfCardsToDraw, comment, verb, isPrivate, args.prefix)
@@ -27,8 +33,7 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
   }
   numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
   if (isNaN(numberOfCardsToDraw) || numberOfCardsToDraw < 1) {
-    return reply(nws`${ERROR_PREFIX}${numberOfCardsToDraw} is not a valid number of cards to \
-    ${verb}.`, message)
+    numberOfCardsToDraw = 1
   }
 
   try {
