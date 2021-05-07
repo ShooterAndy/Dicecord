@@ -16,7 +16,7 @@ const Client = module.exports = {
       errorsCount++
     }
     try {
-    await this.client.login(process.env.BOT_TOKEN)
+      await this.client.login(process.env.BOT_TOKEN)
       if (errorsCount) {
         logger.error(nws`${LOG_PREFIX} Had ${errorsCount} errors trying to log in, the latest \
           being`, previousError)
