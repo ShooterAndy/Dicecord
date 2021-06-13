@@ -103,7 +103,7 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
       if (t.repeatNumber > 1) {
         text += format.listItemStart + 'Roll ' + (i+1) + ':' + format.space
       }
-      const intermediateText = getIntermediateResultsText(t, format, i, t.repeatNumber)
+      const intermediateText = getIntermediateResultsText(t, format, i)
       text += intermediateText
 
       const finalResultText = getFinalResultText(t, format, i, t.repeatNumber)
@@ -131,7 +131,7 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
         format.codeEnd + format.space
     }
     text += commentText + formulaText
-    const intermediateResultText = getIntermediateResultsText(t, format, 0, 1)
+    const intermediateResultText = getIntermediateResultsText(t, format, 0)
 
     if (intermediateResultText) {
       text += format.space + '=' + format.space + intermediateResultText
@@ -494,7 +494,7 @@ const getFinalResultText = (t, format, index) => {
 
   if (t.vsValues && t.vsValues[index]) {
     text += format.space + format.vs + format.space
-    const intermediateVsResult = getIntermediateResultsText(t.vsValues[index], format, index)
+    const intermediateVsResult = getIntermediateResultsText(t.vsValues[index], format, 0)
     if (intermediateVsResult) {
       text += intermediateVsResult + format.space + '=' + format.space
     }
