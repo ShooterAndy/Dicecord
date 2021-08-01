@@ -172,7 +172,7 @@ module.exports = async (client) => {
   const dbl = new DBL(process.env.DBL_TOKEN, client)
 
   if(client.shard) {
-    logger.log(`Shard id: "${client.shard.id}"; count: "${client.shard.count}"`)
+    logger.log(`Shard ids: "${client.shard.ids.join('", "')}"; count: "${client.shard.count}"`)
   }
   else {
     logger.log(`No shard`)

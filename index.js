@@ -1,16 +1,11 @@
+const { ShardingManager } = require('discord.js')
+const logger = require('./helpers/logger')
 require('dotenv').config()
-const fs = require('fs')
-const client = require('./helpers/client')
+const manager = new ShardingManager('./bot.js', { token: process.env.BOT_TOKEN })
 
-let commands = {}
-
-fs.readdir('./commands/', (err, files) => {
-  files.forEach(file => {
-    const commandHandler = require(`./commands/${file}`)
-    const commandName = file.split('.')[0]
-
-    commands[commandName] = commandHandler
-  });
-});
-
-client.readyBasics(commands)
+manager.on('shardCreate', shard => logger.log(`Launched shard ${shard.id}`))
+manager.spawn().then(() => {
+  logger.log('Launched sharding manager')
+}).catch(err => {
+  logger.error('Failed to spawn sharding manager', err)
+})
