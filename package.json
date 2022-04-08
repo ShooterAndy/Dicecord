@@ -12,19 +12,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dblapi.js": "^2.3.0",
-    "discord.js": "^12.4.1",
+    "dblapi.js": "^2.4.1",
+    "discord.js": "^13.1.0",
     "dotenv": "^7.0.0",
+    "glob-parent": "^6.0.1",
     "kind-of": ">=6.0.3",
     "mixin-deep": "^2.0.1",
-    "pg": "^7.12.1",
-    "pg-promise": "^10.7.0",
-    "random": "^2.1.1",
-    "set-value": "^3.0.1",
-    "underscore": "^1.12.1"
+    "pg": "^7.18.2",
+    "pg-promise": "^10.11.0",
+    "random": "^2.2.0",
+    "set-value": "^3.0.2",
+    "underscore": "^1.13.1"
   },
   "devDependencies": {
-    "auto-changelog": "^1.13.0",
-    "nodemon": "^1.18.11"
+    "auto-changelog": "^1.16.4",
+    "nodemon": "^1.19.4"
   }
 }
