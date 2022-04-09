@@ -25,6 +25,6 @@
   },
   "devDependencies": {
     "auto-changelog": "^1.13.0",
-    "nodemon": "^1.18.11"
+    "nodemon": "^2.0.15"
   }
 }
