@@ -67,7 +67,8 @@ module.exports = {
           message += `\`\`\`${additionalInfo}\`\`\``
         }
 
-        return channel.send(message, { split: true })
+        return Client.client.shard.broadcastEval(
+            `this.channels.cache.get('${LOG_CHANNEL_ID}')?.send('${message}', { split: true })`)
 
       } catch (error) {
         return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Failed to send a message to the \

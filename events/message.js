@@ -28,8 +28,10 @@ module.exports = async (client, message, commands, prefixes) => {
 
   let prefix = DEFAULT_PREFIX
   if (message.guild) {
-    if (prefixes[message.guild.id]) {
-      prefix = prefixes[message.guild.id]
+    if (prefixes) {
+      if (prefixes[message.guild.id]) {
+        prefix = prefixes[message.guild.id]
+      }
     }
   }
   if (message.content.startsWith(prefix)) {
