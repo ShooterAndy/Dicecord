@@ -21,8 +21,8 @@ const Client = require('../helpers/client')
 
 const tryToSetActivity = async () => {
   try {
-    //await Client.client.user.setActivity('v' + packageJSON.version + ', type !help')
-    await Client.client.user.setActivity('⚡️ATTN! Please, type !notice')
+    await Client.client.user.setActivity('v' + packageJSON.version + ', type !help')
+    //await Client.client.user.setActivity('⚡️ATTN! Please, type !notice')
     /*logger.log('Successfully set activity')*/
   } catch (error) {
     logger.error('Failed to set activity', error)
