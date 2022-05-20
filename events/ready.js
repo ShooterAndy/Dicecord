@@ -169,28 +169,12 @@ const deleteExpiredDecks = async () => {
 module.exports = async (client) => {
   logger.log(`Successfully logged in as ${client.user.tag}`)
 
-  const DBL = require('dblapi.js')
-  const dbl = new DBL(process.env.DBL_TOKEN, client)
-
   if(client.shard) {
     logger.log(`Shard ids: "${client.shard.ids.join('", "')}"; count: "${client.shard.count}"`)
   }
   else {
     logger.log(`No shard`)
   }
-  setInterval(() => {
-    if (!process.env.IS_LOCAL) {
-      try {
-        dbl.postStats(
-          client.guilds.cache.size,
-          client.shard ? client.shard.id : null,
-          client.shard ? client.shard.count : null
-        )
-      } catch (error) {
-        logger.error(`Failed to send DBL stats`, error)
-      }
-    }
-  }, transformMinutesToMs(30))
 
   await tryToSetActivity()
   setInterval(async () => {
