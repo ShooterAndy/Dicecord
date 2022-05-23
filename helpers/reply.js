@@ -1,10 +1,22 @@
 const Discord = require('discord.js')
 const splitMessage = require('./splitMessage')
 const sendToChannel = require('./sendToChannel')
-const Client = require('./client');
+const Client = require('./client')
 
-const replyToMessage = async (client, { message, messageText, flags }) => {
-    return await message.reply(messageText, { flags })
+const replyToMessage = async (client, { messageObject, messageText, flags }) => {
+    if (messageObject && messageObject.id && messageObject.channelId) {
+        const channel = await client.channels.fetch(messageObject.channelId)
+        if (channel) {
+            if (channel.isText()) {
+                const message = await channel.messages.fetch(messageObject.id)
+                return await message.reply({ content: messageText, flags })
+            } else {
+                return `Attempted to send message to non-text channel "${messageObject.channelId}"`
+            }
+        }
+        return null
+    }
+    return null
 }
 
 module.exports = async (text, message, shouldSuppressEmbeds) => {
@@ -25,7 +37,7 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
             }
             if (isFirst) {
                 const responses = await Client.client.shard.broadcastEval(replyToMessage,
-                    { context: { message, messageText: part, flags } })
+                    { context: { messageObject: message, messageText: part, flags } })
                 if (!responses || !responses.length) {
                     throw 'Empty response from replyToMessage broadcastEval'
                 }
@@ -56,6 +68,7 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
         }
         return messages
     } catch (err) {
-        throw err
+        const logger = require('./logger')
+        logger.error('Error in reply', err)
     }
 }
