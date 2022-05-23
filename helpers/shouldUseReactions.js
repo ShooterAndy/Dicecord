@@ -16,6 +16,8 @@ module.exports = async (message) => {
         return !guild.member(Client.client.user).roles.cache.find(
           (role) => role.name === NO_REACTIONS_ROLE_NAME)
       }
+    } else {
+      return true
     }
   }
   return false

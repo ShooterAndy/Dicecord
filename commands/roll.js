@@ -252,7 +252,9 @@ let rollNameSpace = function () {
           return
         }
         try {
-          await Promise.all([warningsMessage.react(YES_EMOJI), warningsMessage.react(NO_EMOJI)])
+          await Promise.all([
+              reactToMessage(warningsMessage, YES_EMOJI), reactToMessage(warningsMessage, NO_EMOJI)
+          ])
         } catch (error) {
           if (error && error.name === 'DiscordAPIError') { // TODO: Figure this out
               logger.warn(`Failed to react to a warning message`, error)
