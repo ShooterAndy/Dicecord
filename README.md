@@ -1,6 +1,9 @@
-# Dicecord
+# Dicecord 
+Dicecord is a bot for the [Discord](https://discordapp.com/) instant messenger that is made to help dealing with various things that require randomization, such as dice rolls, card draws, etc.
 
-Dicecord is a bot for the [Discord](https://discordapp.com/) instant messenger that is made to help dealing with various things that require randomization, such as dice rolls, card draws, etc.  
+Dicecord is completely free and has no paid unlockable features, but I do have to pay a bit to host it, so if you like it and want to support its continued existence and development, you can tip me on Ko-fi:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H35Y7TO)
 
 ## Getting Started
 
