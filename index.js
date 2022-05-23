@@ -4,6 +4,10 @@ require('dotenv').config()
 const manager = new ShardingManager('./bot.js', { token: process.env.BOT_TOKEN })
 const nws = require('./helpers/nws')
 
+process.on('unhandledRejection', error => {
+  logger.error('Unhandled promise rejection', error)
+})
+
 manager.on('shardCreate', shard => {
   logger.log(`Launched shard ${shard.id}`)
 

@@ -22,8 +22,12 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
     } else {
       messages = await send(text, message, shouldSuppressEmbeds)
     }
-    return messages[messages.length - 1]
+    if (messages && messages.length) {
+      return messages[messages.length - 1]
+    } else {
+      return null
+    }
   } catch (error) {
-    throw `Failed to send a message in reply function call:\n${error}`
+    throw `Failed to send a message in replyOrSend function call:\n${error}`
   }
 }

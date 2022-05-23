@@ -40,4 +40,4 @@ module.exports = args => {
   }
 
   return replyOrSend(choices[random.integer(0, choices.length - 1)], args.message)
-};
+}

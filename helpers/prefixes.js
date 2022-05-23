@@ -20,7 +20,7 @@ const Prefixes = module.exports = {
         let values = _.values(item)
         Prefixes.prefixes[values[0]] = values[1]
       })
-      return Prefixes.prefixes;
+      return Prefixes.prefixes
     } catch (error) {
       throw error
     }

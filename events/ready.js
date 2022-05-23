@@ -206,4 +206,4 @@ module.exports = async (client) => {
       }, transformMinutesToMs(5))
     }
   }
-};
+}

@@ -64,7 +64,7 @@ module.exports = async args => {
     await Prefixes.set(args.message.guild.id, suggestedPrefix)
     return replyOrSend(`Prefix successfully set to \`${suggestedPrefix}\`.`, args.message)
   } catch (err) {
-    logger.error(`Couldn't save the prefixes file`, err);
+    logger.error(`Couldn't save the prefixes file`, err)
     return replyOrSend(`${ERROR_PREFIX}Couldn't save the prefix. Please contact the bot author.`,
       args.message)
   }

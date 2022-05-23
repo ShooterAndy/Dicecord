@@ -28,10 +28,10 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
             throw `No message in reply function call for text "${text}"`
         }
         const parts = splitMessage(text)
-        const messages = [];
+        const messages = []
         let isFirst = true
         for (const part of parts) {
-            const flags = new Discord.MessageFlags();
+            const flags = new Discord.MessageFlags()
             if (shouldSuppressEmbeds) {
                 flags.add(Discord.MessageFlags.FLAGS.SUPPRESS_EMBEDS)
             }
