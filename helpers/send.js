@@ -18,18 +18,19 @@ module.exports = async (text, channelId, shouldSuppressEmbeds) => {
             if (shouldSuppressEmbeds) {
                 flags.add(Discord.MessageFlags.FLAGS.SUPPRESS_EMBEDS)
             }
-            const response = await Client.client.shard.broadcastEval(sendToChannel,
+            const responses = await Client.client.shard.broadcastEval(sendToChannel,
                 { context: { channelId, messageText: part, flags } })
-            if (!response || !response.length) {
+            if (!responses || !responses.length) {
                 throw 'Empty response from sendToChannel broadcastEval'
             }
-            if (typeof response[0] === 'string') {
-                throw 'Error response from sendToChannel broadcastEval: ' + response[0]
+            for (const response of responses) {
+                if (response) {
+                    if (typeof response === 'string') {
+                        throw 'Error response from sendToChannel broadcastEval: ' + response
+                    }
+                    messages.push(response)
+                }
             }
-            if (response.length > 1) {
-                throw 'More than one response from sendToChannel broadcastEval'
-            }
-            messages.push(response[0])
         }
         return messages
     } catch (err) {

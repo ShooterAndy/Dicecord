@@ -25,16 +25,17 @@ const _reactToMessage = async (client, { messageObject, reaction }) => {
 }
 
 module.exports = async (messageObject, reaction) => {
-    const response = await Client.client.shard.broadcastEval(_reactToMessage,
+    const responses = await Client.client.shard.broadcastEval(_reactToMessage,
         { context: { messageObject, reaction } })
-    if (!response || !response.length) {
-        throw 'Empty response from _reactToMessage broadcastEval'
+    if (!responses || !responses.length) {
+        throw 'Empty response from reactToMessage broadcastEval'
     }
-    if (typeof response[0] === 'string') {
-        throw 'Error response from _reactToMessage broadcastEval: ' + response[0]
+    for (const response of responses) {
+        if (response) {
+            if (typeof response === 'string') {
+                throw 'Error response from reactToMessage broadcastEval: ' + response
+            }
+            return response
+        }
     }
-    if (response.length > 1) {
-        throw 'More than one response from _reactToMessage broadcastEval'
-    }
-    return response[0]
 }

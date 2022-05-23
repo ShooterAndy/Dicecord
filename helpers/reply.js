@@ -24,32 +24,34 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
                 flags.add(Discord.MessageFlags.FLAGS.SUPPRESS_EMBEDS)
             }
             if (isFirst) {
-                const response = await Client.client.shard.broadcastEval(replyToMessage,
+                const responses = await Client.client.shard.broadcastEval(replyToMessage,
                     { context: { message, messageText: part, flags } })
-                if (!response || !response.length) {
+                if (!responses || !responses.length) {
                     throw 'Empty response from replyToMessage broadcastEval'
                 }
-                if (typeof response[0] === 'string') {
-                    throw 'Error response from replyToMessage broadcastEval: ' + response[0]
+                for (const response of responses) {
+                    if (response) {
+                        if (typeof response === 'string') {
+                            throw 'Error response from replyToMessage broadcastEval: ' + response
+                        }
+                        messages.push(response)
+                    }
                 }
-                if (response.length > 1) {
-                    throw 'More than one response from replyToMessage broadcastEval'
-                }
-                messages.push(response[0])
                 isFirst = false
             } else {
-                const response = await Client.client.shard.broadcastEval(sendToChannel,
+                const responses = await Client.client.shard.broadcastEval(sendToChannel,
                     { context: { channelId: message.channel.id, messageText: part, flags } })
-                if (!response || !response.length) {
+                if (!responses || !responses.length) {
                     throw 'Empty response from sendToChannel broadcastEval'
                 }
-                if (typeof response[0] === 'string') {
-                    throw 'Error response from sendToChannel broadcastEval: ' + response[0]
+                for (const response of responses) {
+                    if (response) {
+                        if (typeof response === 'string') {
+                            throw 'Error response from sendToChannel broadcastEval: ' + response
+                        }
+                        messages.push(response)
+                    }
                 }
-                if (response.length > 1) {
-                    throw 'More than one response from sendToChannel broadcastEval'
-                }
-                messages.push(response[0])
             }
         }
         return messages

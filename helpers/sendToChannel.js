@@ -7,4 +7,5 @@ module.exports = async (client, { channelId, messageText, flags }) => {
             return `Attempted to send message to non-text channel "${channelId}"`
         }
     }
+    return null
 }
