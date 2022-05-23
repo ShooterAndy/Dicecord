@@ -33,6 +33,7 @@ module.exports = async (text, channelId, shouldSuppressEmbeds) => {
         }
         return messages
     } catch (err) {
-        throw err
+        const logger = require('./logger')
+        logger.error('Error in send', err)
     }
 }
