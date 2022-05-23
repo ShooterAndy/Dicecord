@@ -4,6 +4,30 @@ const { LOG_PREFIX, USE_PARTIALS } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
 
+const _getEntityFromBroadcastResponse = (response) => {
+  if (!response) {
+    logger.error(`Empty response from broadcastEval`)
+    return null
+  }
+  if (!response.length) {
+    logger.warn(`Have not found an entity in a broadcastEval lookup`)
+    return null
+  }
+  if (response.length !== 1) {
+    logger.log(`Found multiple entities in broadcastEval lookup. Here they are:\n${JSON.stringify(response)}`)
+    return null
+  }
+  let entity = null
+  let count = 0
+  while (entity === null && count < response.length) {
+    if (response[count]) {
+      entity = response[count]
+    }
+    count++
+  }
+  return entity
+}
+
 const _getChannelById = async (clientOrShard, { id }) => {
   if (!clientOrShard || !clientOrShard.channels) {
     throw `Missing client channels data in _getChannelById for channel ${id}`
@@ -33,6 +57,20 @@ const Client = module.exports = {
       }
     } catch (error) {
       await this.tryToLogIn(errorsCount, previousError, error)
+    }
+  },
+
+  async getChannelById (id) {
+    try {
+      if (this.client.shard) {
+        const response =
+            await this.client.shard.broadcastEval(_getChannelById, { context: { id } })
+        return _getEntityFromBroadcastResponse(response)
+      } else {
+        return _getChannelById(this.client, { id })
+      }
+    } catch (err) {
+      throw err
     }
   },
 
