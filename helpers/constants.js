@@ -1,5 +1,6 @@
 module.exports.IS_LOCAL = process.env.IS_LOCAL === 'true' || false
 module.exports.USE_INTERACTIVE_REACTIONS = process.env.USE_INTERACTIVE_REACTIONS === 'true' || false
+module.exports.USE_PARTIALS = true
 
 // -------------------------------------------------------------------------------------------------
 
