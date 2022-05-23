@@ -181,17 +181,6 @@ module.exports = async (client) => {
     logger.log(`No shard`)
   }
 
-  try {
-    const channel = await Client.getChannelById(process.env.LOG_CHANNEL_ID)
-    if (channel) {
-      const mes = await Client.getMessageByIdAndChannelId(
-        channel.lastMessageId, channel.id)
-      let i = 0
-    }
-  } catch (err) {
-    logger.error(`Failed to get channel`, err)
-  }
-
   await tryToSetActivity()
   setInterval(async () => {
     await tryToSetActivity()

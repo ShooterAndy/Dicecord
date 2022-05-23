@@ -6,7 +6,5 @@ module.exports = async (client, { channelId, messageText, flags }) => {
         } else {
             return `Attempted to send message to non-text channel "${channelId}"`
         }
-    } else {
-        return `Channel "${channelId}" not found in sendToChannel`
     }
 }
