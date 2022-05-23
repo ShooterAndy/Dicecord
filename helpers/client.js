@@ -13,10 +13,6 @@ const _getEntityFromBroadcastResponse = (response) => {
     logger.warn(`Have not found an entity in a broadcastEval lookup`)
     return null
   }
-  if (response.length !== 1) {
-    logger.log(`Found multiple entities in broadcastEval lookup. Here they are:\n${JSON.stringify(response)}`)
-    return null
-  }
   let entity = null
   let count = 0
   while (entity === null && count < response.length) {
