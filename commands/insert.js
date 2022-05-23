@@ -1,4 +1,3 @@
-const _ = require('underscore')
 const pg = require('../helpers/pgHandler')
 const random = require('random')
 const {
@@ -8,7 +7,7 @@ const {
   DECKS_EXPIRE_AFTER,
   CARD_SEPARATOR
 } = require('../helpers/constants')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -19,9 +18,9 @@ module.exports = async (args) => {
     const cards = await processCards(args.commandText.trim(), args.prefix)
     deck = insertCardsIntoDeck(deck, cards)
     const text = await saveDeck(args.message, deck, cards.length)
-    return reply(text, args.message)
+    return replyOrSend(text, args.message)
   } catch (error) {
-    return reply(error, args.message)
+    return replyOrSend(error, args.message)
   }
 }
 
@@ -79,7 +78,7 @@ const processDeck = async (message, deckFromDb, prefix) => {
 
 const insertCardsIntoDeck = (deck, cards) => {
   cards.forEach(card => {
-    const position = random.integer(0, cards.length)
+    const position = random.integer(0, deck.length)
     deck.splice(position, 0, card)
   })
 

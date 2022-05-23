@@ -3,7 +3,7 @@ const {
   ERROR_PREFIX,
   NO_NOT_FOUND_ROLE_NAME
 } = require('../helpers/constants')
-const reply = require('../helpers/reply')
+const reply = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -73,8 +73,13 @@ module.exports = async (client, message, commands, prefixes) => {
         }
       }
       if (message.guild) {
-        if (!message.guild.member(client.user).roles.cache.array().find(
-          (role) => role.name === NO_NOT_FOUND_ROLE_NAME)) {
+        const user = await message.guild.members.fetch(client.user)
+        if (user) {
+          if (!user.roles.cache.find(
+            (role) => role.name === NO_NOT_FOUND_ROLE_NAME)) {
+            await sendNotFoundErrorMessage()
+          }
+        } else {
           await sendNotFoundErrorMessage()
         }
       } else {

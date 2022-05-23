@@ -8,6 +8,7 @@ const {
   IS_LOCAL
 } = require('./constants')
 const nws = require('./nws')
+const send = require('./send')
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
@@ -43,33 +44,26 @@ module.exports = {
       return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Administrator id is not set`)
     }
     try {
-      const channel = await Client.client.channels.fetch(LOG_CHANNEL_ID)
-      if (!channel) {
-        return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Bot is not present on logs \
-        channel "${LOG_CHANNEL_ID}"`)
-      }
       try {
-        let message = `${type}: ${text}`
+        let messageText = `${type}: ${text}`
         if (type === LOG_TYPES.info) {
           const format = THROW_RESULTS_FORMATS[DEFAULT_THROW_RESULT_FORMAT_NAME]
-          message = `${format.boldStart}${type}:${format.boldEnd} ${text}`
+          messageText = `${format.boldStart}${type}:${format.boldEnd} ${text}`
         }
         if (type === LOG_TYPES.error) {
-          message = `<@${ADMINISTRATOR_ID}>\`\`\`diff\n- ${message}\`\`\``
+          messageText = `<@${ADMINISTRATOR_ID}>\`\`\`diff\n- ${messageText}\`\`\``
         }
         if (type === LOG_TYPES.warning) {
-          message = `\`\`\`fix\n ${message}\`\`\``
+          messageText = `\`\`\`fix\n ${messageText}\`\`\``
         }
         if (additionalInfo) {
           if (typeof additionalInfo === 'object' && Object.keys(additionalInfo).length) {
             additionalInfo = JSON.stringify(additionalInfo)
           }
-          message += `\`\`\`${additionalInfo}\`\`\``
+          messageText += `\`\`\`${additionalInfo}\`\`\``
         }
 
-        return Client.client.shard.broadcastEval(
-            `this.channels.cache.get('${LOG_CHANNEL_ID}')?.send('${message}', { split: true })`)
-
+        return send(messageText, LOG_CHANNEL_ID, true)
       } catch (error) {
         return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Failed to send a message to the \
           log channel:\n${error}\n\nOriginal log message:\n${text}`)

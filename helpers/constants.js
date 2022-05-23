@@ -75,6 +75,10 @@ module.exports.NO_REACTIONS_ROLE_NAME = 'DICECORD_NO_REACTIONS'
 
 // -------------------------------------------------------------------------------------------------
 
+module.exports.MAX_MESSAGE_LENGTH = 2000
+
+// -------------------------------------------------------------------------------------------------
+
 module.exports.MIN_PREFIX_LENGTH = 1
 module.exports.MAX_PREFIX_LENGTH = 8
 

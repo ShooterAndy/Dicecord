@@ -6,7 +6,7 @@ const {
   ERROR_PREFIX
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -17,11 +17,11 @@ module.exports = async (args) => {
     if (indexOfFirstSpace !== -1) {
       const name = commandText.slice(0, indexOfFirstSpace).trim().toLowerCase()
       if (!name.match(/^[a-z0-9\-_]+$/)) {
-        return reply(nws`Please use only latin characters, numbers, as well as the \`-\` and \`_\`\
+        return replyOrSend(nws`Please use only latin characters, numbers, as well as the \`-\` and \`_\`\
          characters in command name.`, args.message)
       }
       if (name.length > MAX_SAVED_ROLL_COMMAND_NAME_LENGTH) {
-        return reply(nws`Please pick a name with less than ${MAX_SAVED_ROLL_COMMAND_NAME_LENGTH} \
+        return replyOrSend(nws`Please pick a name with less than ${MAX_SAVED_ROLL_COMMAND_NAME_LENGTH} \
           characters in it.`, args.message)
       }
       const command = commandText.slice(indexOfFirstSpace).trim()
@@ -36,47 +36,47 @@ module.exports = async (args) => {
           })
         if (!result || !result.upsert_saved_roll_command) {
           logger.error(`The result of upsert_saved_roll_command appears to be empty`)
-          return reply(`Failed to save your roll. Please contact the bot author.`,
+          return replyOrSend(`Failed to save your roll. Please contact the bot author.`,
             args.message)
         }
         switch (result.upsert_saved_roll_command) {
           case UPSERT_SAVED_ROLL_COMMAND_RESULTS.inserted: {
-            return reply(nws`Your command \`${name}\` was saved successfully! You can roll it like \
+            return replyOrSend(nws`Your command \`${name}\` was saved successfully! You can roll it like \
               this:\n\`${args.prefix}rollSaved ${name}\`\nor examine it like \
               this:\n\`${args.prefix}getSaved ${name}\`\nBe aware that your saved commands will \
               expire and be automatically **deleted** after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of \
               being rolled or examined last.`, args.message)
           }
           case UPSERT_SAVED_ROLL_COMMAND_RESULTS.updated: {
-            return reply(nws`Your command \`${name}\` was successfully updated! You can roll it \
+            return replyOrSend(nws`Your command \`${name}\` was successfully updated! You can roll it \
               like this:\n\`${args.prefix}rollSaved ${name}\`\nor examine it like \
               this:\n\`${args.prefix}getSaved ${name}\`\nBe aware that your saved commands will \
               expire and be automatically **deleted** after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of \
               being rolled or examined last.`, args.message)
           }
           case UPSERT_SAVED_ROLL_COMMAND_RESULTS.limit: {
-            return reply(nws`Unfortunately, you already have ${MAX_SAVED_ROLL_COMMANDS_PER_USER} \
+            return replyOrSend(nws`Unfortunately, you already have ${MAX_SAVED_ROLL_COMMANDS_PER_USER} \
               saved roll commands. You can delete one like this: \
               \n\`${args.prefix}deleteSaved some-name\``, args.message)
           }
           default: {
             logger.error(`Unknown upsert_saved_roll_command type result`)
-            return reply(nws`Something went wrong. Please contact the bot author.`, args.message)
+            return replyOrSend(nws`Something went wrong. Please contact the bot author.`, args.message)
           }
         }
 
       } catch (error) {
         logger.error(`Failed to save a roll command`, error)
-        return reply(nws`${ERROR_PREFIX}Failed to save the command. Please contact the bot author.`,
+        return replyOrSend(nws`${ERROR_PREFIX}Failed to save the command. Please contact the bot author.`,
           args.message)
       }
     } else {
-      return reply(nws`${ERROR_PREFIX}You have to enter the command you want to have saved after \
+      return replyOrSend(nws`${ERROR_PREFIX}You have to enter the command you want to have saved after \
         the name, for example:\n\`${args.prefix}${args.commandName} ${commandText} 2d10+6\``,
         args.message)
     }
   } else {
-    return reply(nws`${ERROR_PREFIX}You have to enter the name you want to use followed by the \
+    return replyOrSend(nws`${ERROR_PREFIX}You have to enter the name you want to use followed by the \
       command you want to have saved, for example:\n\`${args.prefix}${args.commandName} some-name \
       2d10+6\``, args.message)
   }

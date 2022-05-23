@@ -5,7 +5,7 @@ const {
   SAVED_ROLL_COMMANDS_EXPIRE_AFTER
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const roll = require('./r')
 const logger = require('../helpers/logger')
@@ -27,7 +27,7 @@ module.exports = async (args) => {
         }
       )
       if (!result || !result.command) {
-        return reply(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
+        return replyOrSend(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
           Perhaps it expired after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of not being used? \
           You can also try listing all your saved roll commands via the \ 
           \`${args.prefix}listSaved\` command`, args.message)
@@ -39,7 +39,7 @@ module.exports = async (args) => {
         client: args.client,
         prefix: args.prefix
       }
-      roll(argsForRoll)
+      await roll(argsForRoll)
 
       try {
         await pg.db.none(
@@ -56,16 +56,16 @@ module.exports = async (args) => {
         )
       } catch (error) {
         logger.error(`Failed to update timestamp in ${args.commandName}`, error)
-        return reply(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot \
+        return replyOrSend(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot \
           author.`, args.message)
       }
     } catch (error) {
       logger.error(`Failed to load a saved roll command`, error)
-      return reply(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,
+      return replyOrSend(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,
         args.message)
     }
   } else {
-    return reply(nws`${ERROR_PREFIX}You have to enter the name of the command you want to load and \
+    return replyOrSend(nws`${ERROR_PREFIX}You have to enter the name of the command you want to load and \
       roll, for example:\n\`${args.prefix}${args.commandName} some-name\`\nIf you do not remember \
       the name, you can use the \`${args.prefix}listSaved\` command to get the list of all saved \
       commands for this Discord channel.`,

@@ -1,10 +1,8 @@
 const Discord = require('discord.js')
 const Prefixes = require('./prefixes')
-const fs = require('fs')
 const { LOG_PREFIX, USE_PARTIALS } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
-const _ = require('underscore');
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -98,15 +96,6 @@ const Client = module.exports = {
     }
   },
 
-  async replyToMessageByIdAndChannelId (messageId, channelId, text, shouldSuppressEmbeds) {
-    if (!text) {
-      throw 'No text in reply function call'
-    }
-    if (this.client.shard) {
-      return this.client.shard.broadcastEval()
-    }
-  },
-
   async readyBasics (commands) {
     let options = {}
     if (USE_PARTIALS) {
@@ -114,6 +103,7 @@ const Client = module.exports = {
     }
     const myIntents = new Discord.Intents()
     myIntents.add(
+      Discord.Intents.FLAGS.GUILDS,
       Discord.Intents.FLAGS.GUILD_MESSAGES,
       Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
       Discord.Intents.FLAGS.DIRECT_MESSAGES,
@@ -134,19 +124,16 @@ const Client = module.exports = {
     } catch (error) {
       logger.error(`Couldn't read the prefixes table`, error)
     }
-    await fs.readdir('./events/', async (err, files) => {
-
-      Client.client.on('error', async error =>
+    Client.client.on('error', async error =>
         await require(`../events/error`)(Client.client, error))
-      Client.client.on('ready', async () =>
+    Client.client.on('ready', async () =>
         await require(`../events/ready`)(Client.client))
-      Client.client.on('message', async message =>
+    Client.client.on('messageCreate', async message =>
         await require(`../events/message`)(Client.client, message, commands, prefixes))
-      Client.client.on('messageReactionAdd', async (messageReaction, user) =>
+    Client.client.on('messageReactionAdd', async (messageReaction, user) =>
         await require('../events/messageReactionAdd')(Client.client, messageReaction, user))
 
-      logger.log('Trying to log in...')
-      await Client.tryToLogIn(0, null, null)
-    })
+    logger.log('Trying to log in...')
+    await Client.tryToLogIn(0, null, null)
   }
 }

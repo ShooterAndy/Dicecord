@@ -1,4 +1,3 @@
-const _ = require('underscore')
 const pg = require('../helpers/pgHandler')
 const {
   DECKS_DB_NAME,
@@ -8,7 +7,8 @@ const {
   COMMENT_SEPARATOR,
   DISCORD_CODE_REGEX
 } = require('../helpers/constants')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
+const send = require('../helpers/send')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -47,7 +47,7 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
       })
 
     if (!result || !result[DECKS_COLUMNS.deck]) {
-      return reply(nws`${ERROR_PREFIX}Couldn't find a deck for this channel. Please \
+      return replyOrSend(nws`${ERROR_PREFIX}Couldn't find a deck for this channel. Please \
         \`${prefix}shuffle\` one first. If there was a deck, perhaps it expired and was \
         automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`, message)
     }
@@ -56,12 +56,12 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
       deck = JSON.parse(result[DECKS_COLUMNS.deck]);
     } catch (error) {
       logger.error(nws`Failed to parse the deck for channel "${message.channel.id}"`, error)
-      return reply(nws`${ERROR_PREFIX}Failed to process the deck. Please contact the bot author`,
+      return replyOrSend(nws`${ERROR_PREFIX}Failed to process the deck. Please contact the bot author`,
         message)
     }
 
     if (deck.length < numberOfCardsToDraw) {
-      return reply(nws`${ERROR_PREFIX}Not enough cards left in the deck (requested \
+      return replyOrSend(nws`${ERROR_PREFIX}Not enough cards left in the deck (requested \
         ${numberOfCardsToDraw}, but only ${deck.length} cards left). Please reshuffle (by using \
         \`${prefix}shuffle\`) or ${verb} fewer cards.`, message)
     }
@@ -106,16 +106,24 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
         try {
           const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
           const privateText = `${commentary}${drawnCards.join(', ')}`
-          await message.author.send(privateText, {split: true})
+          if (message.author.dmChannel) {
+            await send(privateText, message.author.dmChannel.id)
+          } else {
+            const dmChannel = await message.author.createDM()
+            if (!dmChannel) {
+              throw `Failed to create a new DM channel`
+            }
+            await send(privateText, dmChannel.id)
+          }
         } catch (error) {
           logger.error(nws`Failed to send a DM to "${message.author.id}"`, error)
-          return reply(`${ERROR_PREFIX}Failed to send you a DM.`, message)
+          return replyOrSend(`${ERROR_PREFIX}Failed to send you a DM.`, message)
         }
       }
-      return reply(text, message)
+      return replyOrSend(text, message)
     } catch (error) {
       logger.error(nws`Failed to update the deck for channel "${message.channel.id}"`, error)
-      return reply(`${ERROR_PREFIX}Failed to save the deck.`, message)
+      return replyOrSend(`${ERROR_PREFIX}Failed to save the deck.`, message)
     }
   } catch(error) {
     logger.error(`Failed to get the deck for channel "${message.channel.id}"`, error)

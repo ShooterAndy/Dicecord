@@ -14,7 +14,6 @@
 * **!deal** — deals the requested amount of cards from the saved deck.
 * **!drawShuffled** (!drsh) — draws the requested amount of cards from a fresh deck.
 * **!drawPrivate** (!drpr) — draws the requested amount of cards from the saved deck and sends the results to your Direct Messages.
+* **!dealPrivate** (!depr) — deals the requested amount of cards from the saved deck and DMS them to the mentioned users.
 * **!insert** (!i) — inserts the specified cards into the saved deck at random positions.
-* **!markdown** (!md) — returns the last message sent by this bot in markdown format (useful for Discord, etc.).
-* **!bbcode** — returns the last message sent by this bot in BB-code (to be used for forums).
 * **!setPrefix** — sets the command prefix (`!` by default) this bot will use in this Guild, _administrator-only!_

@@ -4,7 +4,7 @@ const {
   ERROR_PREFIX
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -20,7 +20,7 @@ module.exports = async (args) => {
       })
 
     if (!result || !result.length) {
-      return reply(nws`You don't have any roll commands saved yet. Try saving some with \
+      return replyOrSend(nws`You don't have any roll commands saved yet. Try saving some with \
         the \`${args.prefix}saveRoll some-name your roll command\` command!`,
         args.message)
     }
@@ -28,10 +28,10 @@ module.exports = async (args) => {
     result.forEach(command => {
       text += `\`${command.name}\`\n`
     })
-    return reply(text, args.message)
+    return replyOrSend(text, args.message)
   } catch(error) {
     logger.log(`Failed to get the list of saved roll commands`, error)
-    return reply(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot \
+    return replyOrSend(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot \
       author.`, args.message)
   }
 }

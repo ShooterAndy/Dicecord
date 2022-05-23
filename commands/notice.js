@@ -1,6 +1,6 @@
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 
 module.exports = args => {
-  return reply('No current notices',
+  return replyOrSend('No current notices',
     args.message)
 }

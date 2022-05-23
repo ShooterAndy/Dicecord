@@ -9,11 +9,10 @@ const {
   B_EMOJI,
   M_EMOJI,
   REPEAT_EMOJI,
-  THROW_RESULTS_FORMATS,
-  USE_PARTIALS
+  THROW_RESULTS_FORMATS
 } = require('../helpers/constants')
 const roll = require('../commands/roll')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const Client = require('../helpers/client')
 const formatThrowResults = require('../helpers/formatThrowResults')
@@ -157,14 +156,14 @@ const processRollResultReaction = async (reaction, content, originalMessage) => 
     const text = formatThrowResults({
       throws: content.throws, formatName: THROW_RESULTS_FORMATS.bbcode.name
     })
-    return reply(nws`Here are your results formatted for BB-code:\
+    return replyOrSend(nws`Here are your results formatted for BB-code:\
       \`\`\`${text}\`\`\``, originalMessage)
   }
   if (reaction.emoji.name === M_EMOJI) {
     const text = formatThrowResults({
       throws: content.throws, formatName: THROW_RESULTS_FORMATS.markdown.name
     })
-    return reply(nws`Here are your results formatted for markdown:\
+    return replyOrSend(nws`Here are your results formatted for markdown:\
       \`\`\`${text}\`\`\``, originalMessage)
   }
   if (reaction.emoji.name === REPEAT_EMOJI) {
@@ -191,7 +190,7 @@ const processWarningReaction = async (reaction, content, originalMessage) => {
     return roll.goOnFromWarning(args)
   }
   if (reaction.emoji.name === NO_EMOJI) {
-    return reply(nws`Here's your original message, please copy and edit it as needed:\
+    return replyOrSend(nws`Here's your original message, please copy and edit it as needed:\
       \`\`\`${originalMessage.content}\`\`\``, originalMessage)
   }
 }

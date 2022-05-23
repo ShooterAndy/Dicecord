@@ -1,4 +1,3 @@
-const _ = require('underscore')
 const { MessageMentions } = require('discord.js')
 const pg = require('../helpers/pgHandler')
 const {
@@ -10,9 +9,10 @@ const {
   COMMENT_SEPARATOR,
   DISCORD_CODE_REGEX
 } = require('../helpers/constants')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
+const send = require('../helpers/send')
 
 
 module.exports = async (args) => {
@@ -30,14 +30,19 @@ module.exports = async (args) => {
     comment = getComment(comment)
     const text = await processDealCommand(args.message, deck, mentionsList, numberOfCardsToDraw,
       comment, args.prefix)
-    return reply(text, args.message)
+    return replyOrSend(text, args.message)
   }
   catch (error) {
-    return reply(error, args.message)
+    if (typeof error === 'string') {
+      return replyOrSend(error, args.message)
+    } else {
+      logger.error('Error in dealPrivate', error)
+      return replyOrSend(`${ERROR_PREFIX}Failed to deal. Please contact the author.`)
+    }
   }
 }
 
-const getNumberOfCardsToDraw = (commandText, message, prefix) => {
+const getNumberOfCardsToDraw = (commandText) => {
   let numberOfCardsToDraw = commandText.trim().split(' ')[0]
   if (commandText === '') {
     return -1
@@ -50,13 +55,13 @@ const getNumberOfCardsToDraw = (commandText, message, prefix) => {
 }
 
 const getMentionsList = (message, prefix) => {
-  const mentionsList = message.mentions.users.array()
-  if (!mentionsList || !mentionsList.length) {
+  const mentionsList = message.mentions.users
+  if (!mentionsList || !mentionsList.size) {
     throw nws`Please mention at least one user (who has access to this channel) whom you want to \
       deal the cards to, for example: \`${prefix}dealPrivate 3 @user1, @user2 comment\``
   }
 
-  if (mentionsList.length > MAX_DEAL_TARGETS) {
+  if (mentionsList.size > MAX_DEAL_TARGETS) {
     throw nws`You've mentioned ${mentionsList.length} users, but, to prevent mass spam, the \
       maximum allowed number of users you can deal cards to at once is ${MAX_DEAL_TARGETS}.`
   }
@@ -118,25 +123,29 @@ const processDeck = (deckFromDb, message, prefix) => {
   }
 }
 
-const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDraw, comment,
-                                  prefix) =>
+const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDraw, comment, prefix) =>
 {
   let text = '';
 
-  const totalNumberOfCardsToDraw = mentionsList.length * numberOfCardsToDraw
+  const totalNumberOfCardsToDraw = mentionsList.size * numberOfCardsToDraw
 
   if (deck.length < totalNumberOfCardsToDraw) {
     throw nws`${ERROR_PREFIX}Not enough cards left in the deck (requested \
     ${totalNumberOfCardsToDraw}, but only ${deck.length} cards left). Please reshuffle (by using \
     \`${prefix}shuffle\`) or deal fewer cards.`
   } else {
-    let authorName = ''
+    let authorName
     if (message.member) {
       authorName = message.member.displayName
     } else {
       authorName = message.author.username
     }
-    for (const mention of mentionsList) {
+    const mentionsArray = []
+    mentionsList.forEach(mention => {
+      mentionsArray.push(mention)
+    })
+
+    for (const mention of mentionsArray) {
       let drawnCards = deck.slice(0, numberOfCardsToDraw)
       deck = deck.slice(numberOfCardsToDraw)
       try {
@@ -145,10 +154,18 @@ const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDr
           cardOrCards = 'this card'
         }
         const commentary =
-          comment ? `${authorName} → \`${comment}:\`\n` :
-            `You have been dealt ${cardOrCards} by ${authorName}:\n`
+            comment ? `${authorName} → \`${comment}:\`\n` :
+                `You have been dealt ${cardOrCards} by ${authorName}:\n`
         const privateText = `${commentary}${drawnCards.join(', ')}`
-        await mention.send(privateText, {split: true})
+        if (mention.dmChannel) {
+          await send(privateText, mention.dmChannel.id)
+        } else {
+          const dmChannel = await mention.createDM()
+          if (!dmChannel) {
+            throw `Failed to create a new DM channel`
+          }
+          await send(privateText, dmChannel.id)
+        }
       } catch (error) {
         logger.error(nws`Failed to send a DM to "${mention.id}"`, error)
         throw`${ERROR_PREFIX}Failed to send a DM to ${mention.tag}.`

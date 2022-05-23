@@ -4,12 +4,12 @@ const {
   MAX_ORDER_NUMBER,
   ERROR_PREFIX
 } = require('../helpers/constants')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 
 module.exports = args => {
   if(!args.commandText) {
-    return reply(nws`${ERROR_PREFIX}No items to order. Please input something like this:\n\
+    return replyOrSend(nws`${ERROR_PREFIX}No items to order. Please input something like this:\n\
       \`${args.prefix}${args.commandName} First item, Another item, ...\`, or check out \
       \`${args.prefix}help order\` for more info.`, args.message)
   }
@@ -27,11 +27,11 @@ module.exports = args => {
 
   const choiceParts = commandText.split(',')
   if(choiceParts.length < MIN_ORDER_NUMBER) {
-    return reply(nws`${ERROR_PREFIX}Not enough items to order, please provide at least \
+    return replyOrSend(nws`${ERROR_PREFIX}Not enough items to order, please provide at least \
       ${MIN_ORDER_NUMBER}.`, args.message)
   }
   if(choiceParts.length > MAX_ORDER_NUMBER) {
-    return reply(nws`${ERROR_PREFIX}Too many items to order, please provide less than \
+    return replyOrSend(nws`${ERROR_PREFIX}Too many items to order, please provide less than \
       ${MAX_ORDER_NUMBER}.`, args.message)
   }
   let choices = []
@@ -42,7 +42,7 @@ module.exports = args => {
     }
   });
   if(choices.length < MIN_ORDER_NUMBER) {
-    return reply(nws`${ERROR_PREFIX}Not enough actual items to order, please provide at least \
+    return replyOrSend(nws`${ERROR_PREFIX}Not enough actual items to order, please provide at least \
       ${MIN_ORDER_NUMBER}.`, args.message)
   }
 
@@ -59,6 +59,6 @@ module.exports = args => {
     }
   })
 
-  return reply('Your list of items, randomly ordered:\n```' + choicesString + '```',
+  return replyOrSend('Your list of items, randomly ordered:\n```' + choicesString + '```',
     args.message)
 }

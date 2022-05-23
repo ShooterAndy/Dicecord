@@ -1,5 +1,5 @@
 const fs = require('fs')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const {
   ERROR_PREFIX
@@ -15,11 +15,11 @@ module.exports = args => {
   fs.readFile(`./help/${helpFileName}`, 'utf8',
     (err, data) => {
     if (err) {
-      return reply(nws`${ERROR_PREFIX}Couldn't find help information for "${helpFileName}".`,
+      return replyOrSend(nws`${ERROR_PREFIX}Couldn't find help information for "${helpFileName}".`,
         args.message)
     }
     else {
-      return reply(data, args.message, true)
+      return replyOrSend(data, args.message, true)
     }
   })
 }

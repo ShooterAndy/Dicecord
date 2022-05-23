@@ -12,7 +12,7 @@ const {
 } = require('../helpers/constants.js')
 const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const logger = require('../helpers/logger')
 
 module.exports = async (args) => {
@@ -30,9 +30,9 @@ module.exports = async (args) => {
       deck = await getAndProcessDeckFromDb(args.message, deckId, args.prefix)
     }
     const replyText = await saveShuffledDeck(args.message, deckId, deck)
-    return reply(replyText, args.message)
+    return replyOrSend(replyText, args.message)
   } catch (error) {
-    return reply(error, args.message)
+    return replyOrSend(error, args.message)
   }
 }
 

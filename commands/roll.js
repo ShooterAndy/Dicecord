@@ -3,10 +3,11 @@ const _ = require('underscore')
 const formatThrowResults = require('../helpers/formatThrowResults')
 
 const nws = require('../helpers/nws')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const logger = require('../helpers/logger')
 const pg = require('../helpers/pgHandler')
 const shouldUseReactions = require('../helpers/shouldUseReactions')
+const reactToMessage = require('../helpers/reactToMessage')
 
 const {
   HANDLED_ERROR_TYPE_NAME,
@@ -214,7 +215,7 @@ let rollNameSpace = function () {
         }
       })
       let validCommandText
-      if (shouldUseReactions(message)) {
+      if (await shouldUseReactions(message)) {
         validCommandText = getCommandText()
         if (validCommandText) {
           warningsText += '\nDo you still wish to proceed? Your command would be:'
@@ -226,8 +227,8 @@ let rollNameSpace = function () {
       } else {
         warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
       }
-      const warningsMessage = await reply(warningsText, message)
-      if (warningsMessage && validCommandText && shouldUseReactions(message)) {
+      const warningsMessage = await replyOrSend(warningsText, message)
+      if (warningsMessage && validCommandText && await shouldUseReactions(message)) {
         try {
           const pairs = {}
           pairs[MESSAGES_COLUMNS.message_id] = warningsMessage.id
@@ -266,7 +267,7 @@ let rollNameSpace = function () {
   }
 
   const showError = async (text) => {
-    await reply(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it \ 
+    await replyOrSend(nws`${ERROR_PREFIX}${text}\nHere's your original message, please copy and edit it \ 
       as needed:\n\`\`\`${message.content}\`\`\``, message)
     clearEverything()
   }
@@ -277,7 +278,7 @@ let rollNameSpace = function () {
     } else {
       logger.error(`Unknown error was thrown in roll command`, (new Error()).stack)
     }
-    await reply(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
+    await replyOrSend(`${ERROR_PREFIX}Some uncaught error occurred, please contact the both author.`,
       message)
     clearEverything()
   }
@@ -1931,7 +1932,7 @@ let rollNameSpace = function () {
 
     const formattedThrowResults = formatThrowResults(
       { throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
-    const replyMessage = await reply(formattedThrowResults, message).catch(error => {
+    const replyMessage = await replyOrSend(formattedThrowResults, message).catch(error => {
       throw error
     })
 
@@ -1945,11 +1946,11 @@ let rollNameSpace = function () {
     const messageId = message.id
     const authorId = message.author ? message.author.id : message['authorID']
 
-    if (shouldUseReactions(message)) {
+    if (await shouldUseReactions(message)) {
       const pairs = {}
       try {
         pairs[MESSAGES_COLUMNS.message_id] = replyMessage.id
-        pairs[MESSAGES_COLUMNS.channel_id] = replyMessage.channel.id
+        pairs[MESSAGES_COLUMNS.channel_id] = replyMessage.channelId
         pairs[MESSAGES_COLUMNS.type] = MESSAGE_TYPES.rollResult
         pairs[MESSAGES_COLUMNS.content] = JSON.stringify({
           messageId: messageId,
@@ -1973,7 +1974,9 @@ let rollNameSpace = function () {
       }
       try {
         await Promise.all([
-          replyMessage.react(B_EMOJI), replyMessage.react(M_EMOJI), replyMessage.react(REPEAT_EMOJI)
+          reactToMessage(replyMessage, B_EMOJI),
+          reactToMessage(replyMessage, M_EMOJI),
+          reactToMessage(replyMessage, REPEAT_EMOJI)
         ])
       } catch (error) {
         if (error && error.name === 'DiscordAPIError') { // TODO: Figure this out

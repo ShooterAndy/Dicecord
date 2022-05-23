@@ -4,7 +4,7 @@ const {
   DECK_TYPES_COLUMNS,
   ERROR_PREFIX
 } = require('../helpers/constants')
-const reply = require('../helpers/reply')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -18,7 +18,7 @@ module.exports = async (args) => {
   }
   try {
     if (!deckId) {
-      return reply(nws`${ERROR_PREFIX}Please enter the name of the deck you wish to \
+      return replyOrSend(nws`${ERROR_PREFIX}Please enter the name of the deck you wish to \
         examine, for example:\n\`${args.prefix}${args.commandName} poker-color\``, args.message)
     }
     let result
@@ -46,7 +46,7 @@ module.exports = async (args) => {
     }
 
     if (!result || !result.description) {
-      return reply(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
+      return replyOrSend(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
       types via the \`${args.prefix}listDeckTypes\` command.`, args.message)
     }
     let text = '`' + deckId + '`:\n> ' + result.description + '\n'
@@ -55,17 +55,17 @@ module.exports = async (args) => {
         text += '\n Cards in this deck:\n > ' + JSON.parse(result.deck).join(', ') + '\n'
       } catch (error) {
         logger.error(`Failed to parse "${deckId}" deck`, error)
-        return reply(`${ERROR_PREFIX}Failed to parse the deck. Please contact the bout author`,
+        return replyOrSend(`${ERROR_PREFIX}Failed to parse the deck. Please contact the bout author`,
           args.message)
       }
     } else {
       text += 'You can see the full deck by using the `' + args.prefix + 'examineDeck -full ' +
         deckId + '`'
     }
-    return reply(text, args.message).catch(console.error)
+    return replyOrSend(text, args.message).catch(console.error)
   } catch (error) {
     logger.error(`Failed to get the info for deck "${deckId}"`, error)
-    return reply(`${ERROR_PREFIX} Failed to get the information about this deck. Please \
+    return replyOrSend(`${ERROR_PREFIX} Failed to get the information about this deck. Please \
       contact the author of this bot.`, args.message)
   }
 };

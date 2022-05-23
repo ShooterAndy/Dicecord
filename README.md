@@ -36,8 +36,6 @@ The currently available commands are:
 * [!drawPrivate (!drpr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawprivate.md) &mdash; draws the requested amount of cards from the saved deck and DMs them to you.
 * [!dealPrivate (!depr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/dealprivate.md) &mdash; deals the requested amount of cards from the saved deck and DMS them to the mentioned users.
 * [!insert (!i)](https://github.com/ShooterAndy/Dicecord/blob/master/help/insert.md) &mdash; inserts specified card(s) into the saved deck at random positions.
-* [!bbcode](https://github.com/ShooterAndy/Dicecord/blob/master/help/bbcode.md) &mdash; returns the last message sent by this bot in BB-code (to be used for forums).
-* [!markdown (!md)](https://github.com/ShooterAndy/Dicecord/blob/master/help/markdown.md) &mdash; returns the last message sent by this bot in markdown code.
 * [!saveRoll (!sr)](https://github.com/ShooterAndy/Dicecord/blob/master/help/saveroll.md) &mdash; saves a roll command for later use.
 * [!getSaved (!gs)](https://github.com/ShooterAndy/Dicecord/blob/master/help/getsaved.md) &mdash; returns the text of a saved roll command.
 * [!rollSaved (!rs)](https://github.com/ShooterAndy/Dicecord/blob/master/help/rollsaved.md) &mdash; rolls a saved roll command.
