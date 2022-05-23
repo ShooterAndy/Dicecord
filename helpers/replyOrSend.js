@@ -20,7 +20,7 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
     if (doReply) {
       messages = await reply(text, message, shouldSuppressEmbeds)
     } else {
-      messages = await send(text, message.channel.id, shouldSuppressEmbeds)
+      messages = await send(text, message, shouldSuppressEmbeds)
     }
     return messages[messages.length - 1]
   } catch (error) {

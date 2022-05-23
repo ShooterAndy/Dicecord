@@ -20,13 +20,13 @@ const replyToMessage = async (client, { messageObject, messageText, flags }) => 
 }
 
 module.exports = async (text, message, shouldSuppressEmbeds) => {
-    if (!text) {
-        throw `No text in reply function call`
-    }
-    if (!message) {
-        throw `No message in reply function call for text "${text}"`
-    }
     try {
+        if (!text) {
+            throw `No text in reply function call`
+        }
+        if (!message) {
+            throw `No message in reply function call for text "${text}"`
+        }
         const parts = splitMessage(text)
         const messages = [];
         let isFirst = true
@@ -36,33 +36,42 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
                 flags.add(Discord.MessageFlags.FLAGS.SUPPRESS_EMBEDS)
             }
             if (isFirst) {
-                const responses = await Client.client.shard.broadcastEval(replyToMessage,
-                    { context: { messageObject: message, messageText: part, flags } })
-                if (!responses || !responses.length) {
-                    throw 'Empty response from replyToMessage broadcastEval'
-                }
-                for (const response of responses) {
-                    if (response) {
-                        if (typeof response === 'string') {
-                            throw 'Error response from replyToMessage broadcastEval: ' + response
-                        }
-                        messages.push(response)
+                if (message.guildId) {
+                    const responses = await Client.client.shard.broadcastEval(replyToMessage,
+                        { context: { messageObject: message, messageText: part, flags } })
+                    if (!responses || !responses.length) {
+                        throw 'Empty response from replyToMessage broadcastEval'
                     }
+                    for (const response of responses) {
+                        if (response) {
+                            if (typeof response === 'string') {
+                                throw 'Error response from replyToMessage broadcastEval: ' + response
+                            }
+                            messages.push(response)
+                        }
+                    }
+                } else { // It's a DM
+                    messages.push(await message.reply({ content: part, flags }))
                 }
                 isFirst = false
             } else {
-                const responses = await Client.client.shard.broadcastEval(sendToChannel,
-                    { context: { channelId: message.channel.id, messageText: part, flags } })
-                if (!responses || !responses.length) {
-                    throw 'Empty response from sendToChannel broadcastEval'
-                }
-                for (const response of responses) {
-                    if (response) {
-                        if (typeof response === 'string') {
-                            throw 'Error response from sendToChannel broadcastEval: ' + response
-                        }
-                        messages.push(response)
+                if (messages.guildId) {
+                    const responses = await Client.client.shard.broadcastEval(sendToChannel,
+                        { context: { channelId: message.channel.id, messageText: part, flags } })
+                    if (!responses || !responses.length) {
+                        throw 'Empty response from sendToChannel broadcastEval'
                     }
+                    for (const response of responses) {
+                        if (response) {
+                            if (typeof response === 'string') {
+                                throw 'Error response from sendToChannel broadcastEval: ' + response
+                            }
+                            messages.push(response)
+                        }
+                    }
+                } else { // It's a DM
+                    const response = await message.channel.send({ content: part, flags })
+                    messages.push(response)
                 }
             }
         }

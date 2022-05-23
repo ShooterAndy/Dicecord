@@ -107,13 +107,13 @@ const processDrawCommand = async (message, numberOfCardsToDraw, comment, verb, i
           const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
           const privateText = `${commentary}${drawnCards.join(', ')}`
           if (message.author.dmChannel) {
-            await send(privateText, message.author.dmChannel.id)
+            await message.author.dmChannel.send(privateText)
           } else {
             const dmChannel = await message.author.createDM()
             if (!dmChannel) {
               throw `Failed to create a new DM channel`
             }
-            await send(privateText, dmChannel.id)
+            await message.author.dmChannel.send(privateText)
           }
         } catch (error) {
           logger.error(nws`Failed to send a DM to "${message.author.id}"`, error)

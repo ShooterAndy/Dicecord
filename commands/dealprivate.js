@@ -158,13 +158,13 @@ const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDr
                 `You have been dealt ${cardOrCards} by ${authorName}:\n`
         const privateText = `${commentary}${drawnCards.join(', ')}`
         if (mention.dmChannel) {
-          await send(privateText, mention.dmChannel.id)
+          await message.author.dmChannel.send(privateText)
         } else {
           const dmChannel = await mention.createDM()
           if (!dmChannel) {
             throw `Failed to create a new DM channel`
           }
-          await send(privateText, dmChannel.id)
+          await message.author.dmChannel.send(privateText)
         }
       } catch (error) {
         logger.error(nws`Failed to send a DM to "${mention.id}"`, error)
