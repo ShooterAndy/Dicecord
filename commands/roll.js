@@ -2044,7 +2044,7 @@ let rollNameSpace = function () {
   }
 
   const getTypoOrCommentHint = () => {
-    return nws`Perhaps you've made a typo or a \`${COMMENT_SEPARATOR}\` symbol to mark it as \
+    return nws`Perhaps you've made a typo or forgot a \`${COMMENT_SEPARATOR}\` symbol to mark it as \
           a comment`
   }
 
