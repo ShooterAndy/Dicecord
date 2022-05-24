@@ -76,7 +76,7 @@ const Client = module.exports = {
   async readyBasics (commands) {
     let options = { }
     if (USE_PARTIALS) {
-      options = { partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER'] }
+      options = { partials: ['CHANNEL'] }
     }
     options.shards = Cluster.data.SHARD_LIST // An array of shards that will get spawned
     options.shardCount = Cluster.data.TOTAL_SHARDS // Total number of shards
@@ -108,6 +108,20 @@ const Client = module.exports = {
           excludeFromSweep: e => !e.archived,
         })
       },
+      ApplicationCommandManager: 0, // guild.commands
+      BaseGuildEmojiManager: 0, // guild.emojis
+      GuildBanManager: 0, // guild.bans
+      GuildInviteManager: 0, // guild.invites
+      GuildManager: Infinity, // client.guilds
+      GuildMemberManager: 0, // guild.members
+      GuildStickerManager: 0, // guild.stickers
+      GuildScheduledEventManager: 0, // guild.scheduledEvents
+      ReactionManager: 0, // message.reactions
+      ReactionUserManager: 0, // reaction.users
+      StageInstanceManager: 0, // guild.stageInstances
+      ThreadMemberManager: 0, // threadchannel.members
+      UserManager: 0, // client.users
+      VoiceStateManager: 0 // guild.voiceStates
     })
     Client.client = new Discord.Client(options)
     Client.client.cluster = new Cluster.Client(Client.client)

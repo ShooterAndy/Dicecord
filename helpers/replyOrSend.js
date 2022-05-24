@@ -9,12 +9,13 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
     throw `No message in replyOrSend function call for text "${text}"`
   }
   try {
-    if (message.channel && message.guild) { // Do we even have a permission to reply?
+    // We already check for this in message event, do we need to check twice?
+    /*if (message.channel && message.guild) { // Do we even have a permission to reply?
       if(!message.guild.me
         || !message.channel.permissionsFor(message.guild.me).has('SEND_MESSAGES')) {
         return null
       }
-    }
+    }*/
     const doReply = await require('./shouldReply')(message)
     let messages
     if (doReply) {

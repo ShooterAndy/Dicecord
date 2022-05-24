@@ -37,7 +37,8 @@ module.exports = async (client, message, commands, prefixes) => {
   if (message.content.startsWith(prefix)) {
     let hasPermissions = true
     if (message.channel && message.guild) { // Do we even have a permission to reply?
-      if(!message.channel.permissionsFor(message.guild.me).has('SEND_MESSAGES')) {
+      const me = await message.guild.members.fetch(client.user.id)
+      if(!message.channel.permissionsFor(me).has('SEND_MESSAGES')) {
         hasPermissions = false
       }
     }
