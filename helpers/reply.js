@@ -41,7 +41,7 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
             }
             if (isFirst) {
                 if (message.guildId) {
-                    const responses = await Client.client.shard.broadcastEval(replyToMessage,
+                    const responses = await Client.client.cluster.broadcastEval(replyToMessage,
                         { context: { messageObject: message, messageText: part, flags } })
                     if (!responses || !responses.length) {
                         throw 'Empty response from replyToMessage broadcastEval'
@@ -60,7 +60,7 @@ module.exports = async (text, message, shouldSuppressEmbeds) => {
                 isFirst = false
             } else {
                 if (messages.guildId) {
-                    const responses = await Client.client.shard.broadcastEval(sendToChannel,
+                    const responses = await Client.client.cluster.broadcastEval(sendToChannel,
                         { context: { channelId: message.channel.id, messageText: part, flags } })
                     if (!responses || !responses.length) {
                         throw 'Empty response from sendToChannel broadcastEval'

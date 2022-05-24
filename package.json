@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "dblapi.js": "^2.3.0",
+    "discord-hybrid-sharding": "^1.5.3",
     "discord.js": "^13.7.0",
     "dotenv": "^7.0.0",
     "kind-of": ">=6.0.3",

@@ -3,6 +3,7 @@ const Prefixes = require('./prefixes')
 const { LOG_PREFIX, USE_PARTIALS } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
+const Cluster = require('discord-hybrid-sharding')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -58,9 +59,9 @@ const Client = module.exports = {
 
   async getChannelById (id) {
     try {
-      if (this.client.shard) {
+      if (this.client.cluster) {
         const response =
-            await this.client.shard.broadcastEval(_getChannelById, { context: { id } })
+            await this.client.cluster.broadcastEval(_getChannelById, { context: { id } })
         return _getEntityFromBroadcastResponse(response)
       } else {
         return _getChannelById(this.client, { id })
@@ -75,6 +76,9 @@ const Client = module.exports = {
     if (USE_PARTIALS) {
       options = { partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER'] }
     }
+    options.shards = Cluster.data.SHARD_LIST // An array of shards that will get spawned
+    options.shardCount = Cluster.data.TOTAL_SHARDS // Total number of shards
+
     const myIntents = new Discord.Intents()
     myIntents.add(
       Discord.Intents.FLAGS.GUILDS,
@@ -85,6 +89,7 @@ const Client = module.exports = {
     )
     options.intents = myIntents
     Client.client = new Discord.Client(options)
+    Client.client.cluster = new Cluster.Client(Client.client)
 
     //This is quite a hack, but I couldn't find a better way
     Client.client.functions = {

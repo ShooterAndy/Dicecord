@@ -26,7 +26,7 @@ const _reactToMessage = async (client, { messageObject, reaction }) => {
 
 module.exports = async (messageObject, reaction) => {
     if (messageObject.guildId) {
-        const responses = await Client.client.shard.broadcastEval(_reactToMessage,
+        const responses = await Client.client.cluster.broadcastEval(_reactToMessage,
             { context: { messageObject, reaction } })
         if (!responses || !responses.length) {
             throw 'Empty response from reactToMessage broadcastEval'

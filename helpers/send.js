@@ -32,7 +32,7 @@ module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
                 if (!channelId) {
                     channelId = message.channelId
                 }
-                const responses = await Client.client.shard.broadcastEval(sendToChannel,
+                const responses = await Client.client.cluster.broadcastEval(sendToChannel,
                     { context: { channelId, messageText: part, flags } })
                 if (!responses || !responses.length) {
                     throw 'Empty response from sendToChannel broadcastEval'
