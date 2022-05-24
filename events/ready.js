@@ -58,6 +58,7 @@ const deleteExpiredSavedRollCommands = async () => {
 }
 
 const removeWarningInteractivity = async (warning) => {
+  // TODO: I need to move it all into broadcastEval, it seems
   let channel
   try {
     channel = await Client.getChannelById(warning[MESSAGES_COLUMNS.channel_id])

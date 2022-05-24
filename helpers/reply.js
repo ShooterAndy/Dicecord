@@ -9,7 +9,11 @@ const replyToMessage = async (client, { messageObject, messageText, flags }) => 
         if (channel) {
             if (channel.isText()) {
                 const message = await channel.messages.fetch(messageObject.id)
-                return await message.reply({ content: messageText, flags })
+                try {
+                    return await message.reply({content: messageText, flags})
+                } catch (err) {
+                    console.error('-- > Error in replyToMessage: ', (err ? JSON.stringify(err) : null))
+                }
             } else {
                 return `Attempted to send message to non-text channel "${messageObject.channelId}"`
             }
