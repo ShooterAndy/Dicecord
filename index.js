@@ -8,6 +8,7 @@ const manager = new Cluster.Manager('./bot.js', {
   token: process.env.BOT_TOKEN
 })
 const nws = require('./helpers/nws')
+const { transformMinutesToMs } = require('./helpers/utilities')
 
 process.on('unhandledRejection', error => {
   logger.error('Unhandled promise rejection', error)
@@ -31,14 +32,32 @@ manager.on('clusterCreate', cluster => {
 manager.spawn().then(() => {
   logger.log(`Launched cluster manager. ${manager.totalClusters} clusters, ${manager.totalShards} shards.`)
   if (process.env.DBL_TOKEN) {
-    const { AutoPoster } = require('topgg-autoposter')
-    const poster = AutoPoster(process.env.DBL_TOKEN, manager)
-    poster.on('error', err => {
-      logger.error('Error in top-gg auto-poster', err)
-    })
-    poster.on('posted', stats => { // run when successfully posted
-      logger.log(`Posted stats to Top.gg | ${stats.serverCount} servers`)
-    })
+    const TopGG = require('@top-gg/sdk')
+    try {
+      const api = new TopGG.Api(process.env.DBL_TOKEN)
+      const postBotStats = () => {
+        manager.fetchClientValues('guilds.cache.size').then(results => {
+          const totalGuilds = results.reduce((prev, val) => prev + val, 0)
+          api.postStats({
+            serverCount: totalGuilds,
+            shardCount: manager.totalShards
+          }).then(() => {
+            logger.log(`Posted stats to top.gg: ${totalGuilds} total guilds, ${manager.totalShards} total shards`)
+          }).catch(err => {
+            logger.error('Failed to post bot stats', err)
+          })
+        }).catch(err => {
+          logger.error('Failed to fetch client values', err)
+        })
+      }
+
+      postBotStats()
+      setInterval(async () => {
+        await postBotStats()
+      }, transformMinutesToMs(30))
+    } catch (err) {
+      logger.error('Failed to create Top GG API instance', err)
+    }
   }
 }).catch(err => {
   logger.error('Failed to spawn cluster manager', err)

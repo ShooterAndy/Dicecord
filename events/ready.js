@@ -18,6 +18,7 @@ const {
   IS_LOCAL
 } = require('../helpers/constants')
 const Client = require('../helpers/client')
+const { transformMinutesToMs, transformHoursToMs } = require('../helpers/utilities')
 
 const tryToSetActivity = async () => {
   try {
@@ -28,14 +29,6 @@ const tryToSetActivity = async () => {
     logger.error('Failed to set activity', error)
     await tryToSetActivity(Client.client)
   }
-}
-
-const transformMinutesToMs = (minutes) => {
-  return minutes * 60 * 1000
-}
-
-const transformHoursToMs = (hours) => {
-  return hours * 60 * 60 * 1000
 }
 
 const deleteExpiredSavedRollCommands = async () => {
