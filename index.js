@@ -37,6 +37,7 @@ manager.spawn().then(() => {
       const api = new TopGG.Api(process.env.DBL_TOKEN)
       const postBotStats = () => {
         manager.fetchClientValues('guilds.cache.size').then(results => {
+          logger.log('Received stats: ' + JSON.stringify(results))
           const totalGuilds = results.reduce((prev, val) => prev + val, 0)
           api.postStats({
             serverCount: totalGuilds,
