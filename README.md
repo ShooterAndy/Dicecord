@@ -53,12 +53,13 @@ See [CHANGELOG.md](CHANGELOG.md) for the information on specific version changes
 ## Built With
 
 * [discord.js](https://discord.js.org) &mdash; Discord API;
-* [discordbots API](https://discordbots.org/api/docs) &mdash; API for posting to discordbots.org; 
 * [auto-changelog](https://github.com/CookPete/auto-changelog) &mdash; used to generate the changelog;
 * [underscore.js](https://underscorejs.org/) &mdash; helps managing objects and arrays;
 * [random](https://github.com/transitive-bullshit/random#readme) &mdash; helps with randomization;
 * [Heroku PostGres](https://elements.heroku.com/addons/heroku-postgresql) &mdash; stores decks and prefixes;
-* [pg-promise](https://github.com/vitaly-t/pg-promise) &mdash; allows for much simpler and more convenient code for PostGres quieries.
+* [pg-promise](https://github.com/vitaly-t/pg-promise) &mdash; allows for much simpler and more convenient code for PostGres queries;
+* [discord-hybrid-sharding](https://www.npmjs.com/package/discord-hybrid-sharding) &mdash; combines clustering and sharding;
+* [@top-gg/sdk](https://www.npmjs.com/package/@top-gg/sdk) &mdash; used to post bot stats to [top.gg](https://top.gg).
 
 ## Versioning
 
