@@ -4,6 +4,8 @@ const { LOG_PREFIX, USE_PARTIALS } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
 const Cluster = require('discord-hybrid-sharding')
+const { Options, Sweepers } = require('discord.js')
+const { transformHoursToS, transformMinutesToS } = require('./utilities')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -72,7 +74,7 @@ const Client = module.exports = {
   },
 
   async readyBasics (commands) {
-    let options = {}
+    let options = { }
     if (USE_PARTIALS) {
       options = { partials: ['MESSAGE', 'CHANNEL', 'REACTION', 'USER'] }
     }
@@ -88,6 +90,25 @@ const Client = module.exports = {
       Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
     )
     options.intents = myIntents
+    options.makeCache = Options.cacheWithLimits({
+      MessageManager: {
+        maxSize: 25,
+        sweepInterval: transformMinutesToS(5),
+        sweepFilter: Sweepers.filterByLifetime({
+          lifetime: transformMinutesToS(30),
+          getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
+        })
+      },
+      PresenceManager: 0,
+      ThreadManager: {
+        maxSize: 25,
+        sweepInterval: transformHoursToS(6),
+        sweepFilter: Sweepers.filterByLifetime({
+          getComparisonTimestamp: e => e.archiveTimestamp,
+          excludeFromSweep: e => !e.archived,
+        })
+      },
+    })
     Client.client = new Discord.Client(options)
     Client.client.cluster = new Cluster.Client(Client.client)
 
