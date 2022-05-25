@@ -8,7 +8,6 @@ const {
   DISCORD_CODE_REGEX
 } = require('../helpers/constants')
 const replyOrSend = require('../helpers/replyOrSend')
-const send = require('../helpers/send')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
