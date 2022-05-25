@@ -27,6 +27,19 @@ manager.on('clusterCreate', cluster => {
       to continue.`)
     }
   })
+
+  const postSystemResourcesUsage = () => {
+    const memUsage = process.memoryUsage()
+    let memUsageText = ''
+    for (const memEntry in memUsage) {
+      memUsageText += memEntry + ': ' + ((memUsage[memEntry] / 1024 / 1024).toFixed(2)).toString() + ' MB; '
+    }
+    logger.log(`Cluster "${cluster.id}" resources usage: ${memUsageText}`)
+  }
+  postSystemResourcesUsage()
+  setInterval(async () => {
+    await postSystemResourcesUsage()
+  }, transformMinutesToMs(10))
 })
 
 manager.spawn().then(() => {
@@ -60,19 +73,6 @@ manager.spawn().then(() => {
       logger.error('Failed to create Top GG API instance', err)
     }
   }
-
-  const postSystemResourcesUsage = () => {
-    const memUsage = process.memoryUsage()
-    let memUsageText = ''
-    for (const memEntry in memUsage) {
-      memUsageText += memEntry + ': ' + ((memUsage[memEntry] / 1024 / 1024).toFixed(2)).toString() + ' MB; '
-    }
-    logger.log(`System resources usage: ${memUsageText}`)
-  }
-  postSystemResourcesUsage()
-  setInterval(async () => {
-    await postSystemResourcesUsage()
-  }, transformMinutesToMs(10))
 }).catch(err => {
   logger.error('Failed to spawn cluster manager', err)
 })
