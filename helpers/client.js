@@ -91,23 +91,9 @@ const Client = module.exports = {
     )
     options.intents = myIntents
     options.makeCache = Options.cacheWithLimits({
-      MessageManager: {
-        maxSize: 25,
-        sweepInterval: transformMinutesToS(5),
-        sweepFilter: Sweepers.filterByLifetime({
-          lifetime: transformMinutesToS(30),
-          getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
-        })
-      },
+      MessageManager: 0,
       PresenceManager: 0,
-      ThreadManager: {
-        maxSize: 25,
-        sweepInterval: transformHoursToS(6),
-        sweepFilter: Sweepers.filterByLifetime({
-          getComparisonTimestamp: e => e.archiveTimestamp,
-          excludeFromSweep: e => !e.archived,
-        })
-      },
+      ThreadManager: 0,
       ApplicationCommandManager: 0, // guild.commands
       BaseGuildEmojiManager: 0, // guild.emojis
       GuildBanManager: 0, // guild.bans
