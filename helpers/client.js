@@ -76,7 +76,7 @@ const Client = module.exports = {
   async readyBasics (commands) {
     let options = { }
     if (USE_PARTIALS) {
-      options = { partials: ['CHANNEL'] }
+      options = { partials: ['CHANNEL', 'USER'] } // USER here is *only* needed for reactions, remove later!
     }
     options.shards = Cluster.data.SHARD_LIST // An array of shards that will get spawned
     options.shardCount = Cluster.data.TOTAL_SHARDS // Total number of shards
@@ -91,7 +91,14 @@ const Client = module.exports = {
     )
     options.intents = myIntents
     options.makeCache = Options.cacheWithLimits({
-      MessageManager: 0,
+      MessageManager: {
+        maxSize: 25,
+        sweepInterval: transformMinutesToS(5),
+        sweepFilter: Sweepers.filterByLifetime({
+          lifetime: transformMinutesToS(30),
+          getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
+        })
+      },
       PresenceManager: 0,
       ThreadManager: 0,
       ApplicationCommandManager: 0, // guild.commands

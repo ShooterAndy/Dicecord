@@ -34,7 +34,7 @@ manager.on('clusterCreate', cluster => {
     for (const memEntry in memUsage) {
       memUsageText += memEntry + ': ' + ((memUsage[memEntry] / 1024 / 1024).toFixed(2)).toString() + ' MB; '
     }
-    logger.log(`Cluster "${cluster.id}" resources usage: ${memUsageText}`)
+    logger.log(`Cluster "${cluster.id}", processId: "${process.pid}", resources usage: ${memUsageText}`)
   }
   postSystemResourcesUsage()
   setInterval(async () => {

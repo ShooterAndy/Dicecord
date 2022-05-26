@@ -22,10 +22,8 @@ module.exports = async (client, reaction, user) => {
     return
   }
 
-  if (!user.partial) { // handle partial stuff
-    if (!user.id || user.id === client.user.id) { // if it's the bot reacting, ignore it
-      return
-    }
+  if (!user.id || user.id === client.user.id) { // if it's the bot reacting, ignore it
+    return
   }
 
   if (reaction.partial) { // handle partial stuff

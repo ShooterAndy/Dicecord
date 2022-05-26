@@ -19,6 +19,7 @@ const {
 } = require('../helpers/constants')
 const Client = require('../helpers/client')
 const { transformMinutesToMs, transformHoursToMs } = require('../helpers/utilities')
+const handleBroadcastEval = require('../helpers/handleBroadcastEval')
 
 const tryToSetActivity = async () => {
   try {
@@ -50,45 +51,43 @@ const deleteExpiredSavedRollCommands = async () => {
   }
 }
 
-const removeWarningInteractivity = async (warning) => {
-  // TODO: I need to move it all into broadcastEval, it seems
+const deleteMessageOnChannel = async (client, { channelId, messageId }) => {
   let channel
   try {
-    channel = await Client.getChannelById(warning[MESSAGES_COLUMNS.channel_id])
+    channel = await client.channels.fetch(channelId)
   } catch (error) {
-    if (error && error.name === 'DiscordAPIError') {
-      logger.warn(`Failed to fetch channel for a warning`, error)
+    return `Failed to fetch channel for a warning${error && error.message ? `: ${error.message}` : ''}`
+  }
+  if (channel) {
+    if (channel.isText()) {
+      let message
+      try {
+        message = await channel.messages.fetch(messageId)
+      } catch (error) {
+        return `Failed to fetch a warning message${error && error.message ? `: ${error.message}` : ''}`
+      }
+      if (message) {
+        try {
+          await message.delete()
+          return true
+        } catch (error) {
+          return `Failed to delete a warning message${error && error.message ? `: ${error.message}` : ''}`
+        }
+      }
     } else {
-      logger.error(`Failed to fetch channel for a warning`, error)
-    }
-    return
-  }
-  if (!channel) {
-    return
-  }
-  let message
-  try {
-    message = await channel.messages.fetch(warning[MESSAGES_COLUMNS.message_id])
-  } catch (error) {
-    if (error && error.name === 'DiscordAPIError') {
-      logger.warn(`Failed to fetch a warning message`, error)
-    } else {
-      logger.error(`Failed to fetch a warning message`, error)
-    }
-    return
-  }
-  if (!message) {
-    return
-  }
-  try {
-    await message.delete()
-  } catch (error) {
-    if (error && error.name === 'DiscordAPIError') {
-      logger.warn(`Failed to delete a warning message`, error)
-    } else {
-      logger.error(`Failed to delete a warning message`, error)
+      return `Attempted to delete a message from a non-text channel "${channelId}"`
     }
   }
+  return null
+}
+
+const removeWarningInteractivity = async (warning) => {
+  await handleBroadcastEval(Client.client.cluster, deleteMessageOnChannel, {
+    context: {
+      channelId: warning[MESSAGES_COLUMNS.channel_id],
+      messageId: warning[MESSAGES_COLUMNS.message_id]
+    }
+  })
 }
 
 const deleteExpiredWarningMessages = async () => {
@@ -110,7 +109,7 @@ const deleteExpiredWarningMessages = async () => {
       result.forEach(warning => {
         const channelId = warning[MESSAGES_COLUMNS.channel_id]
         const messageId = warning[MESSAGES_COLUMNS.message_id]
-        Client.reactionsCache[channelId+ '_' + messageId] = null
+        Client.reactionsCache[channelId + '_' + messageId] = null
         removeWarningInteractivity(warning)
       })
     }
