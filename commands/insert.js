@@ -18,9 +18,9 @@ module.exports = async (args) => {
     const cards = await processCards(args.commandText.trim(), args.prefix)
     deck = insertCardsIntoDeck(deck, cards)
     const text = await saveDeck(args.message, deck, cards.length)
-    return replyOrSend(text, args.message)
+    return await replyOrSend(text, args.message)
   } catch (error) {
-    return replyOrSend(error, args.message)
+    return await replyOrSend(error, args.message)
   }
 }
 

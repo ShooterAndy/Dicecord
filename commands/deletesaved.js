@@ -23,20 +23,20 @@ module.exports = async (args) => {
           nameValue: name
         })
       if (!result) {
-        return replyOrSend(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
+        return await replyOrSend(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
           Perhaps it already expired after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of not being used? \
           You can also try listing all your saved roll commands via the \ 
           \`${args.prefix}listSaved\` command`, args.message)
       }
-      return replyOrSend(nws`The \`${name}\` saved roll command has been successfully deleted from the \
+      return await replyOrSend(nws`The \`${name}\` saved roll command has been successfully deleted from the \
         list of your saved commands.`, args.message)
     } catch (error) {
       logger.error(`Failed to delete a saved roll command`, error)
-      return replyOrSend(nws`${ERROR_PREFIX}Failed to delete the command. Please contact the bot author.`,
+      return await replyOrSend(nws`${ERROR_PREFIX}Failed to delete the command. Please contact the bot author.`,
         args.message)
     }
   } else {
-    return replyOrSend(nws`${ERROR_PREFIX}You have to enter the name of the command you want to delete, \
+    return await replyOrSend(nws`${ERROR_PREFIX}You have to enter the name of the command you want to delete, \
       for example:\n\`${args.prefix}${args.commandName} some-name\`\nIf you do not remember the \
       name, you can use the \`${args.prefix}listSaved\` command to get the list of all your saved \
       commands.`, args.message)

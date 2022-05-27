@@ -30,9 +30,9 @@ module.exports = async (args) => {
       deck = await getAndProcessDeckFromDb(args.message, deckId, args.prefix)
     }
     const replyText = await saveShuffledDeck(args.message, deckId, deck)
-    return replyOrSend(replyText, args.message)
+    return await replyOrSend(replyText, args.message)
   } catch (error) {
-    return replyOrSend(error, args.message)
+    return await replyOrSend(error, args.message)
   }
 }
 

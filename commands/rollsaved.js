@@ -27,7 +27,7 @@ module.exports = async (args) => {
         }
       )
       if (!result || !result.command) {
-        return replyOrSend(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
+        return await replyOrSend(nws`You don't seem to have a saved roll command by the name of \`${name}\`. \
           Perhaps it expired after ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER} of not being used? \
           You can also try listing all your saved roll commands via the \ 
           \`${args.prefix}listSaved\` command`, args.message)
@@ -56,16 +56,16 @@ module.exports = async (args) => {
         )
       } catch (error) {
         logger.error(`Failed to update timestamp in ${args.commandName}`, error)
-        return replyOrSend(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot \
+        return await replyOrSend(nws`${ERROR_PREFIX}Failed to update the command. Please contact the bot \
           author.`, args.message)
       }
     } catch (error) {
       logger.error(`Failed to load a saved roll command`, error)
-      return replyOrSend(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,
+      return await replyOrSend(nws`${ERROR_PREFIX}Failed to load the command. Please contact the bot author.`,
         args.message)
     }
   } else {
-    return replyOrSend(nws`${ERROR_PREFIX}You have to enter the name of the command you want to load and \
+    return await replyOrSend(nws`${ERROR_PREFIX}You have to enter the name of the command you want to load and \
       roll, for example:\n\`${args.prefix}${args.commandName} some-name\`\nIf you do not remember \
       the name, you can use the \`${args.prefix}listSaved\` command to get the list of all saved \
       commands for this Discord channel.`,

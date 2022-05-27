@@ -12,6 +12,7 @@ const {
 const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
+const sendDM = require('../helpers/sendDM')
 
 module.exports = async (args) => {
   try {
@@ -28,14 +29,17 @@ module.exports = async (args) => {
     comment = getComment(comment)
     const text = await processDealCommand(args.message, deck, mentionsList, numberOfCardsToDraw,
       comment, args.prefix)
-    return replyOrSend(text, args.message)
+    if (text) {
+      return await replyOrSend(text, args.message)
+    }
+    return null
   }
   catch (error) {
     if (typeof error === 'string') {
-      return replyOrSend(error, args.message)
+      return await replyOrSend(error, args.message)
     } else {
       logger.error('Error in dealPrivate', error)
-      return replyOrSend(`${ERROR_PREFIX}Failed to deal. Please contact the author.`)
+      return await replyOrSend(`${ERROR_PREFIX}Failed to deal. Please contact the author.`)
     }
   }
 }
@@ -121,8 +125,7 @@ const processDeck = (deckFromDb, message, prefix) => {
   }
 }
 
-const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDraw, comment, prefix) =>
-{
+const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDraw, comment, prefix) => {
   let text = '';
 
   const totalNumberOfCardsToDraw = mentionsList.size * numberOfCardsToDraw
@@ -146,27 +149,22 @@ const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDr
     for (const mention of mentionsArray) {
       let drawnCards = deck.slice(0, numberOfCardsToDraw)
       deck = deck.slice(numberOfCardsToDraw)
-      try {
-        let cardOrCards = 'these cards'
-        if (numberOfCardsToDraw === 1) {
-          cardOrCards = 'this card'
+      let cardOrCards = 'these cards'
+      if (numberOfCardsToDraw === 1) {
+        cardOrCards = 'this card'
+      }
+      const commentary =
+        comment ? `${authorName} → \`${comment}:\`\n` :
+          `You have been dealt ${cardOrCards} by ${authorName}:\n`
+      const privateText = `${commentary}${drawnCards.join(', ')}`
+      if (!await sendDM(privateText, message)) {
+        try {
+          await replyOrSend(`${ERROR_PREFIX}Failed to send you a DM.`, message)
+          return null
+        } catch (error) {
+          logger.error(nws`Failed to inform a user about failing send a DM to them in dealPrivate`, error)
+          return null
         }
-        const commentary =
-            comment ? `${authorName} → \`${comment}:\`\n` :
-                `You have been dealt ${cardOrCards} by ${authorName}:\n`
-        const privateText = `${commentary}${drawnCards.join(', ')}`
-        if (mention.dmChannel) {
-          await message.author.dmChannel.send(privateText)
-        } else {
-          const dmChannel = await mention.createDM()
-          if (!dmChannel) {
-            throw `Failed to create a new DM channel`
-          }
-          await message.author.dmChannel.send(privateText)
-        }
-      } catch (error) {
-        logger.error(nws`Failed to send a DM to "${mention.id}"`, error)
-        throw`${ERROR_PREFIX}Failed to send a DM to ${mention.tag}.`
       }
     }
 

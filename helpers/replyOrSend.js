@@ -2,6 +2,8 @@ const { fetchMessageByIdAndChannelId, fetchChannelById } = require('./commonBroa
 const splitMessage = require('./splitMessage')
 const Discord = require('discord.js')
 const Client = require('./client')
+const sendDM = require('./sendDM')
+const nws = require('./nws')
 
 const _replyOrSend = async (text, message, { shouldSuppressEmbeds, shouldReply }) => {
   // Just to be safe...
@@ -27,6 +29,9 @@ const _replyOrSend = async (text, message, { shouldSuppressEmbeds, shouldReply }
   if (message.channel && message.guild) { // Do we even have a permission to reply?
     const me = await message.guild.members.fetch(Client.client.user.id)
     if (!message.channel.permissionsFor(me).has('SEND_MESSAGES')) {
+      await sendDM(nws`Hi! I've tried to respond to your command on channel ${channel.name} \
+        of guild ${channel.guild.name}, but it seems that I am missing the "Send Messages" permission for it. \
+        Please contact the administrator of that guild so that they can add this permission.`, message)
       return null
     }
   }

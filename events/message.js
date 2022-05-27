@@ -3,7 +3,7 @@ const {
   ERROR_PREFIX,
   NO_NOT_FOUND_ROLE_NAME
 } = require('../helpers/constants')
-const reply = require('../helpers/replyOrSend')
+const replyOrSend = require('../helpers/replyOrSend')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 
@@ -41,7 +41,7 @@ module.exports = async (client, message, commands, prefixes) => {
       const command = commands[commandName]
       if (typeof command !== 'function') {
         logger.error(`"${commandName}" is apparently not a function`)
-        return reply(nws`Something went wrong trying to process your command. Please contact the \
+        return await replyOrSend(nws`Something went wrong trying to process your command. Please contact the \
           bot author`, message)
       }
       return command({
@@ -61,7 +61,7 @@ module.exports = async (client, message, commands, prefixes) => {
           }
         }
         if (!message.guild || (message.guild.id === '264445053596991498' /* Bot List guild */)) {
-          return reply(nws`${ERROR_PREFIX}Command "${commandName}" not found. You can see the list \
+          return await replyOrSend(nws`${ERROR_PREFIX}Command "${commandName}" not found. You can see the list \
             of all available commands via a \`${prefix}help\` command.`, message)
         }
       }

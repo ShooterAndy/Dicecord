@@ -16,17 +16,17 @@ module.exports = async args => {
       if(message.author.id !== application.owner.id) {
         logger.warn(nws`User ${message.author.username}#${message.author.tag}( \
           ${message.author.id}) attempted to use a getPrefix command!`)
-        return replyOrSend(`${ERROR_PREFIX}You cannot use this command.`, message)
+        return await replyOrSend(`${ERROR_PREFIX}You cannot use this command.`, message)
       }
       if(!guildId) {
-        return replyOrSend(`${ERROR_PREFIX}No Guild id specified.`, message)
+        return await replyOrSend(`${ERROR_PREFIX}No Guild id specified.`, message)
       }
       if(!client.guilds.cache.get(guildId)) {
-        return replyOrSend(`${ERROR_PREFIX}This bot is not present at this Guild.`, message)
+        return await replyOrSend(`${ERROR_PREFIX}This bot is not present at this Guild.`, message)
       }
       const prefix = Prefixes.prefixes[guildId] ?
         (`\`${Prefixes.prefixes[guildId]}\``) : 'not specified'
-      return replyOrSend(nws`Prefix for Guild "${client.guilds.cache.get(guildId).name}" \`${guildId}\` \
+      return await replyOrSend(nws`Prefix for Guild "${client.guilds.cache.get(guildId).name}" \`${guildId}\` \
         is ${prefix}.`, message)
     } catch (error) {
       logger.error(`Failed to fetch application`, error)

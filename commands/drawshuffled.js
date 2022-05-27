@@ -52,7 +52,7 @@ const processDrawShuffledCommand =
       }
     )
     if (!result || !result.deck) {
-      return replyOrSend(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
+      return await replyOrSend(nws`${ERROR_PREFIX}No deck type \`${deckId}\` exists. List all existing deck \
       types via the \`${prefix}listDeckTypes\` command. Or did you write that as a comment? \
       Please note that specifying the deck type is now required before writing a comment, so it \
       should look like this: \`${prefix}${commandName} 3 poker ${COMMENT_SEPARATOR} your comment \
@@ -64,12 +64,12 @@ const processDrawShuffledCommand =
       deck = _.shuffle(JSON.parse(result.deck))
     } catch (error) {
       logger.error(`Failed to parse the "${deckId}" deck`, error)
-      return replyOrSend(`${ERROR_PREFIX}Failed to parse the deck. Please contact the bot author.`,
+      return await replyOrSend(`${ERROR_PREFIX}Failed to parse the deck. Please contact the bot author.`,
         message)
     }
     numberOfCardsToDraw = parseInt(numberOfCardsToDraw)
     if (numberOfCardsToDraw > result.deck.length) {
-      return replyOrSend(nws`${ERROR_PREFIX}Not enough cards in the deck (requested \
+      return await replyOrSend(nws`${ERROR_PREFIX}Not enough cards in the deck (requested \
         ${numberOfCardsToDraw}, but the deck only has ${result.deck.length} cards in it. Please \
         draw fewer cards.`, message)
     }
@@ -89,12 +89,12 @@ const processDrawShuffledCommand =
       }
 
       text += drawnCards.join(', ')
-      return replyOrSend(text, message)
+      return await replyOrSend(text, message)
     }
   } catch (error) {
     logger.error(`Failed to load the deck for the "${prefix}${commandName} ${deckId}" command`,
       error)
-    return replyOrSend(`${ERROR_PREFIX}Failed to load the deck. Please contact the bot author.`,
+    return await replyOrSend(`${ERROR_PREFIX}Failed to load the deck. Please contact the bot author.`,
       message)
   }
 };

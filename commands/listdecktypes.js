@@ -15,7 +15,7 @@ module.exports = async (args) => {
       { id: DECK_TYPES_COLUMNS.id, db: pg.addPrefix(DECK_TYPES_DB_NAME) })
     if (!result || !result.length) {
       logger.error(`The list of deck types appears to be empty`)
-      return replyOrSend(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
+      return await replyOrSend(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
         author.`, args.message)
     }
 
@@ -31,10 +31,10 @@ module.exports = async (args) => {
     const text = nws`Here's the list of all available deck types:\n${decksText}\nYou can learn \
       more about them by using the \`${args.prefix}examineDeck\`, for example \
       \`${args.prefix}examineDeck poker\``
-    return replyOrSend(text, args.message)
+    return await replyOrSend(text, args.message)
   } catch (error) {
     logger.error('Failed to get the list of decks', error);
-    return replyOrSend(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
+    return await replyOrSend(nws`${ERROR_PREFIX}Failed to get the list of decks. Please contact the bot \
       author.`, args.message)
   }
 };

@@ -1,6 +1,6 @@
 const replyOrSend = require('../helpers/replyOrSend')
 
-module.exports = args => {
-  return replyOrSend('No current notices',
+module.exports = async args => {
+  return await replyOrSend('No current notices',
     args.message)
 }

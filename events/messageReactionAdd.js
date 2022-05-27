@@ -154,14 +154,14 @@ const processRollResultReaction = async (reaction, content, originalMessage) => 
     const text = formatThrowResults({
       throws: content.throws, formatName: THROW_RESULTS_FORMATS.bbcode.name
     })
-    return replyOrSend(nws`Here are your results formatted for BB-code:\
+    return await replyOrSend(nws`Here are your results formatted for BB-code:\
       \`\`\`${text}\`\`\``, originalMessage)
   }
   if (reaction.emoji.name === M_EMOJI) {
     const text = formatThrowResults({
       throws: content.throws, formatName: THROW_RESULTS_FORMATS.markdown.name
     })
-    return replyOrSend(nws`Here are your results formatted for markdown:\
+    return await replyOrSend(nws`Here are your results formatted for markdown:\
       \`\`\`${text}\`\`\``, originalMessage)
   }
   if (reaction.emoji.name === REPEAT_EMOJI) {
@@ -188,7 +188,7 @@ const processWarningReaction = async (reaction, content, originalMessage) => {
     return roll.goOnFromWarning(args)
   }
   if (reaction.emoji.name === NO_EMOJI) {
-    return replyOrSend(nws`Here's your original message, please copy and edit it as needed:\
+    return await replyOrSend(nws`Here's your original message, please copy and edit it as needed:\
       \`\`\`${originalMessage.content}\`\`\``, originalMessage)
   }
 }

@@ -20,7 +20,7 @@ module.exports = async (args) => {
       })
 
     if (!result || !result.length) {
-      return replyOrSend(nws`You don't have any roll commands saved yet. Try saving some with \
+      return await replyOrSend(nws`You don't have any roll commands saved yet. Try saving some with \
         the \`${args.prefix}saveRoll some-name your roll command\` command!`,
         args.message)
     }
@@ -28,10 +28,10 @@ module.exports = async (args) => {
     result.forEach(command => {
       text += `\`${command.name}\`\n`
     })
-    return replyOrSend(text, args.message)
+    return await replyOrSend(text, args.message)
   } catch(error) {
     logger.log(`Failed to get the list of saved roll commands`, error)
-    return replyOrSend(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot \
+    return await replyOrSend(nws`${ERROR_PREFIX}Failed to list the saved commands. Please contact the bot \
       author.`, args.message)
   }
 }
