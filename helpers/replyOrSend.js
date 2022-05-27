@@ -33,7 +33,7 @@ const _replyOrSend = async (text, message, { shouldSuppressEmbeds, shouldReply }
       flags.add(Discord.MessageFlags.FLAGS.SUPPRESS_EMBEDS)
     }
     if (isFirst && shouldReply) {
-      const response = await message.reply({ content: part, flags }).catch(err => { throw err })
+      const response = await message.reply({ content: part, flags, failIfNotExists: false }).catch(err => { throw err })
       messages.push(response)
       isFirst = false
     } else {

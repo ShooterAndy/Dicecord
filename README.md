@@ -7,7 +7,7 @@ Dicecord is completely free and has no paid unlockable features, but I do have t
 
 ## Getting Started
 
-Getting this bot on your Discord server is very easy: all you need to do in a normal situation is open [this link](https://discord.com/api/oauth2/authorize?client_id=572698679618568193&permissions=19520&scope=bot) and allow the bot to join a server you'll select in the page that you'll see there.
+Getting this bot on your Discord server is very easy: all you need to do in a normal situation is open [this link](https://discord.com/api/oauth2/authorize?client_id=572698679618568193&permissions=277025475648&scope=bot) and allow the bot to join a server you'll select in the page that you'll see there.
 
 ### Prerequisites
 
