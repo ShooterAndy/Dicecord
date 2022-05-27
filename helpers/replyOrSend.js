@@ -1,6 +1,7 @@
 const { fetchMessageByIdAndChannelId, fetchChannelById } = require('./commonBroadcasts')
 const splitMessage = require('./splitMessage')
 const Discord = require('discord.js')
+const Client = require('./client')
 
 const _replyOrSend = async (text, message, { shouldSuppressEmbeds, shouldReply }) => {
   // Just to be safe...
@@ -21,6 +22,13 @@ const _replyOrSend = async (text, message, { shouldSuppressEmbeds, shouldReply }
   }
   if (!channel.isText()) {
     throw 'Attempted to _replyOrSend to a message in a non-text channel'
+  }
+
+  if (message.channel && message.guild) { // Do we even have a permission to reply?
+    const me = await message.guild.members.fetch(Client.client.user.id)
+    if (!message.channel.permissionsFor(me).has('SEND_MESSAGES')) {
+      return null
+    }
   }
 
   // Let's split the message if necessary

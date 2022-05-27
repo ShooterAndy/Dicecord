@@ -35,18 +35,8 @@ module.exports = async (client, message, commands, prefixes) => {
     }
   }
   if (message.content.startsWith(prefix)) {
-    let hasPermissions = true
-    if (message.channel && message.guild) { // Do we even have a permission to reply?
-      const me = await message.guild.members.fetch(client.user.id)
-      if(!message.channel.permissionsFor(me).has('SEND_MESSAGES')) {
-        hasPermissions = false
-      }
-    }
     const commandName = message.content.split(' ')[0].slice(prefix.length).toLowerCase()
     if (commandName && commandName.length && commands[commandName]) {
-      if(!hasPermissions) {
-        return
-      }
       const commandText = message.content.slice(commandName.length + prefix.length).trim()
       const command = commands[commandName]
       if (typeof command !== 'function') {
@@ -63,12 +53,14 @@ module.exports = async (client, message, commands, prefixes) => {
       })
     }
     else {
-      const sendNotFoundErrorMessage = () => {
-        if(hasPermissions &&
-          !(
-            message.guild &&
-            message.guild.id === '264445053596991498' /* Bot List channel */
-          )) {
+      const sendNotFoundErrorMessage = async () => {
+        if (message.channel && message.guild) { // Do we even have a permission to reply?
+          const me = await message.guild.members.fetch(client.user.id)
+          if(!message.channel.permissionsFor(me).has('SEND_MESSAGES')) {
+            return
+          }
+        }
+        if (!message.guild || (message.guild.id === '264445053596991498' /* Bot List guild */)) {
           return reply(nws`${ERROR_PREFIX}Command "${commandName}" not found. You can see the list \
             of all available commands via a \`${prefix}help\` command.`, message)
         }

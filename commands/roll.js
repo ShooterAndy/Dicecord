@@ -1939,7 +1939,7 @@ let rollNameSpace = function () {
     })
 
     if (!replyMessage) {
-      throw `Failed to reply in roll showResults`
+      return
     }
 
     if (!message) {
