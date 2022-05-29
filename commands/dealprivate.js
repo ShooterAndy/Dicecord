@@ -157,12 +157,12 @@ const processDealCommand = async (message, deck, mentionsList, numberOfCardsToDr
         comment ? `${authorName} → \`${comment}:\`\n` :
           `You have been dealt ${cardOrCards} by ${authorName}:\n`
       const privateText = `${commentary}${drawnCards.join(', ')}`
-      if (!await sendDM(privateText, message)) {
+      if (!await sendDM(privateText, mention)) {
         try {
-          await replyOrSend(`${ERROR_PREFIX}Failed to send you a DM.`, message)
+          await replyOrSend(`${ERROR_PREFIX}Failed to send a DM to user ${mention.username}.`, message)
           return null
         } catch (error) {
-          logger.error(nws`Failed to inform a user about failing send a DM to them in dealPrivate`, error)
+          logger.error(nws`Failed to inform a user about failing to send a DM to them in dealPrivate`, error)
           return null
         }
       }
