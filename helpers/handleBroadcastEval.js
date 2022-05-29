@@ -1,5 +1,5 @@
-const logger = require('./logger')
 module.exports = async (cluster, script, { context, callback }) => {
+  const logger = require('./logger')
   if (!cluster) throw `No cluster provided to handleBroadcastEval`
   if (!script) throw `No script provided to handleBroadcastEval`
   if (typeof script !== 'function') throw `Script provided to handleBroadcastEval is not a function`
