@@ -29,10 +29,24 @@ const _replyOrSend = async (text, message, { shouldSuppressEmbeds, shouldReply }
   if (message.channel && message.guild) { // Do we even have a permission to reply?
     const me = await message.guild.members.fetch(Client.client.user.id)
     if (!message.channel.permissionsFor(me).has('SEND_MESSAGES')) {
-      await sendDM(nws`Hi! I've tried to respond to your command on channel ${channel.name} \
+      try {
+        await sendDM(nws`Hi! I've tried to respond to your command on channel ${channel.name} \
         of guild ${channel.guild.name}, but it seems that I am missing the "Send Messages" permission for it. \
         Please contact the administrator of that guild so that they can add this permission.`, message)
-      return null
+        return null
+      } catch (error) {
+        throw `Failed to send a DM (due to missing Send permission) in replyOrSend function call:\n${error}`
+      }
+    }
+    if (!message.channel.permissionsFor(me).has('READ_MESSAGE_HISTORY')) {
+      try {
+        await sendDM(nws`Hi! I've tried to respond to your command on channel ${channel.name} \
+        of guild ${channel.guild.name}, but it seems that I am missing the "Read Message History" permission for it. \
+        Please contact the administrator of that guild so that they can add this permission.`, message)
+        return null
+      } catch (error) {
+        throw `Failed to send a DM (due to missing Read permission) in replyOrSend function call:\n${error}`
+      }
     }
   }
 
