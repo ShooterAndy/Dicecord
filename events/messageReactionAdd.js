@@ -154,15 +154,25 @@ const processRollResultReaction = async (reaction, content, originalMessage) => 
     const text = formatThrowResults({
       throws: content.throws, formatName: THROW_RESULTS_FORMATS.bbcode.name
     })
-    return await replyOrSend(nws`Here are your results formatted for BB-code:\
+    try {
+      return await replyOrSend(nws`Here are your results formatted for BB-code:\
       \`\`\`${text}\`\`\``, originalMessage)
+    } catch (error) {
+      logger.error(`Failed to send BB-code response in MessageReactionAdd`, error)
+      return null
+    }
   }
   if (reaction.emoji.name === M_EMOJI) {
     const text = formatThrowResults({
       throws: content.throws, formatName: THROW_RESULTS_FORMATS.markdown.name
     })
-    return await replyOrSend(nws`Here are your results formatted for markdown:\
+    try {
+      return await replyOrSend(nws`Here are your results formatted for markdown:\
       \`\`\`${text}\`\`\``, originalMessage)
+    }  catch (error) {
+      logger.error(`Failed to send Markdown response in MessageReactionAdd`, error)
+      return null
+    }
   }
   if (reaction.emoji.name === REPEAT_EMOJI) {
     const args = {
@@ -188,7 +198,12 @@ const processWarningReaction = async (reaction, content, originalMessage) => {
     return roll.goOnFromWarning(args)
   }
   if (reaction.emoji.name === NO_EMOJI) {
-    return await replyOrSend(nws`Here's your original message, please copy and edit it as needed:\
+    try {
+      return await replyOrSend(nws`Here's your original message, please copy and edit it as needed:\
       \`\`\`${originalMessage.content}\`\`\``, originalMessage)
+    } catch (error) {
+      logger.error(`Failed to send Warning→No response in MessageReactionAdd`, error)
+      return null
+    }
   }
 }

@@ -41,16 +41,26 @@ module.exports = async (client, message, commands, prefixes) => {
       const command = commands[commandName]
       if (typeof command !== 'function') {
         logger.error(`"${commandName}" is apparently not a function`)
-        return await replyOrSend(nws`Something went wrong trying to process your command. Please contact the \
+        try {
+          return await replyOrSend(nws`Something went wrong trying to process your command. Please contact the \
           bot author`, message)
+        } catch (error) {
+          logger.error(`Failed to send error response to "${commandName}" in "command not a function"`, error)
+          return null
+        }
       }
-      return command({
-        message: message,
-        commandName: commandName,
-        commandText: commandText,
-        client: client,
-        prefix: prefix
-      })
+      try {
+        return command({
+          message: message,
+          commandName: commandName,
+          commandText: commandText,
+          client: client,
+          prefix: prefix
+        })
+      } catch (error) {
+        logger.error(`Failed to execute "${commandName}"`, error)
+        return null
+      }
     }
     else {
       const sendNotFoundErrorMessage = async () => {
@@ -61,8 +71,13 @@ module.exports = async (client, message, commands, prefixes) => {
           }
         }
         if (!message.guild || (message.guild.id === '264445053596991498' /* Bot List guild */)) {
-          return await replyOrSend(nws`${ERROR_PREFIX}Command "${commandName}" not found. You can see the list \
+          try {
+            return await replyOrSend(nws`${ERROR_PREFIX}Command "${commandName}" not found. You can see the list \
             of all available commands via a \`${prefix}help\` command.`, message)
+          } catch (error) {
+            logger.error(`Failed to send error response to "${commandName}" in sendNotFoundErrorMessage`, error)
+            return null
+          }
         }
       }
       if (message.guild) {
