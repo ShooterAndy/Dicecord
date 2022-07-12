@@ -1130,17 +1130,6 @@ let rollNameSpace = function () {
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
                   under 1, since 1 is the lowest possible result, so this check will be ignored`)
         }
-        if (modName === DICE_MODIFIERS.countUnder && modValue === dice.sides) {
-          throw w(nws`all dice roll results for a roll of \
-                  ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
-                  over ${modValue}, since each die only has ${dice.sides} sides. This check will \ 
-                  be ignored`)
-        }
-        if (modName === DICE_MODIFIERS.countOver && modValue === 1) {
-          throw w(nws`all dice roll results for a roll of \
-                  ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
-                  over 1, since 1 is the lowest possible result, so this check will be ignored`)
-        }
         if (modName === DICE_MODIFIERS.countOver && modValue >= dice.sides) {
           throw w(nws`no dice roll result for a roll of \
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
