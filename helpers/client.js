@@ -5,7 +5,7 @@ const nws = require('./nws')
 const logger = require('./logger')
 const Cluster = require('discord-hybrid-sharding')
 const { Options, Sweepers } = require('discord.js')
-const { transformHoursToS, transformMinutesToS } = require('./utilities')
+const { transformMinutesToS } = require('./utilities')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -73,7 +73,7 @@ const Client = module.exports = {
     }
   },
 
-  async readyBasics (commands) {
+  async readyBasics (commands, slashCommands, modals) {
     let options = { }
     if (USE_PARTIALS) {
       options = { partials: ['CHANNEL', 'USER'] } // USER here is *only* needed for reactions, remove later!
@@ -138,6 +138,36 @@ const Client = module.exports = {
         await require(`../events/message`)(Client.client, message, commands, prefixes))
     Client.client.on('messageReactionAdd', async (messageReaction, user) =>
         await require('../events/messageReactionAdd')(Client.client, messageReaction, user))
+
+    Client.client.on('interactionCreate', async interaction => {
+      if (interaction.isCommand()) {
+        if (!interaction.commandName) return
+        const command = slashCommands.get(interaction.commandName)
+        if (!command) return
+        try {
+          await command.execute(interaction)
+        } catch (error) {
+          logger.error(`Failed while trying to execute a ${interaction.commandName} command`, error)
+          await interaction.reply({
+            content: `Failed to execute the \`${interaction.commandName}\` command. Please contact the bot creator.`,
+            ephemeral: true
+          })
+        }
+      } else if (interaction.isModalSubmit()) {
+        if (!interaction.customId) return
+        const modal = modals.get(interaction.customId)
+        if (!modal) return
+        try {
+          await modal.processSubmission(interaction)
+        } catch (error) {
+          logger.error(`Failed while trying to process a ${interaction.customId} modal`, error)
+          await interaction.reply({
+            content: `Failed to process the \`${interaction.customId}\` modal. Please contact the bot creator.`,
+            ephemeral: true
+          })
+        }
+      }
+    })
 
     logger.log('Trying to log in...')
     await Client.tryToLogIn(0, null, null)

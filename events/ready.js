@@ -73,12 +73,15 @@ const deleteMessageOnChannel = async (client, { channelId, messageId }) => {
         } catch (error) {
           return `Failed to delete a warning message${error && error.message ? `: ${error.message}` : ''}`
         }
+      } else {
+        return true // we don't care if the message doesn't exist already
       }
     } else {
       return `Attempted to delete a message from a non-text channel "${channelId}"`
     }
+  } else {
+    return true // we don't care if the channel doesn't exist
   }
-  return null
 }
 
 const removeWarningInteractivity = async (warning) => {

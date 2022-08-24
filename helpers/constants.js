@@ -98,6 +98,11 @@ module.exports.DISCORD_CODE_REGEX = new RegExp(DISCORD_CODE_SYMBOL, 'g')
 
 // -------------------------------------------------------------------------------------------------
 
+module.exports.ICON_URL = 'https://shooterandy.github.io/Dicecord/img/logo-full.png'
+module.exports.PRIMARY_COLOR = '#61c6b3'
+
+// -------------------------------------------------------------------------------------------------
+
 module.exports.HANDLED_ERROR_TYPE_NAME = 'HANDLED_ERROR'
 module.exports.HANDLED_WARNING_TYPE_NAME = 'HANDLED_WARNING'
 
