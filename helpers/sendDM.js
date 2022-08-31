@@ -1,5 +1,5 @@
 const logger = require('./logger')
-const { Message, User } = require('discord.js')
+const { Message, User, Interaction, GuildMember} = require('discord.js')
 
 module.exports = async (text, context) => {
   if (!context) {
@@ -17,7 +17,13 @@ module.exports = async (text, context) => {
       return null
     }
     context = context.author
-  } else if (context instanceof User) {
+  } else if (context instanceof Interaction) {
+    if (!context.user) {
+      logger.error(`Original interaction has no user in sendDM`)
+      return null
+    }
+    context = context.user
+  } else if (context instanceof User || context instanceof GuildMember) {
     // Everything's fine
   } else {
     logger.error(`Unknown context in sendDM: ${JSON.stringify(context)}`)

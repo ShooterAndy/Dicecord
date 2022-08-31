@@ -1,11 +1,24 @@
 const Discord = require('discord.js')
 const Prefixes = require('./prefixes')
-const { LOG_PREFIX, USE_PARTIALS } = require('./constants')
+const {
+  LOG_PREFIX,
+  USE_PARTIALS,
+  DECK_TYPES_COLUMNS,
+  DECK_TYPES_DB_NAME,
+  CUSTOM_DECK_TYPE
+} = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
 const Cluster = require('discord-hybrid-sharding')
-const { Options, Sweepers } = require('discord.js')
+const {
+  Options,
+  Sweepers
+} = require('discord.js')
 const { transformMinutesToS } = require('./utilities')
+const fs = require('fs')
+const path = require('path')
+const pg = require('./pgHandler')
+const {intersection} = require('underscore')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -42,6 +55,7 @@ const Client = module.exports = {
 
   client: null,
   reactionsCache: {},
+  deckTypesCache: {},
 
   async tryToLogIn (errorsCount, previousError, currentError) {
     if (currentError) {
@@ -71,6 +85,21 @@ const Client = module.exports = {
     } catch (err) {
       throw err
     }
+  },
+
+  async cacheDeckTypes () {
+    const result = await pg.db.any(
+      'SELECT ${id~},${description~},${deck~} FROM ${db#} ORDER BY ${id~} ASC', {
+        id: DECK_TYPES_COLUMNS.id,
+        description: DECK_TYPES_COLUMNS.description,
+        deck: DECK_TYPES_COLUMNS.deck,
+        db: pg.addPrefix(DECK_TYPES_DB_NAME)
+      })
+    if (!result || !result.length) return logger.error(`The list of deck types appears to be empty`)
+
+    result.forEach(deck => {
+      this.deckTypesCache[deck.id] = { description: deck.description, deck: deck.deck }
+    })
   },
 
   async readyBasics (commands, slashCommands, modals) {
@@ -130,6 +159,9 @@ const Client = module.exports = {
     } catch (error) {
       logger.error(`Couldn't read the prefixes table`, error)
     }
+
+    await this.cacheDeckTypes()
+
     Client.client.on('error', async error =>
         await require(`../events/error`)(Client.client, error))
     Client.client.on('ready', async () =>
@@ -166,6 +198,65 @@ const Client = module.exports = {
             ephemeral: true
           })
         }
+      } else if (interaction.isAutocomplete()) {
+        // special case for /help
+        if (interaction.commandName === 'help') {
+          const focusedValue = interaction.options.getFocused()
+          const helpPath = path.join('help')
+          const helpFiles = fs.readdirSync(helpPath).filter(file => file.endsWith('.md'))
+          const choices = []
+          for (let file of helpFiles) {
+            file = file.toLowerCase().replace('.md', '')
+            if (file !== '!') {
+              choices.push(file)
+            }
+          }
+          const filtered = choices.filter(choice => choice.startsWith(focusedValue))
+          await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice })),
+          )
+        }
+
+        if ((interaction.commandName === 'examinedeck') ||
+          (interaction.commandName === 'shuffle') ||
+          (interaction.commandName === 'drawshuffled')) {
+          const focusedOption = interaction.options.getFocused(true)
+          const focusedValue = focusedOption.value
+          const choices = []
+          if (focusedOption.name === 'deck') {
+            for (let deckType in this.deckTypesCache) {
+              choices.push(deckType)
+            }
+            if (interaction.commandName !== 'examinedeck') {
+              choices.push(CUSTOM_DECK_TYPE)
+            }
+          }
+          const filtered = choices.filter(choice => choice.startsWith(focusedValue))
+          await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice })),
+          )
+        }
+
+        // TODO: write a generic handler with a nested object in constants
+        /*if (interaction.commandName === 'help') {
+          const focusedOption = interaction.options.getFocused(true)
+          let choices
+
+          if (focusedOption.name === 'name') {
+            choices = ['faq', 'install', 'collection', 'promise', 'debug'];
+          }
+
+          if (focusedOption.name === 'theme') {
+            choices = ['halloween', 'christmas', 'summer'];
+          }
+
+          const filtered = choices.filter(choice => choice.startsWith(focusedOption.value));
+          await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice })),
+          );
+        }*/
+      } else if (interaction.isButton()) {
+        //interaction.message.id
       }
     })
 

@@ -1,6 +1,6 @@
 # Roll command
 ## Basics
-The **roll** command, abbreviated as `r`, is an extremely versatile way to roll dice. It allows you
+The **roll** command, is an extremely versatile way to roll dice. It allows you
 to roll several kinds of dice at the same time, apply bonuses and penalties, have repeated and
 conditional rolls, etc. Please read through this document thoroughly to understand the full
 range of possibilities that it offers.
@@ -9,7 +9,7 @@ range of possibilities that it offers.
 Before we establish how to roll dice, let's quickly define some terms we will be using later. Each 
 time you enter a roll command, it can have several "levels". Let's go over them from highest to 
 lowest:
-* **Whole command** — everything that you write after `!roll`.
+* **Whole command** — everything that you write after `/roll`.
   * **Command part** — the command can have multiple parts, each either completely independent of
 each other, or dependent on the previous part's result (see "Multiple command parts" and  
 "Conditional command parts" sections below for more details). The part with all the operands and 
@@ -25,21 +25,21 @@ Each throw you request has a formula to it. It can be as simple as a single numb
 The parts of the formula (aka operands) are separated from each other by the `+` or `-` operators,
 such as here:
 
-```!r 2 + 2```
+```/roll roll_command:2 + 2```
 
 Or here:
 
-```!r 1 + 2 - 3```
+```/roll roll_command: 1 + 2 - 3```
 
 ### Using parentheses
 You can use parentheses in your formula, just as they are used in arithmetic normally, so, for
 example, this command:
 
-```!r 3 - (1+2)```
+```/roll roll_command: 3 - (1+2)```
 
 Would be equivalent to this one:
 
-```!r 3 - 1 - 2```
+```/roll roll_command: 3 - 1 - 2```
 
 The maximum level of depth for parentheses is 5.
 
@@ -56,14 +56,14 @@ The basic syntax for this is as follows:
 There, the `[NUMBER]` is the number of die rolls and `[SIDES]` is the number of die sides for each
 roll. Of course, `d` stands for **d**ice.
 
-To roll one standard six-sided die, you know, 🎲, you would then need to type: `!r 1d6`
+To roll one standard six-sided die, you know, 🎲, you would then need to type: `/roll roll_command: 1d6`
 
-Or just `!r d6`, since if the number of die rolls is not specified, it is assumed to be 1.
+Or just `/roll roll_command: d6`, since if the number of die rolls is not specified, it is assumed to be 1.
 
 After sending a message with this command, you should get something like this from the bot in reply:
 > 1d6 = **2**
 
-Rolling 4 ten-sided dice would look like this: `!r 4d10` and produce something like this:
+Rolling 4 ten-sided dice would look like this: `/roll roll_command: 4d10` and produce something like this:
 > 4d10 = [2 + 7 + 3 + 3] = **15**
 
 As you can see, the results are grouped between the `[` and `]` symbols.
@@ -72,15 +72,15 @@ As you can see, the results are grouped between the `[` and `]` symbols.
 You can apply static bonuses and penalties to a die throw by using the `+` and `-` operands. This 
 command, for example, will roll one twenty-sided die and add 5 to the result of that roll:
 
-```!r 1d20+5```
+```/roll roll_command: 1d20+5```
 
 On the other hand, this command will roll three six-sided dice and subtract 4 from the result:
 
-```!r 3d6 - 4```
+```/roll roll_command: 3d6 - 4```
 
 You can combine dice, bonuses and penalties in any way you want (see the "Formula" part above):
 
-```!r 5 + 2d10 - (4 - 1d6) ```
+```/roll roll_command: 5 + 2d10 - (4 - 1d6) ```
 
 ### Dice modifiers
 You can apply various modifiers to a die roll. Each dice modifier consists of a short abbreviation 
@@ -154,13 +154,13 @@ In principle, FUDGE dice are three-sided dice with the values on their sides bei
 A roll of FUDGE dice uses four of such dice, and then combines their values, counting `+` as 1,
 `-` as -1, and `0` as 0.
 
-You can roll FUDGE dice using any of the following ways: `!r f`, `!r df`, `!r 4df`, or `!r fudge`. 
+You can roll FUDGE dice using any of the following ways: `/roll roll_command: f`, `/roll roll_command: df`, `/roll roll_command: 4df`, or `/roll roll_command: fudge`. 
 The results of such a roll would look something like this:
 > 4dF = [-++0] = **1**
 
 You can add static bonuses and penalties to a FUDGE dice roll, just as you can to any other dice:
 
-```!r 4dF + 2 - 1```
+```/roll roll_command: 4dF + 2 - 1```
 > 4dF + 2 - 1 = [-+-0] + _1_ = **0**
 
 You cannot use dice modifiers with FUDGE dice.
@@ -168,19 +168,19 @@ You cannot use dice modifiers with FUDGE dice.
 #### Roll and Keep dice
 Some game systems, such as "Legend of Five Rings" and "Seventh Sea" use Roll and Keep dice:
 
-```!r 4k2```
+```/roll roll_command: 4k2```
 
 This command will roll **four** ten-sided dice and keep the **two** of them with the highest die 
 roll results. Also, by default, any of these dice will "explode" (see the Dice modifiers section 
 for an explanation of what that means) on a natural 10. This behavior can be changed by using the 
-`e` dice modifier, for example, `!r 4k2e9` will mean that any of the rolled dice will explode on a 
-natural 9 or 10; on the other hand, `!r 4k2e0` will disable explosions altogether.
+`e` dice modifier, for example, `/roll roll_command: 4k2e9` will mean that any of the rolled dice will explode on a 
+natural 9 or 10; on the other hand, `/roll roll_command: 4k2e0` will disable explosions altogether.
 
 #### Dungeons and Dragons (fourth edition) dice
 This shorthand allows you to roll one twenty-sided die which will have a critical success on a
 natural 20 and a critical failure on a natural 1:
 
-```!r dnd4```
+```/roll roll_command: dnd4```
 
 As of now, the other effects, such as maximizing the roll results in a conditional throw on a 
 critical success, are not yet implemented.
@@ -189,7 +189,7 @@ critical success, are not yet implemented.
 An entire command part with multiple dice and static modifiers can be repeated a number of times by 
 using a `|` symbol followed by a number at the end of the formula, like this:
 
-```!r 1d20+5 - 2d6 | 3```
+```/roll roll_command: 1d20+5 - 2d6 | 3```
 
 This will roll one twenty-sided die, add five to its die roll result, then subtract a result of a
 throw of two six-sided dice from that, and this whole calculation will be performed three times.
@@ -207,7 +207,7 @@ can be displayed using the versus-checks. Simply put `vs` followed by some numer
 the formula (and after the repeat-clause, see "Repeating a command part" section above). For 
 example:
 
-```!r 1d20 + 5 vs 15```
+```/roll roll_command: 1d20 + 5 vs 15```
 
 This will roll one twenty-sided die and add five to the result of its die roll result. Then, 
 depending on whether that total is less than 15 or not, this can either result in a failure:
@@ -220,7 +220,7 @@ Note that the result of 15 will also be considered a success.
 
 You can enter several values after `vs` if you separate them by a comma. For example:
 
-```!r 1d20+5 vs 14,15,16```
+```/roll roll_command: 1d20+5 vs 14,15,16```
 
 Will result in something like this:
 > 1d20 + 5 (3 rolls): 
@@ -233,7 +233,7 @@ the number of command part repeats will be the highest of the number of versus-c
 number of repeats. In case the number of repeats is higher, no versus-checks will be applied to
 the command part repeats that aren't specifically covered by the versus-checks:
 
-```!r 1d20+5 | 3 vs 15```
+```/roll roll_command: 1d20+5 | 3 vs 15```
 > 1d20 + 5 (3 rolls):
 > * Roll 1: 5 + _5_ = **10** vs 15, _failure_;
 > * Roll 2: 8 + _5_ = **13**;
@@ -241,23 +241,23 @@ the command part repeats that aren't specifically covered by the versus-checks:
 
 You can also use entire formulas for versus checks:
 
-```!r 1d20+5 vs 1d10+10```
+```/roll roll_command: 1d20+5 vs 1d10+10```
 > 1d20 + 5 = 15 + _5_ = **20** vs 2 + _10_ = 12, **success**
 
 You can also repeat and re-roll versus checks without having to type them multiple times. For 
 example, let's say you want to roll one six-sided die ten times and compare each roll against a
 value of 5. Instead of doing this:
 
-```!r 1d6 vs 5, 5, 5, 5, 5, 5, 5, 5, 5, 5```
+```/roll roll_command: 1d6 vs 5, 5, 5, 5, 5, 5, 5, 5, 5, 5```
 
 You can do this:
 
-```!r 1d6 | 10 vs 5=```
+```/roll roll_command: 1d6 | 10 vs 5=```
 
 This even works if you have to check against a few different values before checking against the
 repeated one:
 
-```!r 1d6 | 3 vs 4, 5=```
+```/roll roll_command: 1d6 | 3 vs 4, 5=```
 > 1d6 (3 rolls):
 > * Roll 1: **5** vs 4, **success**;
 > * Roll 2: **1** vs 5, _failure_;
@@ -266,7 +266,7 @@ repeated one:
 This also works if you use a formula with dice in it: the result of the roll will be repeated for
 each versus check:
 
-```!r 1d6 | 3 vs 1d6=```
+```/roll roll_command: 1d6 | 3 vs 1d6=```
 > 1d6 (3 rolls):
 > * Roll 1: **3** vs 5, _failure_;
 > * Roll 2: **6** vs 5, **success**;
@@ -274,7 +274,7 @@ each versus check:
 
 If you want your throw in the versus check re-rolled each time, you can use `...` instead of `=`:
 
-```!r 1d6 | 3 vs 1d6...```
+```/roll roll_command: 1d6 | 3 vs 1d6...```
 > 1d6 (3 rolls):
 > * Roll 1: **5** vs 3, **success**;
 > * Roll 2: **3** vs 4, _failure_;
@@ -287,7 +287,7 @@ parts" section for more information about that.
 A command part can have a comment that will be displayed in the results. To add a comment to a 
 command part, add a `?` symbol and follow it with your comment's text. For example:
 
-```!r 1d20 + 5-2d6 ? Some Comment```
+```/roll roll_command: 1d20 + 5-2d6 ? Some Comment```
 
 Will return:
 > `Some Comment:` 1d20 + 5 - 2d6 = 15 - [1 + 2] + _5_ = **17**
@@ -302,7 +302,7 @@ versus-checks (see the "Versus-checks" section).
 You can also make it so that the comment is appended to the command part result, instead of being 
 prepended, as usual. For that, use `?!` instead of the `?` symbol, like so:
 
-```!r 1d20 + 5-2d6 ?! Some Comment```
+```/roll roll_command: 1d20 + 5-2d6 ?! Some Comment```
 
 Which will return:
 > 1d20 + 5 - 2d6 = 15 - [1 + 2] + _5_ = **17** `Some Comment`
@@ -312,7 +312,7 @@ Your roll command can have multiple command parts that are independent of each o
 produce independent results. Each command part is separated from another by the `;` symbol. For 
 example:
 
-```!r 1d20+2; 2d6-3```
+```/roll roll_command: 1d20+2; 2d6-3```
 
 Will roll one twenty-sided die and add two to its die roll result, then, separately, roll two 
 six-sided dice and subtract three from the result of that throw. These two results will not be 
@@ -326,7 +326,7 @@ A command part can be calculated or ignored based on the result of a versus-chec
 example of this in action is a roll of damage being conditional on whether an attack roll was 
 successful or not:
 
-```!r 1d20+5 vs 15 ? Attack roll => 1d10 ? Damage roll```
+```/roll roll_command: 1d20+5 vs 15 ? Attack roll => 1d10 ? Damage roll```
 
 You can see that `=>` is used instead of the `;` symbol to separate these two command parts. 
 In this roll command, the second command part will only be calculated if the versus-check in the 
@@ -341,35 +341,39 @@ automatically considered to be successful.
 
 You can chain conditional command parts together like this:
 
-```!r 1d20vs10 => 1d10vs5 => 1d6```
+```/roll roll_command: 1d20vs10 => 1d10vs5 => 1d6```
 
 In this case, if the versus-check in the first command part fails, both of the command parts after 
 it will be skipped.
 
 ## Reply interactivity
-Once Dicecord finished processing your roll command (and if all goes well), it will send you a 
+**CURRENTLY UNAVAILABLE!**
+
+~~Once Dicecord finished processing your roll command (and if all goes well), it will send you a 
 reply with the results of your roll command. Additionally, however, it will provide you some things
 you can do with these results. It will do that by adding reactions to its reply. If you click on 
-either of them, Dicecord will react to that:
+either of them, Dicecord will react to that:~~
 
-* 🅱 [B] — **BB-code** — will reply with the results of your roll command formatted in BB-code (used in 
-forums)
-* Ⓜ (M) — **Markdown** — will reply with the results of your roll command formatted in markdown
-* ♻ (Recycle) — **Re-roll** — will reply with the same roll command re-rolled
+* ~~🅱 [B] — **BB-code** — will reply with the results of your roll command formatted in BB-code (used in 
+forums)~~
+* ~~Ⓜ (M) — **Markdown** — will reply with the results of your roll command formatted in markdown~~
+* ~~♻ (Recycle) — **Re-roll** — will reply with the same roll command re-rolled~~
 
-Note that due to some technical limitations, the interactivity will only be functional for 10 
-minutes after the reply.
+~~Note that due to some technical limitations, the interactivity will only be functional for 10 
+minutes after the reply.~~
 
 ## Warnings
-If your roll command contains some things that Dicecord could not properly parse or that do not 
+**CURRENTLY UNAVAILABLE!**
+
+~~If your roll command contains some things that Dicecord could not properly parse or that do not 
 make sense to it, before rolling it, it will reply to you with the list of all the warnings it 
 found. It will provide you with what the roll command that it understood will look like, and it 
-will ask you whether it should proceed with that partial command.
+will ask you whether it should proceed with that partial command.~~
 
-If you choose for it to do so (via clicking the ✅ (check) reaction), Dicecord will roll the command as 
-best as it understood it, ignorning the parts that it couldn't.
+~~If you choose for it to do so (via clicking the ✅ (check) reaction), Dicecord will roll the command as 
+best as it understood it, ignoring the parts that it couldn't.~~
 
-If you choose to not do that (via clicking the 🚫 (no) reaction), Dicecord will instead give you the 
-unformatted text of your roll command, so you can copy it, edit the command, and then send it again.
+~~If you choose to not do that (via clicking the 🚫 (no) reaction), Dicecord will instead give you the 
+unformatted text of your roll command, so you can copy it, edit the command, and then send it again.~~
 
-Note that due to some technical limitations, the warnings will only remain active for 5 minutes.
+~~Note that due to some technical limitations, the warnings will only remain active for 5 minutes.~~

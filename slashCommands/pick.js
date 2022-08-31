@@ -40,7 +40,7 @@ module.exports = {
     const showRemaining = interaction.options.getBoolean('show_remaining')
 
     if (!itemsText) {
-      return await interaction.showModal(modal)
+      return interaction.showModal(modal)
     }
 
     return await handler(interaction, { itemsText, amountText, showRemaining })

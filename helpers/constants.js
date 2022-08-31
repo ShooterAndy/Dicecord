@@ -87,6 +87,8 @@ module.exports.MAX_PREFIX_LENGTH = 8
 
 module.exports.MIN_ORDER_NUMBER = 2
 module.exports.MAX_ORDER_NUMBER = 1000
+module.exports.ORDER_UL_KEY = 'ul'
+module.exports.ORDER_OL_KEY = 'ol'
 module.exports.MIN_PICK_NUMBER = 2
 module.exports.MAX_PICK_NUMBER = 1000
 
