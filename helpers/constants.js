@@ -62,8 +62,11 @@ module.exports.MESSAGE_TYPES = {
   warning: 'warning',
   rollResult: 'roll'
 }
-module.exports.WARNING_MESSAGE_EXPIRE_AFTER = '5 minutes'
-module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER = '10 minutes'
+module.exports.WARNING_MESSAGE_EXPIRE_AFTER_INT = 5
+module.exports.WARNING_MESSAGE_EXPIRE_AFTER = `${this.WARNING_MESSAGE_EXPIRE_AFTER_INT} minutes`
+module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT = 15
+module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER =
+  `${this.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT} minutes`
 // -------------------------------------------------------------------------------------------------
 
 module.exports.DEFAULT_PREFIX = '!'

@@ -1,4 +1,3 @@
-const packageJSON = require('../package.json')
 const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')

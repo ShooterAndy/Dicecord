@@ -4,7 +4,6 @@ const formatThrowResults = require('../helpers/formatThrowResults')
 
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
-const pg = require('../helpers/pgHandler')
 const shouldUseReactions = require('../helpers/shouldUseReactions')
 
 const {
@@ -69,20 +68,28 @@ const {
 
   DEFAULT_THROW_RESULT_FORMAT_NAME,
 
-  MESSAGES_DB_NAME,
-  MESSAGES_COLUMNS,
-  MESSAGE_TYPES,
-
-  DISCORD_CODE_REGEX
+  DISCORD_CODE_REGEX,
+  ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT,
+  WARNING_MESSAGE_EXPIRE_AFTER_INT,
+  REPEAT_EMOJI,
+  B_EMOJI,
+  M_EMOJI,
+  YES_EMOJI,
+  NO_EMOJI,
+  THROW_RESULTS_FORMATS
 } = require('../helpers/constants')
 const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 const warningEmbed = require('../helpers/warningEmbed')
 const errorEmbed = require('../helpers/errorEmbed')
-const { ActionRowBuilder, ButtonBuilder, MessageButtonStyleResolvable, MessageActionRow,
+const {
+  MessageActionRow,
   MessageButton
 } = require('discord.js')
+const {transformMinutesToMs} = require('../helpers/utilities')
+const replyOrSendInteraction = require('../helpers/replyOrSendInteraction')
 
 // -------------------------------------------------------------------------------------------------
+
 
 let rollNameSpace = function () {
   let warnings = []
@@ -120,15 +127,7 @@ let rollNameSpace = function () {
     }
   }
 
-  const goOnFromWarning = async (_interaction, args) => {
-    throws = args.throws
-    interaction = _interaction
-
-    if (!interaction) {
-      logger.error('No interaction in goOnFromWarning')
-      return
-    }
-
+  const goOnFromWarning = async () => {
     warnings = []
 
     try {
@@ -140,15 +139,7 @@ let rollNameSpace = function () {
     }
   }
 
-  const repeatRollCommand = async (_interaction, args) => {
-    interaction = _interaction
-    throws = args.throws
-
-    if (!interaction) {
-      logger.error('No interaction in repeatRollCommand')
-      return
-    }
-
+  const repeatRollCommand = async () => {
     removeResults()
 
     warnings = []
@@ -201,10 +192,49 @@ let rollNameSpace = function () {
       } else {
         warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
       }
-      const warningsMessage =
-        await interaction.reply(warningEmbed.get('Warning:', warningsText))
-      if (warningsMessage && validCommandText && await shouldUseReactions(interaction)) {
-        // TODO: write code here
+      if (validCommandText && await shouldUseReactions(interaction)) {
+        const buttonsRow = new MessageActionRow()
+          .addComponents(
+            new MessageButton()
+              .setCustomId('roll_warning_yes')
+              .setLabel('Yes')
+              .setEmoji(YES_EMOJI)
+              .setStyle('SECONDARY'),
+          )
+          .addComponents(
+            new MessageButton()
+              .setCustomId('roll_warning_no')
+              .setLabel('No')
+              .setEmoji(NO_EMOJI)
+              .setStyle('SECONDARY'),
+          )
+        const content = {
+          embeds: warningEmbed.get(warningsText).embeds,
+          components: [buttonsRow]
+        }
+        const r = await replyOrSendInteraction(interaction, content)
+
+        const filter = i => i.message.id === r.id
+
+        const collector = interaction.channel.createMessageComponentCollector({
+          filter,
+          time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
+        });
+
+        collector.on('collect', async i => {
+          switch(i.customId) {
+            case 'roll_warning_yes': {
+              await goOnFromWarning()
+              return await i.update({ components: [] })
+            }
+            case 'roll_warning_no': {
+              await i.update({ components: [] })
+              return await interaction.deleteReply()
+            }
+          }
+        })
+
+        collector.on('end', () => r.edit({ components: [] }))
       }
     }
   }
@@ -215,8 +245,8 @@ let rollNameSpace = function () {
     } else {
       logger.error(`Unknown error was thrown in roll command`, (new Error()).stack)
     }
-    return await interaction.reply(errorEmbed.get(nws`Some uncaught error occurred, please contact \
-      the author of this bot.`))
+    return await replyOrSendInteraction(interaction, errorEmbed.get(nws`Some uncaught error \
+      occurred, please contact the author of this bot.`))
   }
 
   const topLevelCatcher = async (fn, args) => {
@@ -226,7 +256,7 @@ let rollNameSpace = function () {
     } catch (error) {
       if (error &&
         error.name === HANDLED_ERROR_TYPE_NAME || error.name === HANDLED_WARNING_TYPE_NAME) {
-        await interaction.reply(errorEmbed.get(error.message))
+        await replyOrSendInteraction(interaction, errorEmbed.get(error.message))
         return false
       } else {
         await showUncaughtError(error)
@@ -1860,16 +1890,72 @@ let rollNameSpace = function () {
     const buttonsRow = new MessageActionRow()
       .addComponents(
         new MessageButton()
-          .setCustomId('primary')
-          .setLabel('Primary')
-          .setStyle('PRIMARY'),
+          .setCustomId('repeat')
+          .setLabel('Repeat')
+          .setEmoji(REPEAT_EMOJI)
+          .setStyle('SUCCESS'),
       )
-    const replyMessage = await interaction.reply({
-      embeds: commonReplyEmbed.get('Your results:', formattedThrowResults).embeds/*,
-      components: [buttonsRow]*/
-    }).catch(error => { throw error })
+      .addComponents(
+        new MessageButton()
+          .setCustomId('bb-code')
+          .setLabel('BB-code')
+          .setEmoji(B_EMOJI)
+          .setStyle('SECONDARY'),
+      )
+      .addComponents(
+        new MessageButton()
+          .setCustomId('markdown')
+          .setLabel('Markdown')
+          .setEmoji(M_EMOJI)
+          .setStyle('SECONDARY'),
+      )
+    const content = {
+      embeds: commonReplyEmbed.get('Your results:', formattedThrowResults).embeds,
+      components: [buttonsRow]
+    }
+    const r = await replyOrSendInteraction(interaction, content)
 
-    // TODO: add code here
+    const filter = i => i.message.id === r.id
+
+    const collector = interaction.channel.createMessageComponentCollector({
+      filter,
+      time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
+    });
+
+    collector.on('collect', async i => {
+      const updatedButtonsRow =
+        i.message.components[0].components.filter(c => c.customId !== i.customId)
+      let updatedComponents = i.message.components
+      if (updatedButtonsRow.length) {
+        updatedComponents[0].components = updatedButtonsRow
+      } else {
+        updatedComponents = []
+      }
+      switch(i.customId) {
+        case 'repeat': {
+          await repeatRollCommand()
+          return i.update({ components: [] })
+        }
+        case 'bb-code': {
+          const text = formatThrowResults({
+            throws, formatName: THROW_RESULTS_FORMATS.bbcode.name
+          })
+          const updatedEmbeds = content.embeds
+          updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
+          return i.update({ embeds: updatedEmbeds, components: updatedComponents })
+        }
+        case 'markdown': {
+          const text = formatThrowResults({
+            throws, formatName: THROW_RESULTS_FORMATS.markdown.name
+          })
+          const updatedEmbeds = content.embeds
+          updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
+          return i.update({ embeds: updatedEmbeds, components: updatedComponents })
+        }
+      }
+    })
+
+    collector.on('end', () => r.edit({ components: [] }))
   }
 
   /* ===============================================================================================

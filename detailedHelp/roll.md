@@ -347,33 +347,32 @@ In this case, if the versus-check in the first command part fails, both of the c
 it will be skipped.
 
 ## Reply interactivity
-**CURRENTLY UNAVAILABLE!**
 
-~~Once Dicecord finished processing your roll command (and if all goes well), it will send you a 
+Once Dicecord finished processing your roll command (and if all goes well), it will send you a 
 reply with the results of your roll command. Additionally, however, it will provide you some things
-you can do with these results. It will do that by adding reactions to its reply. If you click on 
-either of them, Dicecord will react to that:~~
+you can do with these results. It will do that by adding buttons to its reply. If you click on 
+either of them, Dicecord will react to that:
 
-* ~~🅱 [B] — **BB-code** — will reply with the results of your roll command formatted in BB-code (used in 
-forums)~~
-* ~~Ⓜ (M) — **Markdown** — will reply with the results of your roll command formatted in markdown~~
-* ~~♻ (Recycle) — **Re-roll** — will reply with the same roll command re-rolled~~
+* 🅱 **BB-code** — will reply with the results of your roll command formatted in BB-code (used in 
+forums);
+* Ⓜ **Markdown** — will reply with the results of your roll command formatted in markdown;
+* ♻ **Re-roll** — will reply with the same roll command re-rolled. This will also make the rest
+of the buttons disappear.
 
-~~Note that due to some technical limitations, the interactivity will only be functional for 10 
-minutes after the reply.~~
+Note that due to some technical limitations, the interactivity will only be functional for 15 
+minutes after the reply, and can in rare cases fail (such as when the bot went through a reboot
+after the reply, but before you clicked the button).
 
 ## Warnings
-**CURRENTLY UNAVAILABLE!**
 
-~~If your roll command contains some things that Dicecord could not properly parse or that do not 
+If your roll command contains some things that Dicecord could not properly parse or that do not 
 make sense to it, before rolling it, it will reply to you with the list of all the warnings it 
 found. It will provide you with what the roll command that it understood will look like, and it 
-will ask you whether it should proceed with that partial command.~~
+will ask you whether it should proceed with that partial command.
 
-~~If you choose for it to do so (via clicking the ✅ (check) reaction), Dicecord will roll the command as 
-best as it understood it, ignoring the parts that it couldn't.~~
+If you choose for it to do so (via clicking the "✅ Yes" button), Dicecord will roll the command as 
+best as it understood it, ignoring the parts that it couldn't.
 
-~~If you choose to not do that (via clicking the 🚫 (no) reaction), Dicecord will instead give you the 
-unformatted text of your roll command, so you can copy it, edit the command, and then send it again.~~
+If you choose to not do that (via clicking the "🚫 No" reaction), Dicecord will delete the reply.
 
-~~Note that due to some technical limitations, the warnings will only remain active for 5 minutes.~~
+Note that due to some technical limitations, the warnings will only remain active for 5 minutes.

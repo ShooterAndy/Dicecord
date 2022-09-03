@@ -18,7 +18,6 @@ const { transformMinutesToS } = require('./utilities')
 const fs = require('fs')
 const path = require('path')
 const pg = require('./pgHandler')
-const {intersection} = require('underscore')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -113,8 +112,6 @@ const Client = module.exports = {
     const myIntents = new Discord.Intents()
     myIntents.add(
       Discord.Intents.FLAGS.GUILDS,
-      Discord.Intents.FLAGS.GUILD_MESSAGES,
-      Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
       Discord.Intents.FLAGS.DIRECT_MESSAGES,
       Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
     )
@@ -166,10 +163,6 @@ const Client = module.exports = {
         await require(`../events/error`)(Client.client, error))
     Client.client.on('ready', async () =>
         await require(`../events/ready`)(Client.client))
-    Client.client.on('messageCreate', async message =>
-        await require(`../events/message`)(Client.client, message, commands, prefixes))
-    Client.client.on('messageReactionAdd', async (messageReaction, user) =>
-        await require('../events/messageReactionAdd')(Client.client, messageReaction, user))
 
     Client.client.on('interactionCreate', async interaction => {
       if (interaction.isCommand()) {
@@ -256,6 +249,7 @@ const Client = module.exports = {
           );
         }*/
       } else if (interaction.isButton()) {
+
         //interaction.message.id
       }
     })
