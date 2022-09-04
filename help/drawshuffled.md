@@ -1,4 +1,4 @@
-**drawShuffled** allows you to draw a number of cards (1 by default) from a freshly shuffled deck of your choosing (`poker` by default).
+**drawShuffled** allows you to draw a number of cards (1 by default) from a freshly shuffled deck of your choosing (`poker` by default).\
 The deck that was created by the `/shuffle` command is not affected by the use of this command.
 
 See `/help topic:listdecktypes` to learn more about deck types and how to list them.

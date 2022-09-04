@@ -1,6 +1,6 @@
 **getSaved** command **IS CURRENTLY UNAVAILABLE**~~allows you to get the text of a saved roll command.~~
 
-The syntax for that is as follows:
+The syntax for that is as follows:\
 ```/getSaved comand-name```
 
 This will return the text of your saved roll command by that name. Obviously, you have to have saved

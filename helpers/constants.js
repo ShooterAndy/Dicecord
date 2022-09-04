@@ -348,3 +348,10 @@ module.exports.THROW_RESULTS_FORMATS = {
   }
 }
 module.exports.DEFAULT_THROW_RESULT_FORMAT_NAME = Object.keys(this.THROW_RESULTS_FORMATS)[0]
+// -------------------------------------------------------------------------------------------------
+module.exports.DEFAULT_SLOTS_NUMBER = 3
+module.exports.DEFAULT_SLOTS_SYMBOLS = ['🍒', '🔔', '🍀', '❤', '💎', '♦']
+module.exports.MINIMUM_SLOTS_NUMBER = 2
+module.exports.MAXIMUM_SLOTS_NUMBER = 10
+module.exports.MINIMUM_SLOTS_SYMBOLS = 2
+module.exports.MAXIMUM_SLOTS_SYMBOLS = 32

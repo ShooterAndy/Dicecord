@@ -1,6 +1,6 @@
 **deleteSaved** command **IS CURRENTLY UNAVAILABLE** ~~allows you to delete a saved roll command.~~
 
-The syntax for that is as follows:
+The syntax for that is as follows:\
 ```/deleteSaved command-name```
 
 This will delete your saved roll command by that name, allowing you to save more roll commands in 

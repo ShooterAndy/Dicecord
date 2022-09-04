@@ -63,7 +63,7 @@ module.exports = async (interaction, args) => {
   return await interaction.reply(commonReplyEmbed.get(
     `Picked ${amount} items from your list:`,
     pickedChoices.join(', '),
-    showRemaining ?
-      `Remaining items: ${(choices.length ? choices.join(', ') : '_none_')}` :
+    showRemaining ? (choices.length ?
+      `Remaining items: ${choices.join(', ')}` : 'No items left in the list.') :
       null))
 }

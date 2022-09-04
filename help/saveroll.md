@@ -1,11 +1,11 @@
 **saveRoll** command **IS CURRENTLY UNAVAILABLE** ~~allows you to save a roll command for later use.~~
 
-The syntax for that is as follows:
+The syntax for that is as follows:\
 ```/saveRoll comand-name command text```
 
 Examples:
-```/saveRoll some-command 1d20```
-```/saveRoll some-command 1d20+10 vs 20, 22 ? comment => 2d6+2 ?! comment```
+* ```/saveRoll some-command 1d20```
+* ```/saveRoll some-command 1d20+10 vs 20, 22 ? comment => 2d6+2 ?! comment```
 
 The saved command is tied to your Discord account, so only you can use it. You have a limit of 10
 saved roll commands. You can delete one by using the `/deleteSaved` command. If you find that you've

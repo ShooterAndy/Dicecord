@@ -1,6 +1,6 @@
 **rollSaved** command **IS CURRENTLY UNAVAILABLE** ~~allows you to roll a saved roll command.~~
 
-The syntax for that is as follows:
+The syntax for that is as follows:\
 ```/rollSaved comand-name```
 
 This will roll a saved roll command by that name and show you the results of those rolls. Obviously,

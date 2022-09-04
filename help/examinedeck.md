@@ -1,6 +1,6 @@
 **examineDeck** will provide a short description of the selected type of card deck.
 
-See `/help topic:listDeckTypes` to learn more about how to get a list of the card deck types.
+See `/help topic:listDeckTypes` to learn more about how to get a list of the card deck types.\
 See `/help topic:shuffle` or `/help command:drawShuffled` to learn more about how to use a specific type of card deck.
 
 Examples:

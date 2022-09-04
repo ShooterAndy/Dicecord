@@ -15,3 +15,4 @@
 * **/drawShuffled** — draws the requested amount of cards from a fresh deck.
 * **/drawPrivate** — draws the requested amount of cards from the saved deck and sends the results to your Direct Messages.
 * **/insert** — inserts the specified cards into the saved deck at random positions.
+* **/slots** — displays a random result from a customizable slot machine.
