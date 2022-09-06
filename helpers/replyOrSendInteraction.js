@@ -14,7 +14,11 @@ module.exports = async (interaction, content) => {
           .catch(e => logger.error('Failed to follow up an interaction', e))
       }
     } else {
-      logger.error(`Malformed channel in replyOrSendInteraction:\n${JSON.stringify(interaction)}`)
+      if (interaction.channel) {
+        logger.error(`Malformed channel in replyOrSendInteraction:\n${JSON.stringify(interaction.channel)}`)
+      } else {
+        logger.error(`Missing channel in replyOrSendInteraction`)
+      }
     }
   } else {
      logger.error('No interaction in replyOrSendInteraction')
