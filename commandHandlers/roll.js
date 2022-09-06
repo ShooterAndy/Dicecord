@@ -1926,10 +1926,10 @@ let rollNameSpace = function () {
 
     collector.on('collect', async i => {
       const updatedButtonsRow =
-        i.message.components[0].components.filter(c => c.customId !== i.customId)
+        i.message.components[1].components.filter(c => c.customId !== i.customId)
       let updatedComponents = i.message.components
       if (updatedButtonsRow.length) {
-        updatedComponents[0].components = updatedButtonsRow
+        updatedComponents[1].components = updatedButtonsRow
       } else {
         updatedComponents = []
       }
