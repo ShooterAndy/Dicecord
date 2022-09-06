@@ -17,7 +17,9 @@ const pg = require('./pgHandler')
 module.exports = {
   launch(interaction, response) {
     const filter = i => {
-      return (i.message.id === response.id) && (i.customId === GENERIC_SAVE_BUTTON_ID)
+      return (i.message.id === response.id) &&
+        (i.customId === GENERIC_SAVE_BUTTON_ID) &&
+        (i.user.id === interaction.user.id)
     }
 
     const collector = interaction.channel.createMessageComponentCollector({
@@ -47,7 +49,10 @@ module.exports = {
         filter: mi => mi.user.id === interaction.user.id,
       }).catch(error => {
         // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
-        logger.error('Failed to create save modal', error)
+        if (!error ||
+          error.message !== 'Collector received no interactions before ending with reason: time') {
+          logger.error('Failed to create save modal', error)
+        }
         return null
       })
 
