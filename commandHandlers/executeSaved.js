@@ -28,7 +28,7 @@ module.exports = async (interaction, args) => {
       if (!result) {
         return await interaction.reply(errorEmbed.get(nws`You don't seem to have a saved command \
         by the name of \`${name}\`. Perhaps it expired after ${SAVED_COMMANDS_EXPIRE_AFTER} of \
-        not being used? You can also try listing all your saved roll commands via the \ 
+        not being used? You can also try listing all your saved commands via the \ 
           \`/listSaved\` command`))
       }
 

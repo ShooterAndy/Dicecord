@@ -116,7 +116,7 @@ module.exports = {
           }
 
         } catch (error) {
-          logger.error(`Failed to save a roll command`, error)
+          logger.error(`Failed to save a command`, error)
           return await submitted.reply(errorEmbed.get(nws`Failed to save your command. \
               Please contact the author of this bot.`))
         }

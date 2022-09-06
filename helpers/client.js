@@ -249,7 +249,7 @@ const Client = module.exports = {
               })
             }
           } catch(error) {
-            logger.log(`Failed to get the list of saved roll commands for autocomplete`, error)
+            logger.log(`Failed to get the list of saved commands for autocomplete`, error)
           }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
           await interaction.respond(

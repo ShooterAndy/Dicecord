@@ -29,7 +29,7 @@ module.exports = async (interaction, args) => {
     })
     return await interaction.reply(commonReplyEmbed.get('Your saved commands:', text))
   } catch(error) {
-    logger.log(`Failed to get the list of saved roll commands`, error)
+    logger.log(`Failed to get the list of saved commands`, error)
     return await interaction.reply(errorEmbed.get(nws`Failed to list the saved commands. Please \
     contact the author of this bot.`))
   }

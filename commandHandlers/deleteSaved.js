@@ -33,7 +33,7 @@ module.exports = async (interaction, args) => {
         nws`The \`${name}\` saved command has been successfully deleted from the \
         list of your saved commands.`))
     } catch (error) {
-      logger.error(`Failed to delete a saved roll command`, error)
+      logger.error(`Failed to delete a saved command`, error)
       return await interaction.reply(errorEmbed.get(nws`Failed to delete the command. Please \
         contact the author of this bot.`))
     }

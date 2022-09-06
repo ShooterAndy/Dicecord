@@ -2,9 +2,9 @@ const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const {
-  SAVED_ROLL_COMMANDS_DB_NAME,
-  SAVED_ROLL_COMMANDS_COLUMNS,
-  SAVED_ROLL_COMMANDS_EXPIRE_AFTER,
+  SAVED_COMMANDS_DB_NAME,
+  SAVED_COMMANDS_COLUMNS,
+  SAVED_COMMANDS_EXPIRE_AFTER,
   MESSAGES_DB_NAME,
   MESSAGES_COLUMNS,
   MESSAGE_TYPES,
@@ -32,22 +32,22 @@ const tryToSetActivity = async () => {
   }
 }
 
-const deleteExpiredSavedRollCommands = async () => {
+const deleteExpiredSavedCommands = async () => {
   try {
     const result = await pg.db.any(
       'DELETE FROM ${db#} WHERE ${timestamp~} < NOW() - INTERVAL ${interval} RETURNING *',
       {
-        db: SAVED_ROLL_COMMANDS_DB_NAME,
-        timestamp: SAVED_ROLL_COMMANDS_COLUMNS.timestamp,
-        interval: SAVED_ROLL_COMMANDS_EXPIRE_AFTER
+        db: SAVED_COMMANDS_DB_NAME,
+        timestamp: SAVED_COMMANDS_COLUMNS.timestamp,
+        interval: SAVED_COMMANDS_EXPIRE_AFTER
       }
     )
     if (result && result.length) {
-      logger.log(nws`Deleted ${result.length} saved roll commands older than \
-                ${SAVED_ROLL_COMMANDS_EXPIRE_AFTER}.`)
+      logger.log(nws`Deleted ${result.length} saved commands older than \
+                ${SAVED_COMMANDS_EXPIRE_AFTER}.`)
     }
   } catch (error) {
-    logger.error(`Failed to delete expired roll commands`, error)
+    logger.error(`Failed to delete expired commands`, error)
   }
 }
 
@@ -189,11 +189,11 @@ module.exports = async (client) => {
     }, transformHoursToMs(6))
 
     if (USE_INTERACTIVE_REACTIONS) {
-      await deleteExpiredSavedRollCommands()
+      await deleteExpiredSavedCommands()
       await deleteExpiredWarningMessages()
 
       setInterval(() => {
-        deleteExpiredSavedRollCommands()
+        deleteExpiredSavedCommands()
       }, transformHoursToMs(6))
 
       setInterval(() => {
