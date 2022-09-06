@@ -23,7 +23,7 @@ const packageJSON = require('../package.json')
 
 const tryToSetActivity = async () => {
   try {
-    await Client.client.user.setActivity('v' + packageJSON.version + ', type !help')
+    await Client.client.user.setActivity('v' + packageJSON.version + ', type /help')
     //await Client.client.user.setActivity('⚡️ATTN! Type /notice')
     /*logger.log('Successfully set activity')*/
   } catch (error) {
