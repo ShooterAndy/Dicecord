@@ -98,7 +98,6 @@ let rollNameSpace = function () {
   let throws = []
 
   let interaction = null
-  let prefix = null
   let commandName = null
   let originalCommandText = 'EMPTY'
 
@@ -189,7 +188,7 @@ let rollNameSpace = function () {
           warningsText += '```' + validCommandText + '```'
         } else {
           warningsText += nws`\nThis will make your command empty. Please refer to \ 
-          \`${prefix}help ${commandName}\` for help.`
+          \`/help topic:roll\` for help.`
         }
       } else {
         warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
@@ -360,10 +359,10 @@ let rollNameSpace = function () {
     }
 
     if (!unprocessedCommand)
-      throw e(`no throw specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
+      throw e(`no throw specified, try something like \`/roll roll_command:2d10 + 3\``)
     const command = unprocessedCommand.trim()
     if (!command)
-      throw e(`no throw specified, try something like \`${prefix}${commandName} 2d10 + 3\``)
+      throw e(`no throw specified, try something like \`/roll roll_command:2d10 + 3\``)
 
     // First we split the command into separate throws
     const separateParts = command.split(getThrowSeparatorRegex())

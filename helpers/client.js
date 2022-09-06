@@ -1,8 +1,6 @@
 const Discord = require('discord.js')
-const Prefixes = require('./prefixes')
 const {
   LOG_PREFIX,
-  USE_PARTIALS,
   DECK_TYPES_COLUMNS,
   DECK_TYPES_DB_NAME,
   CUSTOM_DECK_TYPE,
@@ -14,9 +12,7 @@ const logger = require('./logger')
 const Cluster = require('discord-hybrid-sharding')
 const {
   Options,
-  Sweepers
 } = require('discord.js')
-const { transformMinutesToS } = require('./utilities')
 const fs = require('fs')
 const path = require('path')
 const pg = require('./pgHandler')
@@ -105,28 +101,16 @@ const Client = module.exports = {
 
   async readyBasics (slashCommands, modals) {
     let options = { }
-    if (USE_PARTIALS) {
-      options = { partials: ['CHANNEL', 'USER'] } // USER here is *only* needed for reactions, remove later!
-    }
     options.shards = Cluster.data.SHARD_LIST // An array of shards that will get spawned
     options.shardCount = Cluster.data.TOTAL_SHARDS // Total number of shards
 
     const myIntents = new Discord.Intents()
     myIntents.add(
-      Discord.Intents.FLAGS.GUILDS,
-      Discord.Intents.FLAGS.DIRECT_MESSAGES,
-      Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+      Discord.Intents.FLAGS.GUILDS
     )
     options.intents = myIntents
     options.makeCache = Options.cacheWithLimits({
-      MessageManager: {
-        maxSize: 25,
-        sweepInterval: transformMinutesToS(5),
-        sweepFilter: Sweepers.filterByLifetime({
-          lifetime: transformMinutesToS(30),
-          getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
-        })
-      },
+      MessageManager: 0,
       PresenceManager: 0,
       ThreadManager: 0,
       ApplicationCommandManager: 0, // guild.commands
@@ -150,13 +134,6 @@ const Client = module.exports = {
     //This is quite a hack, but I couldn't find a better way
     Client.client.functions = {
       getChannelById: _getChannelById
-    }
-
-    let prefixes
-    try {
-      prefixes = await Prefixes.load()
-    } catch (error) {
-      logger.error(`Couldn't read the prefixes table`, error)
     }
 
     await this.cacheDeckTypes()

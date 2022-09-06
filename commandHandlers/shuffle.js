@@ -26,9 +26,9 @@ module.exports = async (interaction, args) => {
     let deck
     if (deckId === CUSTOM_DECK_TYPE || customCards) {
       deckId = CUSTOM_DECK_TYPE
-      deck = await processCustomDeck(customCards, args.prefix)
+      deck = await processCustomDeck(customCards)
     } else {
-      deck = await getAndProcessDeckFromDb(deckId, args.prefix)
+      deck = await getAndProcessDeckFromDb(deckId)
     }
     const replyText = await saveShuffledDeck(interaction, deckId, deck)
     const reply = saveableReplyEmbed.get('Shuffled!', replyText)
@@ -73,10 +73,10 @@ const processCustomDeck = async (customCards) => {
   return _.shuffle(cards)
 }
 
-const getAndProcessDeckFromDb = async (deckId, prefix) => {
+const getAndProcessDeckFromDb = async (deckId) => {
   try {
     const deckDbResult = await getDeckFromDb(deckId)
-    return shuffleDeckDbResult(deckDbResult, deckId, prefix)
+    return shuffleDeckDbResult(deckDbResult, deckId)
   } catch (error) {
     throw error
   }
