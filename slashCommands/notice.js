@@ -18,15 +18,6 @@ module.exports = {
     }
 
     return await interaction.reply(commonReplyEmbed.get('Important notice',
-      nws`**IMPORTANT!**\nAfter August 31, 2022, this bot, as is mandated by Discord, is \
-      moving to _Slash Commands_. This means that the typical way of sending messages with a \
-      prefix, such as \`!roll 1d20+2\` will **NO LONGER WORK**. Instead, this bot will use \
-      the new slash command syntax, so you should type \`/roll\` and then fill the parameters \
-      there.\nThere are also some things that will not work, such as saving and using roll \
-      commands. These will be included in later \
-      updates.\nIf you're having issues with the slash-commands not working on your server, \
-      please check that the "Application Commands" permission is set for this bot.\nIf you have \
-      any questions, please, don't hesitate to ask them on the bot's \
-      support server: https://discord.gg/UPRHn2m`))
+      nws`No special notices.`))
   }
 }

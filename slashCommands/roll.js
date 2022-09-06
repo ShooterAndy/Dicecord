@@ -23,8 +23,8 @@ module.exports = {
       return
     }
 
-    const commandText = interaction.options.getString('roll_command')
+    const rollCommand = interaction.options.getString('roll_command')
 
-    return await handler(interaction, { commandText })
+    return await handler(interaction, { rollCommand })
   }
 }

@@ -10,7 +10,7 @@ module.exports = {
     .setDescriptionLocalization('ru',
       'Вытягивает случайные карты из колоды, перетасованной для этого канала')
     .addIntegerOption(option => option
-      .setName('amount')
+      .setName('number_of_cards_to_draw')
       .setNameLocalization('ru', 'количество')
       .setDescription('How many cards should be drawn (1 by default)')
       .setDescriptionLocalization('ru', 'Сколько карт вытянуть (1 по умолчанию)')
@@ -34,7 +34,7 @@ module.exports = {
       return
     }
 
-    const numberOfCardsToDraw = interaction.options.getInteger('amount')
+    const numberOfCardsToDraw = interaction.options.getInteger('number_of_cards_to_draw')
     const comment = interaction.options.getString('comment')
     const isPrivate = interaction.options.getBoolean('is_private')
 

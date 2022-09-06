@@ -17,7 +17,7 @@ module.exports = {
       .setAutocomplete(true)
     )
     .addIntegerOption(option => option
-      .setName('amount')
+      .setName('number_of_cards_to_draw')
       .setNameLocalization('ru', 'количество')
       .setDescription('How many cards should be drawn (1 by default)')
       .setDescriptionLocalization('ru', 'Сколько карт вытянуть (1 по умолчанию)')
@@ -35,10 +35,10 @@ module.exports = {
       return
     }
 
-    const deckId = interaction.options.getString('deck')
-    const numberOfCardsToDraw = interaction.options.getInteger('amount')
+    const deck = interaction.options.getString('deck')
+    const numberOfCardsToDraw = interaction.options.getInteger('number_of_cards_to_draw')
     const comment = interaction.options.getString('comment')
 
-    return await handler(interaction, { deckId, numberOfCardsToDraw, comment })
+    return await handler(interaction, { deck, numberOfCardsToDraw, comment })
   }
 }

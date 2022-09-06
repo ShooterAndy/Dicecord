@@ -5,8 +5,8 @@ const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 
 module.exports = async (interaction, args) => {
   let helpFileName = '!'
-  if (args.commandText && args.commandText.trim().length > 0) {
-    helpFileName = args.commandText.trim().toLowerCase()
+  if (args.topic && args.topic.trim().length > 0) {
+    helpFileName = args.topic.trim().toLowerCase()
   }
   helpFileName += '.md'
 

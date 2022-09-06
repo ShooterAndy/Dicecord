@@ -17,7 +17,7 @@ module.exports = {
       .setRequired(true)
       .setAutocomplete(true))
     .addBooleanOption(option => option
-      .setName('list_cards')
+      .setName('should_show_cards')
       .setNameLocalization('ru', 'показать_карты')
       .setDescription('Show the full ist of cards in that deck type?')
       .setDescriptionLocalization('ru', 'Показать полный список карт в этом типе колоды?')
@@ -30,7 +30,7 @@ module.exports = {
     }
 
     const deckId = interaction.options.getString('deck')
-    const shouldShowCards = interaction.options.getBoolean('list_cards')
+    const shouldShowCards = interaction.options.getBoolean('should_show_cards')
 
     return await handler(interaction, { deckId, shouldShowCards })
   }

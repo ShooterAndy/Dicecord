@@ -9,7 +9,8 @@ const {
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
   try {
@@ -18,7 +19,11 @@ module.exports = async (interaction, args) => {
     const cards = await processCards(args.cards)
     deck = insertCardsIntoDeck(deck, cards)
     const text = await saveDeck(interaction, deck, cards)
-    return await interaction.reply(commonReplyEmbed.get('Inserted!', text))
+    const reply = saveableReplyEmbed.get('Inserted!', text)
+    reply.fetchReply = true
+
+    const r = await interaction.reply(reply)
+    genericCommandSaver.launch(interaction, r)
   } catch (error) {
     return await interaction.reply(errorEmbed.get(error.toString()))
   }

@@ -8,19 +8,20 @@ const {
 
 const nws = require('../helpers/nws')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
   if (!interaction) return
-  const { itemsText } = args
-  let { typeText } = args
+  const { items } = args
+  let { type } = args
 
   let separator = ','
-  if (itemsText.indexOf('\n') > 0) {
+  if (items.indexOf('\n') > 0) {
     separator = '\n'
   }
 
-  const choiceParts = itemsText.split(separator)
+  const choiceParts = items.split(separator)
   if (choiceParts.length < MIN_ORDER_NUMBER) {
     return await interaction.reply(errorEmbed.get(nws`Not enough choices to order, please provide \
       at least ${MIN_ORDER_NUMBER}.`))
@@ -45,14 +46,14 @@ module.exports = async (interaction, args) => {
   }
 
   let listType = -1
-  if (typeText) {
-    typeText = typeText.toLowerCase()
-    if (typeText === ORDER_UL_KEY) {
+  if (type) {
+    type = type.toLowerCase()
+    if (type === ORDER_UL_KEY) {
       listType = 0
-    } else if (typeText === ORDER_OL_KEY) {
+    } else if (type === ORDER_OL_KEY) {
       listType = 1
     } else {
-      return await interaction.reply(errorEmbed.get(nws`List type "${typeText}" not recognized, \
+      return await interaction.reply(errorEmbed.get(nws`List type "${type}" not recognized, \
         please use either \`${ORDER_OL_KEY}\` or \`${ORDER_UL_KEY}\`.`))
     }
   }
@@ -70,6 +71,9 @@ module.exports = async (interaction, args) => {
     }
   })
 
-  return await interaction.reply(commonReplyEmbed.get('Ordered items in your list:',
-    choicesString))
+  const reply = saveableReplyEmbed.get('Ordered items in your list:', choicesString)
+  reply.fetchReply = true
+
+  const r = await interaction.reply(reply)
+  genericCommandSaver.launch(interaction, r)
 }

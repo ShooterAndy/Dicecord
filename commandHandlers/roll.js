@@ -87,6 +87,8 @@ const {
 } = require('discord.js')
 const {transformMinutesToMs} = require('../helpers/utilities')
 const replyOrSendInteraction = require('../helpers/replyOrSendInteraction')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 // -------------------------------------------------------------------------------------------------
 
@@ -105,7 +107,7 @@ let rollNameSpace = function () {
     throws = []
     interaction = _interaction
 
-    originalCommandText = args.commandText
+    originalCommandText = args.rollCommand
 
     if (!interaction) {
       logger.error('No interaction in processMessage')
@@ -113,7 +115,7 @@ let rollNameSpace = function () {
     }
 
     try {
-      if (await topLevelCatcher(processWholeCommand, args.commandText)) {
+      if (await topLevelCatcher(processWholeCommand, args.rollCommand)) {
         if (warnings.length) {
           await topLevelCatcher(showWarnings)
         } else {
@@ -219,7 +221,7 @@ let rollNameSpace = function () {
         const collector = interaction.channel.createMessageComponentCollector({
           filter,
           time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
-        });
+        })
 
         collector.on('collect', async i => {
           switch(i.customId) {
@@ -1909,11 +1911,11 @@ let rollNameSpace = function () {
           .setEmoji(M_EMOJI)
           .setStyle('SECONDARY'),
       )
-    const content = {
-      embeds: commonReplyEmbed.get('Your results:', formattedThrowResults).embeds,
-      components: [buttonsRow]
-    }
+    const content = saveableReplyEmbed.get('Your results:', formattedThrowResults)
+    content.components.push(buttonsRow)
+
     const r = await replyOrSendInteraction(interaction, content)
+    genericCommandSaver.launch(interaction, r)
 
     const filter = i => i.message.id === r.id
 

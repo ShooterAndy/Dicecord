@@ -29,9 +29,9 @@ module.exports = {
       return
     }
 
-    const deckId = interaction.options.getString('deck')
+    const deck = interaction.options.getString('deck')
     const customCards = interaction.options.getString('custom_cards')
 
-    return await handler(interaction, { deckId, customCards })
+    return await handler(interaction, { deck, customCards })
   }
 }

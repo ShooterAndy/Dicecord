@@ -4,18 +4,20 @@ const { MIN_PICK_NUMBER, MAX_PICK_NUMBER, } = require('../helpers/constants')
 
 const nws = require('../helpers/nws')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
   if (!interaction) return
-  const { itemsText, amountText, showRemaining } = args
+  const { items, showRemaining } = args
+  let { amount } = args
 
   let separator = ','
-  if (itemsText.indexOf('\n') > 0) {
+  if (items.indexOf('\n') > 0) {
     separator = '\n'
   }
 
-  const choiceParts = itemsText.split(separator)
+  const choiceParts = items.split(separator)
   if (choiceParts.length < MIN_PICK_NUMBER) {
     return await interaction.reply(errorEmbed.get(nws`Not enough choices to pick from, please \
       provide at least ${MIN_PICK_NUMBER}.`))
@@ -39,31 +41,35 @@ module.exports = async (interaction, args) => {
       please provide at least ${MIN_PICK_NUMBER}.`))
   }
 
-  let amount
-  if (!amountText) {
-    amount = 1
+  let parsedAmount
+  if (!amount) {
+    parsedAmount = 1
   } else {
-    amount = Number(amountText)
-    if (isNaN(amount) || amount < 1) {
+    parsedAmount = Number(amount)
+    if (isNaN(parsedAmount) || parsedAmount < 1) {
       return await interaction.reply(
-        errorEmbed.get(`"${amountText}" is not a valid number of items to pick.`))
+        errorEmbed.get(`"${amount}" is not a valid number of items to pick.`))
     }
-    amount = Math.floor(amount)
-    if (amount > choices.length) {
+    parsedAmount = Math.floor(parsedAmount)
+    if (parsedAmount > choices.length) {
       return await interaction.reply(
-        errorEmbed.get(`Can't pick ${amount} items out of a list of ${choices.length} items.`))
+        errorEmbed.get(
+          `Can't pick ${parsedAmount} items out of a list of ${choices.length} items.`))
     }
   }
 
   const pickedChoices = []
-  for (let i = 0; i < amount; i++) {
+  for (let i = 0; i < parsedAmount; i++) {
     pickedChoices.push(choices.splice(random.integer(0, choices.length - 1), 1))
   }
 
-  return await interaction.reply(commonReplyEmbed.get(
-    `Picked ${amount} items from your list:`,
+  const reply = saveableReplyEmbed.get(`Picked ${parsedAmount} items from your list:`,
     pickedChoices.join(', '),
     showRemaining ? (choices.length ?
-      `Remaining items: ${choices.join(', ')}` : 'No items left in the list.') :
-      null))
+        `Remaining items: ${choices.join(', ')}` : 'No items left in the list.') :
+      null)
+  reply.fetchReply = true
+
+  const r = await interaction.reply(reply)
+  genericCommandSaver.launch(interaction, r)
 }

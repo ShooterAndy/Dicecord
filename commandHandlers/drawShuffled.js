@@ -9,16 +9,17 @@ const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
   const { numberOfCardsToDraw } = args
-  let { deckId, comment } = args
-  if (!deckId) deckId = DEFAULT_DECK_TYPE
+  let { deck, comment } = args
+  if (!deck) deck = DEFAULT_DECK_TYPE
   if (comment) {
     comment = comment.replace(DISCORD_CODE_REGEX, '').trim()
   }
-  await processDrawShuffledCommand(interaction, numberOfCardsToDraw, deckId, comment)
+  await processDrawShuffledCommand(interaction, numberOfCardsToDraw, deck, comment)
 };
 
 const processDrawShuffledCommand =
@@ -74,7 +75,11 @@ const processDrawShuffledCommand =
         }
 
         text += drawnCards.join(', ')
-        return await interaction.reply(commonReplyEmbed.get('Your cards:', text))
+        const reply = saveableReplyEmbed.get('Your cards:', text)
+        reply.fetchReply = true
+
+        const r = await interaction.reply(reply)
+        genericCommandSaver.launch(interaction, r)
       }
     } catch (error) {
       logger.error(`Failed to load the "${deckId}" deck for the "/drawShuffled" command`, error)

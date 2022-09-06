@@ -23,8 +23,8 @@ module.exports = {
       return
     }
 
-    const commandText = interaction.options.getString('topic')
+    const topic = interaction.options.getString('topic')
 
-    return await handler(interaction, { commandText })
+    return await handler(interaction, { topic })
   }
 }

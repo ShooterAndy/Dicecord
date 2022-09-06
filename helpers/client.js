@@ -5,7 +5,9 @@ const {
   USE_PARTIALS,
   DECK_TYPES_COLUMNS,
   DECK_TYPES_DB_NAME,
-  CUSTOM_DECK_TYPE
+  CUSTOM_DECK_TYPE,
+  SAVED_COMMANDS_COLUMNS,
+  SAVED_COMMANDS_DB_NAME
 } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
@@ -206,11 +208,9 @@ const Client = module.exports = {
           }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
           await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice })),
+            filtered.map(choice => ({ name: choice, value: choice }))
           )
-        }
-
-        if ((interaction.commandName === 'examinedeck') ||
+        } else if ((interaction.commandName === 'examinedeck') ||
           (interaction.commandName === 'shuffle') ||
           (interaction.commandName === 'drawshuffled')) {
           const focusedOption = interaction.options.getFocused(true)
@@ -226,7 +226,34 @@ const Client = module.exports = {
           }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
           await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice })),
+            filtered.map(choice => ({ name: choice, value: choice }))
+          )
+        } else if ((interaction.commandName === 'examinesaved') ||
+          (interaction.commandName === 'deletesaved') ||
+          (interaction.commandName === 'executesaved')) {
+          const focusedValue = interaction.options.getFocused()
+          const choices = []
+          try {
+            const result = await pg.db.any(
+              'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue}',
+              {
+                name: SAVED_COMMANDS_COLUMNS.name,
+                db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+                userId: SAVED_COMMANDS_COLUMNS.user_id,
+                userIdValue: interaction.user.id
+              })
+
+            if (result && result.length) {
+              result.forEach(command => {
+                choices.push(command.name)
+              })
+            }
+          } catch(error) {
+            logger.log(`Failed to get the list of saved roll commands for autocomplete`, error)
+          }
+          const filtered = choices.filter(choice => choice.startsWith(focusedValue))
+          await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice }))
           )
         }
 
@@ -249,7 +276,6 @@ const Client = module.exports = {
           );
         }*/
       } else if (interaction.isButton()) {
-
         //interaction.message.id
       }
     })

@@ -9,7 +9,8 @@ const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const sendDM = require('../helpers/sendDM')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
   let { numberOfCardsToDraw, comment, isPrivate } = args
@@ -108,7 +109,11 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
           }
         }
       }
-      return await interaction.reply(commonReplyEmbed.get('Your results:', text))
+      const reply = saveableReplyEmbed.get('Your cards:', text)
+      reply.fetchReply = true
+
+      const r = await interaction.reply(reply)
+      genericCommandSaver.launch(interaction, r)
     } catch (error) {
       logger.error(nws`Failed to update the deck for channel "${interaction.channel.id}"`, error)
       return await interaction.reply(errorEmbed.get(nws`Failed to save the deck.`))

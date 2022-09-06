@@ -35,14 +35,14 @@ module.exports = {
       return
     }
 
-    const itemsText = interaction.options.getString('items')
-    const amountText = interaction.options.getInteger('amount')
+    const items = interaction.options.getString('items')
+    const amount = interaction.options.getInteger('amount')
     const showRemaining = interaction.options.getBoolean('show_remaining')
 
-    if (!itemsText) {
+    if (!items) {
       return interaction.showModal(modal)
     }
 
-    return await handler(interaction, { itemsText, amountText, showRemaining })
+    return await handler(interaction, { items, amount, showRemaining })
   }
 }

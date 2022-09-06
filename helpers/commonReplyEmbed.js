@@ -21,6 +21,8 @@ module.exports = {
       return null
     }
 
-    return { embeds: [embed] }
+    return {
+      embeds: [embed]
+    }
   }
 }

@@ -35,9 +35,9 @@ module.exports = {
     .addComponents(itemsRow, amountRow, showRemainingRow),
   async processSubmission(interaction) {
     if (!interaction || !interaction.fields) return
-    const itemsText = interaction.fields.getTextInputValue('items')
-    const amountText = interaction.fields.getTextInputValue('amount')
+    const items = interaction.fields.getTextInputValue('items')
+    const amount = interaction.fields.getTextInputValue('amount')
     const showRemaining = interaction.fields.getTextInputValue('show_remaining')
-    return await handler(interaction, { itemsText, amountText, showRemaining })
+    return await handler(interaction, { items, amount, showRemaining })
   }
 }

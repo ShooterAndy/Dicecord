@@ -1,15 +1,19 @@
 const random = require('random')
 const {
-  DEFAULT_SLOTS_NUMBER, DEFAULT_SLOTS_SYMBOLS, MINIMUM_SLOTS_NUMBER, MAXIMUM_SLOTS_NUMBER,
-  MINIMUM_SLOTS_SYMBOLS, MAXIMUM_SLOTS_SYMBOLS
+  DEFAULT_SLOTS_NUMBER,
+  DEFAULT_SLOTS_SYMBOLS,
+  MINIMUM_SLOTS_NUMBER,
+  MAXIMUM_SLOTS_NUMBER,
+  MINIMUM_SLOTS_SYMBOLS,
+  MAXIMUM_SLOTS_SYMBOLS
 } = require('../helpers/constants')
 const nws = require('../helpers/nws')
-const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
-  let { slotsNumber, slotsText } = args
+  let { slotsNumber, customSlots } = args
   if (slotsNumber === null || slotsNumber === undefined) {
     slotsNumber = DEFAULT_SLOTS_NUMBER
   }
@@ -25,11 +29,11 @@ module.exports = async (interaction, args) => {
   }
 
   let slots = []
-  if (!slotsText || !slotsText.trim()) {
+  if (!customSlots || !customSlots.trim()) {
     slots = DEFAULT_SLOTS_SYMBOLS
   } else {
-    slotsText = slotsText.replace(/\s/g, ',').replace(/,+/g, ',')
-    let slotsParts = slotsText.split(',')
+    customSlots = customSlots.replace(/\s/g, ',').replace(/,+/g, ',')
+    let slotsParts = customSlots.split(',')
     if (!slotsParts || slotsParts.length < MINIMUM_SLOTS_SYMBOLS) {
       return await interaction.reply(errorEmbed.get(nws`Please provide more than \
       ${MINIMUM_SLOTS_SYMBOLS - 1} custom slot symbol.`))
@@ -55,6 +59,9 @@ module.exports = async (interaction, args) => {
     const position = random.integer(0, slots.length - 1)
     slotResults.push(slots.slice(position, position + 1))
   }
-  return await interaction.reply(commonReplyEmbed.get('Your pull results:',
-    `|${slotResults.join('|')}|`))
+  const reply = saveableReplyEmbed.get('Your pull results:', `|${slotResults.join('|')}|`)
+  reply.fetchReply = true
+
+  const r = await interaction.reply(reply)
+  genericCommandSaver.launch(interaction, r)
 }

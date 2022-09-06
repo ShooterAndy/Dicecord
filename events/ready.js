@@ -19,11 +19,12 @@ const {
 const Client = require('../helpers/client')
 const { transformMinutesToMs, transformHoursToMs } = require('../helpers/utilities')
 const handleBroadcastEval = require('../helpers/handleBroadcastEval')
+const packageJSON = require('../package.json')
 
 const tryToSetActivity = async () => {
   try {
-    //await Client.client.user.setActivity('v' + packageJSON.version + ', type !help')
-    await Client.client.user.setActivity('⚡️ATTN! Type /notice')
+    await Client.client.user.setActivity('v' + packageJSON.version + ', type !help')
+    //await Client.client.user.setActivity('⚡️ATTN! Type /notice')
     /*logger.log('Successfully set activity')*/
   } catch (error) {
     logger.error('Failed to set activity', error)

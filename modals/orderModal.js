@@ -27,8 +27,8 @@ module.exports = {
     .addComponents(itemsRow, typeRow),
   async processSubmission(interaction) {
     if (!interaction || !interaction.fields) return
-    const itemsText = interaction.fields.getTextInputValue('items')
-    const typeText = interaction.fields.getTextInputValue('type')
-    return await handler(interaction, { itemsText, typeText })
+    const items = interaction.fields.getTextInputValue('items')
+    const type = interaction.fields.getTextInputValue('type')
+    return await handler(interaction, { items, type })
   }
 }

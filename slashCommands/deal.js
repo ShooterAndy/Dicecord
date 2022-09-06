@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const handler = require('../commandHandlers/draw')
-const privateHandler = require('../commandHandlers/dealPrivate')
+const handler = require('../commandHandlers/deal')
 const logger = require('../helpers/logger')
 
 module.exports = {
@@ -11,7 +10,7 @@ module.exports = {
     .setDescriptionLocalization('ru',
       'Раздаёт случайные карты из колоды, перетасованной для этого канала')
     .addIntegerOption(option => option
-      .setName('amount')
+      .setName('number_of_cards_to_draw')
       .setNameLocalization('ru', 'количество')
       .setDescription('How many cards should be dealt (1 by default)')
       .setDescriptionLocalization('ru', 'Сколько карт раздать (1 по умолчанию)')
@@ -35,14 +34,10 @@ module.exports = {
       return
     }
 
-    const numberOfCardsToDraw = interaction.options.getInteger('amount')
+    const numberOfCardsToDraw = interaction.options.getInteger('number_of_cards_to_draw')
     const comment = interaction.options.getString('comment')
     const usersList = interaction.options.getString('users_list')
 
-    if (usersList) {
-      return await privateHandler(interaction, { numberOfCardsToDraw, comment, usersList })
-    } else {
-      return await handler(interaction, { numberOfCardsToDraw, comment, isPrivate: false })
-    }
+    return await handler(interaction, { numberOfCardsToDraw, comment, usersList })
   }
 }

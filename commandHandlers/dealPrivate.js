@@ -10,7 +10,8 @@ const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const sendDM = require('../helpers/sendDM')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
   try {
@@ -26,7 +27,11 @@ module.exports = async (interaction, args) => {
     const text = await processDealCommand(interaction, deck, mentionsList, numberOfCardsToDraw,
       comment)
     if (text) {
-      return await interaction.reply(commonReplyEmbed.get('Your results:', text))
+      const reply = saveableReplyEmbed.get('Deal results:', text)
+      reply.fetchReply = true
+
+      const r = await interaction.reply(reply)
+      genericCommandSaver.launch(interaction, r)
     }
     return null
   }

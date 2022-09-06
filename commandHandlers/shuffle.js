@@ -13,10 +13,12 @@ const pg = require('../helpers/pgHandler')
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
+const genericCommandSaver = require('../helpers/genericCommandSaver')
 
 module.exports = async (interaction, args) => {
-  let { deckId, customCards } = args
+  let { customCards } = args
+  let deckId = args.deck
   if (!deckId) deckId = DEFAULT_DECK_TYPE
   deckId = deckId.toLowerCase()
 
@@ -29,7 +31,11 @@ module.exports = async (interaction, args) => {
       deck = await getAndProcessDeckFromDb(deckId, args.prefix)
     }
     const replyText = await saveShuffledDeck(interaction, deckId, deck)
-    return await interaction.reply(commonReplyEmbed.get('Shuffled!', replyText))
+    const reply = saveableReplyEmbed.get('Shuffled!', replyText)
+    reply.fetchReply = true
+
+    const r = await interaction.reply(reply)
+    genericCommandSaver.launch(interaction, r)
   } catch (error) {
     return await interaction.reply(errorEmbed.get(error.toString()))
   }

@@ -188,6 +188,7 @@ module.exports.NO_EMOJI = '🚫'
 module.exports.B_EMOJI = '🅱️'
 module.exports.M_EMOJI = 'Ⓜ'
 module.exports.REPEAT_EMOJI = '♻'
+module.exports.SAVE_EMOJI = '💾'
 
 // These symbols have to be case independent
 module.exports.COMMENT_SEPARATOR = '?'
@@ -355,3 +356,23 @@ module.exports.MINIMUM_SLOTS_NUMBER = 2
 module.exports.MAXIMUM_SLOTS_NUMBER = 10
 module.exports.MINIMUM_SLOTS_SYMBOLS = 2
 module.exports.MAXIMUM_SLOTS_SYMBOLS = 32
+// -------------------------------------------------------------------------------------------------
+module.exports.GENERIC_SAVE_BUTTON_ID = 'generic_save'
+module.exports.SAVE_BUTTON_EXPIRE_AFTER_INT = 10
+
+module.exports.SAVED_COMMANDS_DB_NAME = 'saved_commands'
+module.exports.SAVED_COMMANDS_COLUMNS = {
+  user_id: 'user_id',
+  name: 'name',
+  command: 'command',
+  timestamp: 'timestamp',
+  parameters: 'parameters'
+}
+module.exports.SAVED_COMMANDS_EXPIRE_AFTER = '30 days'
+module.exports.MAX_SAVED_COMMANDS_PER_USER = 10
+module.exports.UPSERT_SAVED_COMMAND_RESULTS = {
+  inserted: 'inserted',
+  updated: 'updated',
+  limit: 'limit'
+}
+module.exports.MAX_SAVED_COMMAND_NAME_LENGTH = 16

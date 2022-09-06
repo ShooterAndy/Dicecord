@@ -1,10 +1,10 @@
 **List of commands:**
 * **/help** — provides information about this bot. Add a command name to learn more about it, like `/help roll`.
 * **/roll** — rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
-* **/saveRoll** — _currently unavailable, please wait for a later update_.
-* **/getSaved** — _currently unavailable, please wait for a later update_.
-* **/rollSaved** — _currently unavailable, please wait for a later update_.
-* **/deleteSaved** — _currently unavailable, please wait for a later update_.
+* **/listSaved** — lists all your saved commands.
+* **/executeSaved** — executes one of your saved commands.
+* **/examineSaved** — displays one of your saved commands with its parameters as text.
+* **/deleteSaved** — deletes one of your saved commands.
 * **/order** — randomly re-orders a comma-separated list.
 * **/pick** — picks a random item (or several) from a comma-separated list.
 * **/listDeckTypes** — lists all existing deck types.

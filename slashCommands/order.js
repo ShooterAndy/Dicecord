@@ -29,13 +29,13 @@ module.exports = {
       return
     }
 
-    const itemsText = interaction.options.getString('items')
-    const typeText = interaction.options.getString('type')
+    const items = interaction.options.getString('items')
+    const type = interaction.options.getString('type')
 
-    if (!itemsText) {
+    if (!items) {
       return interaction.showModal(modal)
     }
 
-    return await handler(interaction, { itemsText, typeText })
+    return await handler(interaction, { items, type })
   }
 }
