@@ -1,4 +1,5 @@
 const logger = require('./logger')
+const nws = require('./nws')
 
 module.exports = async (interaction, content) => {
   if (interaction) {
@@ -15,12 +16,20 @@ module.exports = async (interaction, content) => {
       }
     } else {
       if (interaction.channel) {
-        logger.error(`Malformed channel in replyOrSendInteraction:\n${JSON.stringify(interaction.channel)}`)
+        if (interaction.channel.type === 'GUILD_VOICE') { // This is expected
+          return null
+        } else {
+          logger.error(nws`Malformed channel in \
+            replyOrSendInteraction:\n${JSON.stringify(interaction.channel)}`)
+          return null
+        }
       } else {
         logger.error(`Missing channel in replyOrSendInteraction`)
+        return null
       }
     }
   } else {
      logger.error('No interaction in replyOrSendInteraction')
+    return null
    }
 }
