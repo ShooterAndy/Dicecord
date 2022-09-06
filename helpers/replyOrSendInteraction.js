@@ -2,9 +2,9 @@ const logger = require('./logger')
 
 module.exports = async (interaction, content) => {
   if (interaction) {
-    if (interaction.isRepliable() && !interaction.replied) {
-      if (interaction.channel && (typeof interaction.channel.isText === 'function') &&
-        interaction.channel.isText()) {
+    if (interaction.channel && (typeof interaction.channel.isText === 'function') &&
+      interaction.channel.isText()) {
+      if (interaction.isRepliable() && !interaction.replied) {
         content.fetchReply = true
         return await interaction.reply(content)
           .catch(e => logger.error('Failed to reply to an interaction', e))
