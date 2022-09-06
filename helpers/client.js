@@ -103,7 +103,7 @@ const Client = module.exports = {
     })
   },
 
-  async readyBasics (commands, slashCommands, modals) {
+  async readyBasics (slashCommands, modals) {
     let options = { }
     if (USE_PARTIALS) {
       options = { partials: ['CHANNEL', 'USER'] } // USER here is *only* needed for reactions, remove later!
