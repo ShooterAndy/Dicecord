@@ -11,6 +11,7 @@ const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   const { numberOfCardsToDraw } = args
@@ -28,7 +29,7 @@ const processDrawShuffledCommand =
       numberOfCardsToDraw = 1
     }
     if (numberOfCardsToDraw < 1) {
-      return await interaction.reply(errorEmbed.get(`Can't draw less than one card.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(`Can't draw less than one card.`))
     }
 
     try {
@@ -42,8 +43,8 @@ const processDrawShuffledCommand =
         }
       )
       if (!result || !result.deck) {
-        return await interaction.reply(errorEmbed.get(nws`No deck type \`${deckId}\` exists. You \
-          can see all the existing deck types via the \`/listDeckTypes\` command.`))
+        return await ireplyOrFollowUp(interaction, errorEmbed.get(nws`No deck type \`${deckId}\` \
+          exists. You can see all the existing deck types via the \`/listDeckTypes\` command.`))
       }
 
       let deck
@@ -51,13 +52,13 @@ const processDrawShuffledCommand =
         deck = _.shuffle(JSON.parse(result.deck))
       } catch (error) {
         logger.error(`Failed to parse the "${deckId}" deck`, error)
-        return await interaction.reply(errorEmbed.get(nws`Failed to parse the deck. Please contact \
-          the author of this bot.`))
+        return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to parse the deck. \
+          Please contact the author of this bot.`))
       }
       if (numberOfCardsToDraw > result.deck.length) {
-        return await interaction.reply(errorEmbed.get(nws`Not enough cards in the deck (requested \
-        ${numberOfCardsToDraw}, but the deck only has ${result.deck.length} cards in it. Please \
-        draw fewer cards.`))
+        return await replyOrFollowUp(interaction, errorEmbed.get(nws`Not enough cards in the deck \
+        (requested ${numberOfCardsToDraw}, but the deck only has ${result.deck.length} cards in \
+        it. Please draw fewer cards.`))
       }
       else {
         let text
@@ -78,12 +79,12 @@ const processDrawShuffledCommand =
         const reply = saveableReplyEmbed.get('Your cards:', text)
         reply.fetchReply = true
 
-        const r = await interaction.reply(reply)
+        const r = await replyOrFollowUp(interaction, reply)
         genericCommandSaver.launch(interaction, r)
       }
     } catch (error) {
       logger.error(`Failed to load the "${deckId}" deck for the "/drawShuffled" command`, error)
-      return await interaction.reply(errorEmbed.get(nws`Failed to load the deck. Please contact \
-        the author of this bot.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to load the deck. \
+        Please contact the author of this bot.`))
     }
   };

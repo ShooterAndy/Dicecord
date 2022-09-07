@@ -2,6 +2,7 @@ const fs = require('fs')
 const nws = require('../helpers/nws')
 const errorEmbed = require('../helpers/errorEmbed')
 const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   let helpFileName = '!'
@@ -13,11 +14,11 @@ module.exports = async (interaction, args) => {
   fs.readFile(`./help/${helpFileName}`, 'utf8',
     async (err, data) => {
       if (err) {
-        return await interaction.reply(errorEmbed.get(nws`Couldn't find help information for \
-        "${helpFileName}".`))
+        return await replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find help \
+          information for "${helpFileName}".`))
       }
       else {
-        return await interaction.reply(commonReplyEmbed.get('Documentation:', data))
+        return await replyOrFollowUp(interaction, commonReplyEmbed.get('Documentation:', data))
       }
     })
 }

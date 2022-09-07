@@ -11,6 +11,7 @@ const nws = require('../helpers/nws')
 const errorEmbed = require('../helpers/errorEmbed')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   let { slotsNumber, customSlots } = args
@@ -20,12 +21,12 @@ module.exports = async (interaction, args) => {
 
 
   if (slotsNumber < MINIMUM_SLOTS_NUMBER) {
-    return await interaction.reply(errorEmbed.get(nws`Please set the number of slots to more \
-      than ${MINIMUM_SLOTS_NUMBER - 1}.`))
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Please set the number of slots to \
+      more than ${MINIMUM_SLOTS_NUMBER - 1}.`))
   }
   if (slotsNumber > MAXIMUM_SLOTS_NUMBER) {
-    return await interaction.reply(errorEmbed.get(nws`Please set the number of slots to fewer \
-      than ${MAXIMUM_SLOTS_NUMBER + 1}.`))
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Please set the number of slots to \
+      fewer than ${MAXIMUM_SLOTS_NUMBER + 1}.`))
   }
 
   let slots = []
@@ -35,7 +36,7 @@ module.exports = async (interaction, args) => {
     customSlots = customSlots.replace(/\s/g, ',').replace(/,+/g, ',')
     let slotsParts = customSlots.split(',')
     if (!slotsParts || slotsParts.length < MINIMUM_SLOTS_SYMBOLS) {
-      return await interaction.reply(errorEmbed.get(nws`Please provide more than \
+      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Please provide more than \
       ${MINIMUM_SLOTS_SYMBOLS - 1} custom slot symbol.`))
     }
     slotsParts.forEach(slotPart => {
@@ -45,12 +46,12 @@ module.exports = async (interaction, args) => {
       }
     })
     if (slots.length < MINIMUM_SLOTS_SYMBOLS) {
-      return await interaction.reply(errorEmbed.get(nws`Please provide more than custom slot  \
-        symbols than ${MINIMUM_SLOTS_SYMBOLS - 1}.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Please provide more than custom \
+        slot symbols than ${MINIMUM_SLOTS_SYMBOLS - 1}.`))
     }
     if (slots.length > MAXIMUM_SLOTS_SYMBOLS) {
-      return await interaction.reply(errorEmbed.get(nws`Please provide fewer than \
-      ${MAXIMUM_SLOTS_SYMBOLS+1} custom slot symbols.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Please provide fewer than \
+      ${MAXIMUM_SLOTS_SYMBOLS + 1} custom slot symbols.`))
     }
   }
 
@@ -62,6 +63,6 @@ module.exports = async (interaction, args) => {
   const reply = saveableReplyEmbed.get('Your pull results:', `|${slotResults.join('|')}|`)
   reply.fetchReply = true
 
-  const r = await interaction.reply(reply)
+  const r = await replyOrFollowUp(interaction, reply)
   genericCommandSaver.launch(interaction, r)
 }

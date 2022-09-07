@@ -8,6 +8,7 @@ const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
 const commonReplyEmbed = require('../helpers/commonReplyEmbed')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   const name = args.name.trim().toLowerCase()
@@ -27,10 +28,10 @@ module.exports = async (interaction, args) => {
         }
       )
       if (!result) {
-        return await interaction.reply(errorEmbed.get(nws`You don't seem to have a saved command \
-        by the name of \`${name}\`. Perhaps it expired after ${SAVED_COMMANDS_EXPIRE_AFTER} of \
-        not being used? You can also try listing all your saved commands via the \ 
-          \`/listSaved\` command`))
+        return await replyOrFollowUp(interaction, errorEmbed.get(nws`You don't seem to have a \
+          saved command by the name of \`${name}\`. Perhaps it expired after \
+          ${SAVED_COMMANDS_EXPIRE_AFTER} of not being used? You can also try listing all your \
+          saved commands via the \`/listSaved\` command to see whether it's still there.`))
       }
 
       try {
@@ -48,8 +49,8 @@ module.exports = async (interaction, args) => {
         )
       } catch (error) {
         logger.error(`Failed to update timestamp for examining "${name}" saved command`, error)
-        return await interaction.reply(errorEmbed.get(nws`Failed to update the command. Please \
-        contact the author of this bot.`))
+        return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to update the command. \
+          Please contact the author of this bot.`))
       }
 
       let commandText = result.command
@@ -59,16 +60,17 @@ module.exports = async (interaction, args) => {
           commandText += ` ${parameter.name}:${parameter.value}`
         })
       }
-      return await interaction.reply(commonReplyEmbed.get(`Your "${name}" saved command:`,
-      `\`\`\`/${commandText}\`\`\`\nYou can use it via \`/executeSaved name:${name}\``))
+      return await replyOrFollowUp(interaction, commonReplyEmbed.get(
+        `Your "${name}" saved command:`,
+        `\`\`\`/${commandText}\`\`\`\nYou can use it via \`/executeSaved name:${name}\``))
     } catch (error) {
       logger.error(`Failed to get saved command for examination`, error)
-      return await interaction.reply(errorEmbed.get(nws`Failed to load the command. Please contact \
-        the author of this bot.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to load the command. \
+        Please contact the author of this bot.`))
     }
   } else {
-    return await interaction.reply(errorEmbed.get(nws`You have to enter the name of the command \
-      you want to load and examine.\nIf you do not remember the name, you can use the \
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`You have to enter the name of the \
+      command you want to load and examine.\nIf you do not remember the name, you can use the \
       \`/listSaved\` command to get the list of all your saved commands.`))
   }
 }

@@ -12,6 +12,7 @@ const sendDM = require('../helpers/sendDM')
 const errorEmbed = require('../helpers/errorEmbed')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   try {
@@ -22,7 +23,7 @@ module.exports = async (interaction, args) => {
     numberOfCardsToDraw = numberOfCardsToDraw || 1
     comment = comment ? comment.replace(DISCORD_CODE_REGEX, '').trim() : null
     if (numberOfCardsToDraw < 1) {
-      return await interaction.reply(errorEmbed.get(`Can't deal less than one card.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(`Can't deal less than one card.`))
     }
     const text = await processDealCommand(interaction, deck, mentionsList, numberOfCardsToDraw,
       comment)
@@ -30,18 +31,18 @@ module.exports = async (interaction, args) => {
       const reply = saveableReplyEmbed.get('Deal results:', text)
       reply.fetchReply = true
 
-      const r = await interaction.reply(reply)
+      const r = await replyOrFollowUp(interaction, reply)
       genericCommandSaver.launch(interaction, r)
     }
     return null
   }
   catch (error) {
     if (typeof error === 'string') {
-      return await interaction.reply(errorEmbed.get(error))
+      return await replyOrFollowUp(interaction, errorEmbed.get(error))
     } else {
       logger.error('Error in dealPrivate', error)
-      return await interaction.reply(errorEmbed.get(nws`Failed to deal. Please contact the author \
-        of this bot.`))
+      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to deal. Please contact \
+        the author of this bot.`))
     }
   }
 }
@@ -104,7 +105,7 @@ const getDeckFromDb = async (interaction) => {
 
 const processDeck = (deckFromDb, interaction) => {
   if (!deckFromDb || !deckFromDb[DECKS_COLUMNS.deck]) {
-    return interaction.reply(errorEmbed.get(nws`Couldn't find a deck for this channel. \
+    return replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find a deck for this channel. \
       Please \`/shuffle\` one first. If there was a deck, perhaps it expired and was \
           automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`))
   }
@@ -112,8 +113,8 @@ const processDeck = (deckFromDb, interaction) => {
     return JSON.parse(deckFromDb[DECKS_COLUMNS.deck]);
   } catch (error) {
     logger.error(nws`Failed to parse the deck for channel "${interaction.channel.id}"`, error)
-    return interaction.reply(errorEmbed.get(nws`Failed to process the deck. Please contact the \ 
-      author of this bot.`))
+    return replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to process the deck. Please \
+      contact the author of this bot.`))
   }
 }
 
@@ -146,7 +147,7 @@ const processDealCommand = async (interaction, deck, mentionsList, numberOfCards
       const privateText = `${commentary}${drawnCards.join(', ')}`
       if (!await sendDM(privateText, mention)) {
         try {
-          await interaction.reply(errorEmbed.get(nws`Failed to send a DM to user \
+          await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to send a DM to user \
             ${mention.username}.`))
           return null
         } catch (error) {

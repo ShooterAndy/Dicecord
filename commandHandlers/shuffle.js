@@ -15,6 +15,7 @@ const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   let { customCards } = args
@@ -34,10 +35,10 @@ module.exports = async (interaction, args) => {
     const reply = saveableReplyEmbed.get('Shuffled!', replyText)
     reply.fetchReply = true
 
-    const r = await interaction.reply(reply)
+    const r = await replyOrFollowUp(interaction, reply)
     genericCommandSaver.launch(interaction, r)
   } catch (error) {
-    return await interaction.reply(errorEmbed.get(error.toString()))
+    return await replyOrFollowUp(interaction, errorEmbed.get(error.toString()))
   }
 }
 

@@ -149,6 +149,7 @@ const Client = module.exports = {
         const command = slashCommands.get(interaction.commandName)
         if (!command) return
         try {
+          await interaction.deferReply()
           await command.execute(interaction)
         } catch (error) {
           logger.error(`Failed while trying to execute a ${interaction.commandName} command`, error)

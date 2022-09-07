@@ -78,7 +78,6 @@ const {
   NO_EMOJI,
   THROW_RESULTS_FORMATS
 } = require('../helpers/constants')
-const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 const warningEmbed = require('../helpers/warningEmbed')
 const errorEmbed = require('../helpers/errorEmbed')
 const {
@@ -86,7 +85,7 @@ const {
   MessageButton
 } = require('discord.js')
 const {transformMinutesToMs} = require('../helpers/utilities')
-const replyOrSendInteraction = require('../helpers/replyOrSendInteraction')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
 
@@ -213,7 +212,7 @@ let rollNameSpace = function () {
           embeds: warningEmbed.get(warningsText).embeds,
           components: [buttonsRow]
         }
-        const r = await replyOrSendInteraction(interaction, content).catch(() => { return null })
+        const r = await replyOrFollowUp(interaction, content).catch(() => { return null })
         if (!r) return null
 
         const filter = i => i.message.id === r.id
@@ -247,7 +246,7 @@ let rollNameSpace = function () {
     } else {
       logger.error(`Unknown error was thrown in roll command`, (new Error()).stack)
     }
-    return await replyOrSendInteraction(interaction, errorEmbed.get(nws`Some uncaught error \
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Some uncaught error \
       occurred, please contact the author of this bot.`)).catch(() => { return false })
   }
 
@@ -258,7 +257,7 @@ let rollNameSpace = function () {
     } catch (error) {
       if (error &&
         error.name === HANDLED_ERROR_TYPE_NAME || error.name === HANDLED_WARNING_TYPE_NAME) {
-        await replyOrSendInteraction(interaction, errorEmbed.get(error.message)).catch(() => {
+        await replyOrFollowUp(interaction, errorEmbed.get(error.message)).catch(() => {
           return false
         })
         return false
@@ -1916,7 +1915,7 @@ let rollNameSpace = function () {
     const content = saveableReplyEmbed.get('Your results:', formattedThrowResults)
     content.components.push(buttonsRow)
 
-    const r = await replyOrSendInteraction(interaction, content).catch(() => { return null })
+    const r = await replyOrFollowUp(interaction, content).catch(() => { return null })
     if (!r) {
       return null
     }
