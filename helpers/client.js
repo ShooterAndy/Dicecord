@@ -16,6 +16,7 @@ const {
 const fs = require('fs')
 const path = require('path')
 const pg = require('./pgHandler')
+const replyOrFollowUp = require('./replyOrFollowUp')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -153,7 +154,7 @@ const Client = module.exports = {
           await command.execute(interaction)
         } catch (error) {
           logger.error(`Failed while trying to execute a ${interaction.commandName} command`, error)
-          await interaction.reply({
+          await replyOrFollowUp(interaction, {
             content: `Failed to execute the \`${interaction.commandName}\` command. Please contact the bot creator.`,
             ephemeral: true
           })
@@ -166,7 +167,7 @@ const Client = module.exports = {
           await modal.processSubmission(interaction)
         } catch (error) {
           logger.error(`Failed while trying to process a ${interaction.customId} modal`, error)
-          await interaction.reply({
+          await replyOrFollowUp(interaction, {
             content: `Failed to process the \`${interaction.customId}\` modal. Please contact the bot creator.`,
             ephemeral: true
           })

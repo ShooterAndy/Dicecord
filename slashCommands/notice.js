@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders')
 const logger = require('../helpers/logger')
 const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 const nws = require('../helpers/nws')
+const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,7 +18,7 @@ module.exports = {
       return
     }
 
-    return await interaction.reply(commonReplyEmbed.get('Important notice',
+    return await replyOrFollowUp(interaction, commonReplyEmbed.get('Important notice',
       nws`No special notices.`))
   }
 }

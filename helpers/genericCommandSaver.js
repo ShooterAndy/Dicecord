@@ -13,6 +13,7 @@ const nws = require('./nws')
 const errorEmbed = require('./errorEmbed')
 const commonReplyEmbed = require('./commonReplyEmbed')
 const pg = require('./pgHandler')
+const replyOrFollowUp = require('./replyOrFollowUp')
 
 module.exports = {
   launch(interaction, response) {
@@ -60,18 +61,20 @@ module.exports = {
       if (submitted) {
         let name = submitted.fields.getTextInputValue('name').trim().toLowerCase()
         if (!name) {
-          return await submitted.reply(errorEmbed.get(nws`The saved command name cannot be empty.`))
+          return await replyOrFollowUp(submitted,
+            errorEmbed.get(nws`The saved command name cannot be empty.`))
         }
         if (!name.match(/^[a-z0-9\-_]+$/)) {
-          return await submitted.reply(errorEmbed.get(nws`Please use only latin characters, \
-            numbers, as well as the \`-\` and \`_\`\ characters in command name.`))
+          return await replyOrFollowUp(submitted, errorEmbed.get(nws`Please use only latin \
+            characters, numbers, as well as the \`-\` and \`_\`\ characters in command name.`))
         }
         if (name.length > MAX_SAVED_COMMAND_NAME_LENGTH) {
-          return await submitted.reply(errorEmbed.get(nws`Please pick a name with fewer than \
-            ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
+          return await replyOrFollowUp(submitted, errorEmbed.get(nws`Please pick a name with fewer \
+            than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
         }
 
         response.edit({ components: [] })
+        await submitted.deferReply()
         try {
           const result = await pg.db.one(
             'SELECT upsert_saved_command(${userId}, ${name}, ${command}, ${limit}, ' +
@@ -85,39 +88,40 @@ module.exports = {
             })
           if (!result || !result.upsert_saved_command) {
             logger.error(`The result of upsert_saved_command appears to be empty`)
-            return await submitted.reply(errorEmbed.get(nws`Failed to save your command. \
-              Please contact the author of this bot.`))
+            return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
+              command. Please contact the author of this bot.`))
           }
           switch (result.upsert_saved_command) {
             case UPSERT_SAVED_COMMAND_RESULTS.inserted: {
-              return await submitted.reply(commonReplyEmbed.get('Save successful!',
+              return await replyOrFollowUp(submitted, commonReplyEmbed.get('Save successful!',
                 nws`Your command \`${name}\` was saved successfully! You can use it via \
                 \`/executeSaved\` or examine it via \`/examineSaved\`.\nBe aware that your saved \
                 commands will expire and be automatically **deleted** after \
                 ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
             }
             case UPSERT_SAVED_COMMAND_RESULTS.updated: {
-              return await submitted.reply(commonReplyEmbed.get('Update successful!',
+              return await replyOrFollowUp(submitted, commonReplyEmbed.get(
+                'Update successful!',
                 nws`Your command \`${name}\` was successfully updated! You can use it via \
                 \`/executeSaved\` or examine it via \`/examineSaved\`.\nBe aware that your saved \
                 commands will expire and be automatically **deleted** after \
                 ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
             }
             case UPSERT_SAVED_COMMAND_RESULTS.limit: {
-              return await submitted.reply(errorEmbed.get(nws`Unfortunately, you already have \
-              ${MAX_SAVED_COMMANDS_PER_USER} saved commands. You can delete one via \
+              return await replyOrFollowUp(submitted, errorEmbed.get(nws`Unfortunately, you \
+              already have ${MAX_SAVED_COMMANDS_PER_USER} saved commands. You can delete one via \
               \`deleteSaved\``))
             }
             default: {
               logger.error(`Unknown upsert_saved_command type result`)
-              return await submitted.reply(errorEmbed.get(nws`Failed to save your command. \
-              Please contact the author of this bot.`))
+              return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
+              command. Please contact the author of this bot.`))
             }
           }
 
         } catch (error) {
           logger.error(`Failed to save a command`, error)
-          return await submitted.reply(errorEmbed.get(nws`Failed to save your command. \
+          return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your command. \
               Please contact the author of this bot.`))
         }
       }
