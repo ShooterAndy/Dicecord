@@ -70,12 +70,6 @@ module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER =
 
 // -------------------------------------------------------------------------------------------------
 
-module.exports.NO_NOT_FOUND_ROLE_NAME = 'DICECORD_NO_NOT_FOUND'
-module.exports.DO_NOT_REPLY_ROLE_NAME = 'DICECORD_DO_NOT_REPLY'
-module.exports.NO_REACTIONS_ROLE_NAME = 'DICECORD_NO_REACTIONS'
-
-// -------------------------------------------------------------------------------------------------
-
 module.exports.MAX_MESSAGE_LENGTH = 2000
 
 // -------------------------------------------------------------------------------------------------

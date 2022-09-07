@@ -4,7 +4,6 @@ const formatThrowResults = require('../helpers/formatThrowResults')
 
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
-const shouldUseReactions = require('../helpers/shouldUseReactions')
 
 const {
   HANDLED_ERROR_TYPE_NAME,
@@ -180,19 +179,15 @@ let rollNameSpace = function () {
         }
       })
       let validCommandText
-      if (await shouldUseReactions(interaction)) {
-        validCommandText = getCommandText()
-        if (validCommandText) {
-          warningsText += '\nDo you still wish to proceed? Your command would be:'
-          warningsText += '```' + validCommandText + '```'
-        } else {
-          warningsText += nws`\nThis will make your command empty. Please refer to \ 
-          \`/help topic:roll\` for help.`
-        }
+      validCommandText = getCommandText()
+      if (validCommandText) {
+        warningsText += '\nDo you still wish to proceed? Your command would be:'
+        warningsText += '```' + validCommandText + '```'
       } else {
-        warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
+        warningsText += nws`\nThis will make your command empty. Please refer to \ 
+          \`/help topic:roll\` for help.`
       }
-      if (validCommandText && await shouldUseReactions(interaction)) {
+      if (validCommandText) {
         const buttonsRow = new MessageActionRow()
           .addComponents(
             new MessageButton()
