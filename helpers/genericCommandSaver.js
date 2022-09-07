@@ -57,6 +57,7 @@ module.exports = {
         return null
       })
 
+      await submitted.deferReply()
 
       if (submitted) {
         let name = submitted.fields.getTextInputValue('name').trim().toLowerCase()
@@ -74,7 +75,6 @@ module.exports = {
         }
 
         response.edit({ components: [] })
-        await submitted.deferReply()
         try {
           const result = await pg.db.one(
             'SELECT upsert_saved_command(${userId}, ${name}, ${command}, ${limit}, ' +
