@@ -25,6 +25,7 @@ module.exports = {
 
     const topic = interaction.options.getString('topic')
 
+    await interaction.deferReply()
     return await handler(interaction, { topic })
   }
 }

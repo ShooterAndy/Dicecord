@@ -38,6 +38,7 @@ module.exports = {
     const items = interaction.fields.getTextInputValue('items')
     const amount = interaction.fields.getTextInputValue('amount')
     const showRemaining = interaction.fields.getTextInputValue('show_remaining')
+    await interaction.deferReply()
     return await handler(interaction, { items, amount, showRemaining })
   }
 }

@@ -25,6 +25,7 @@ module.exports = {
 
     const rollCommand = interaction.options.getString('roll_command')
 
+    await interaction.deferReply()
     return await handler(interaction, { rollCommand })
   }
 }

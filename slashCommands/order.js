@@ -36,6 +36,7 @@ module.exports = {
       return interaction.showModal(modal)
     }
 
+    await interaction.deferReply()
     return await handler(interaction, { items, type })
   }
 }

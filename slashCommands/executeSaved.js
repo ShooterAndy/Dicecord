@@ -26,6 +26,7 @@ module.exports = {
 
     const name = interaction.options.getString('name')
 
+    await interaction.deferReply()
     return await handler(interaction, { name })
   }
 }

@@ -32,6 +32,7 @@ module.exports = {
     const deckId = interaction.options.getString('deck')
     const shouldShowCards = interaction.options.getBoolean('should_show_cards')
 
+    await interaction.deferReply()
     return await handler(interaction, { deckId, shouldShowCards })
   }
 }

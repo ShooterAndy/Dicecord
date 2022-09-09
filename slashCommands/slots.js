@@ -31,6 +31,7 @@ module.exports = {
     const slotsNumber = interaction.options.getInteger('slots_number')
     const customSlots = interaction.options.getString('custom_slots')
 
+    await interaction.deferReply()
     return await handler(interaction, { slotsNumber, customSlots })
   }
 }

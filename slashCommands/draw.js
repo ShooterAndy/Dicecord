@@ -38,6 +38,7 @@ module.exports = {
     const comment = interaction.options.getString('comment')
     const isPrivate = interaction.options.getBoolean('is_private')
 
+    await interaction.deferReply()
     return await handler(interaction, { numberOfCardsToDraw, comment, isPrivate })
   }
 }

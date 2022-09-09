@@ -39,6 +39,7 @@ module.exports = {
     const numberOfCardsToDraw = interaction.options.getInteger('number_of_cards_to_draw')
     const comment = interaction.options.getString('comment')
 
+    await interaction.deferReply()
     return await handler(interaction, { deck, numberOfCardsToDraw, comment })
   }
 }

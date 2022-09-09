@@ -16,6 +16,7 @@ module.exports = {
       return
     }
 
+    await interaction.deferReply()
     return await handler(interaction, { })
   }
 }

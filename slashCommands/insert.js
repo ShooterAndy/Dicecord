@@ -25,6 +25,7 @@ module.exports = {
 
     const cards = interaction.options.getString('cards')
 
+    await interaction.deferReply()
     return await handler(interaction, { cards })
   }
 }

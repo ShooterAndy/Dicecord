@@ -29,6 +29,7 @@ module.exports = {
     if (!interaction || !interaction.fields) return
     const items = interaction.fields.getTextInputValue('items')
     const type = interaction.fields.getTextInputValue('type')
+    await interaction.deferReply()
     return await handler(interaction, { items, type })
   }
 }

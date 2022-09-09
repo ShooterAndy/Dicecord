@@ -18,6 +18,7 @@ module.exports = {
       return
     }
 
+    await interaction.deferReply()
     return await replyOrFollowUp(interaction, commonReplyEmbed.get('Important notice',
       nws`No special notices.`))
   }

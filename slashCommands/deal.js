@@ -38,6 +38,7 @@ module.exports = {
     const comment = interaction.options.getString('comment')
     const usersList = interaction.options.getString('users_list')
 
+    await interaction.deferReply()
     return await handler(interaction, { numberOfCardsToDraw, comment, usersList })
   }
 }
