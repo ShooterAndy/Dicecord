@@ -6,8 +6,24 @@ module.exports = async (interaction, content) => {
     logger.error(`No content in replyOrFollowUp`)
   }
   if (interaction) {
-    if (interaction.channel && (typeof interaction.channel.isText === 'function') &&
-      interaction.channel.isText()) {
+    let channel
+    if (!interaction.channel) {
+      if (interaction.channelId) {
+        channel = await interaction.client.channels.fetch(interaction.channelId)
+        if (!channel) {
+          logger.error(nws`Failed to get channel ${interaction.channelId} in \
+            replyOrFollowUp:\n${JSON.stringify(content)}`)
+          return null
+        }
+      } else {
+        logger.error(nws`Channel is ${interaction.channel} and channelId is \
+          ${interaction.channelId} in replyOrFollowUp:\n${JSON.stringify(content)}`)
+        return null
+      }
+    } else {
+      channel = interaction.channel
+    }
+    if ((typeof channel.isText === 'function') && channel.isText()) {
       if (interaction.isRepliable()) {
         if (!interaction.replied) {
           content.fetchReply = true
@@ -26,16 +42,11 @@ module.exports = async (interaction, content) => {
         return null
       }
     } else {
-      if (interaction.channel) {
-        if (interaction.channel.type === 'GUILD_VOICE') { // This is expected, bug in Discord.js
-          return null
-        } else {
-          logger.error(nws`Malformed channel in \
-            replyOrFollowUp:\n${JSON.stringify(interaction.channel)}`)
-          return null
-        }
+      if (channel.type === 'GUILD_VOICE') { // This is expected, bug in Discord.js
+        return null
       } else {
-        logger.error(`Missing channel in replyOrFollowUp:\n${JSON.stringify(content)}`)
+        logger.error(nws`Malformed channel in \
+            replyOrFollowUp:\n${JSON.stringify(interaction.channel)}`)
         return null
       }
     }
