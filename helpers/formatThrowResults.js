@@ -462,8 +462,30 @@ const getNonStaticIntermediateResultsText = (t) => {
   return nonRedundantThrow
 }
 
+const checkForVerboseOnlyRollModifiers = t => {
+  for (let i = 0; i < t.formulaParts.length; i++) {
+    const formulaPart = t.formulaParts[i]
+    if ((formulaPart.type === FORMULA_PART_TYPES.operands.rnkDice) ||
+      (formulaPart.type === FORMULA_PART_TYPES.operands.dnd4Dice) ||
+      (formulaPart.type === FORMULA_PART_TYPES.operands.normalDice) ||
+      (formulaPart.type === FORMULA_PART_TYPES.operands.fudgeDice)) {
+      if (formulaPart.diceMods && formulaPart.diceMods.length) {
+        for (let j = 0; j < formulaPart.diceMods.length; j++) {
+          const diceMod = formulaPart.diceMods[j]
+          if ((diceMod.type === DICE_MODIFIERS.countEqual) ||
+            (diceMod.type === DICE_MODIFIERS.countOver) ||
+            (diceMod.type === DICE_MODIFIERS.countUnder)) {
+            return true
+          }
+        }
+      }
+    }
+  }
+  return false
+}
+
 const getIntermediateResultsText = (t, format, index) => {
-  if (!checkForNonStaticParts(t)) {
+  if (!checkForNonStaticParts(t) && !checkForVerboseOnlyRollModifiers(t)) {
     return ''
   }
 
