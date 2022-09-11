@@ -1,5 +1,5 @@
 const handler = require('../commandHandlers/draw')
-const privateHandler = require('../commandHandlers/dealPrivate')
+const privateHandler = require('./dealprivate')
 
 module.exports = async (interaction, args) => {
   const { numberOfCardsToDraw, comment, usersList } = args

@@ -1,14 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const handler = require('../commandHandlers/deleteSaved')
+const handler = require('../commandHandlers/executesaved')
 const logger = require('../helpers/logger')
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('deletesaved')
-    .setNameLocalization('ru', 'удаликоманду')
-    .setDescription('Deletes one of your saved commands')
+    .setName('executesaved')
+    .setNameLocalization('ru', 'выполникоманду')
+    .setDescription('Executes one of your saved commands')
     .setDescriptionLocalization('ru',
-      'Удаляет одну из ваших сохранённых команд')
+      'Выполняет одну из ваших сохранённых команд')
     .addStringOption(option => option
       .setName('name')
       .setNameLocalization('ru', 'имя')
@@ -20,7 +20,7 @@ module.exports = {
   ,
   async execute(interaction) {
     if (!interaction) {
-      logger.error('No interaction in deletesaved commandHandler')
+      logger.error('No interaction in executesaved commandHandler')
       return
     }
 

@@ -82,7 +82,7 @@ module.exports = {
             {
               userId: interaction.user.id,
               name,
-              command: interaction.commandName,
+              command: interaction.commandName.toLowerCase(),
               limit: MAX_SAVED_COMMANDS_PER_USER,
               parameters: JSON.stringify(interaction.options.data)
             })

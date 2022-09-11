@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const handler = require('../commandHandlers/examineDeck')
+const handler = require('../commandHandlers/examinedeck')
 const logger = require('../helpers/logger')
 
 module.exports = {
