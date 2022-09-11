@@ -105,16 +105,15 @@ const getDeckFromDb = async (interaction) => {
 
 const processDeck = (deckFromDb, interaction) => {
   if (!deckFromDb || !deckFromDb[DECKS_COLUMNS.deck]) {
-    return replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find a deck for this channel. \
-      Please \`/shuffle\` one first. If there was a deck, perhaps it expired and was \
-          automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`))
+   throw nws`Couldn't find a deck for this channel. Please \`/shuffle\` one first. If there was a \
+    deck, perhaps it expired and was automatically removed after ${DECKS_EXPIRE_AFTER} of not \
+    being drawn from?`
   }
   try {
     return JSON.parse(deckFromDb[DECKS_COLUMNS.deck]);
   } catch (error) {
     logger.error(nws`Failed to parse the deck for channel "${interaction.channel.id}"`, error)
-    return replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to process the deck. Please \
-      contact the author of this bot.`))
+    throw nws`Failed to process the deck. Please contact the author of this bot.`
   }
 }
 
