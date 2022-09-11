@@ -43,7 +43,7 @@ const processDrawShuffledCommand =
         }
       )
       if (!result || !result.deck) {
-        return await ireplyOrFollowUp(interaction, errorEmbed.get(nws`No deck type \`${deckId}\` \
+        return await replyOrFollowUp(interaction, errorEmbed.get(nws`No deck type \`${deckId}\` \
           exists. You can see all the existing deck types via the \`/listDeckTypes\` command.`))
       }
 
