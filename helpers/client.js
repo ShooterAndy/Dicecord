@@ -187,7 +187,9 @@ const Client = module.exports = {
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
           await interaction.respond(
             filtered.map(choice => ({ name: choice, value: choice }))
-          )
+          ).catch(error => {
+            logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
+          })
         } else if ((interaction.commandName === 'examinedeck') ||
           (interaction.commandName === 'shuffle') ||
           (interaction.commandName === 'drawshuffled')) {
@@ -205,7 +207,9 @@ const Client = module.exports = {
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
           await interaction.respond(
             filtered.map(choice => ({ name: choice, value: choice }))
-          )
+          ).catch(error => {
+            logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
+          })
         } else if ((interaction.commandName === 'examinesaved') ||
           (interaction.commandName === 'deletesaved') ||
           (interaction.commandName === 'executesaved')) {
@@ -232,7 +236,9 @@ const Client = module.exports = {
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
           await interaction.respond(
             filtered.map(choice => ({ name: choice, value: choice }))
-          )
+          ).catch(error => {
+            logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
+          })
         }
 
         // TODO: write a generic handler with a nested object in constants
