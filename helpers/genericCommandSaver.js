@@ -57,9 +57,10 @@ module.exports = {
         return null
       })
 
-      await submitted.deferReply()
-
       if (submitted) {
+        await submitted.deferReply().catch(error => {
+          logger.error(`Failed to deferReply for modal submission in genericCommandSaver`, error)
+        })
         let name = submitted.fields.getTextInputValue('name').trim().toLowerCase()
         if (!name) {
           return await replyOrFollowUp(submitted,
