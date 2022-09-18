@@ -239,10 +239,10 @@ let rollNameSpace = function () {
           }
         })
 
-        collector.on('end', () => r.edit({ components: [] })).catch(error => {
+        collector.on('end', () => r.edit({ components: [] }).catch(error => {
           logger.error(`Failed to remove warning buttons on end`, error)
           return null
-        })
+        }))
       }
     }
   }
@@ -1977,10 +1977,10 @@ let rollNameSpace = function () {
       }
     })
 
-    collector.on('end', () => r.edit({ components: [] })).catch(error => {
+    collector.on('end', () => r.edit({ components: [] }).catch(error => {
       logger.error(`Failed to update roll buttons on timeout`, error)
       return null
-    })
+    }))
   }
 
   /* ===============================================================================================

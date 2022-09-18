@@ -134,9 +134,9 @@ module.exports = {
       }
     })
 
-    collector.on('end', () => response.edit({ components: [] })).catch(error => {
+    collector.on('end', () => response.edit({ components: [] }).catch(error => {
       logger.error(`Failed to remove the save button on timeout`, error)
       return null
-    })
+    }))
   }
 }
