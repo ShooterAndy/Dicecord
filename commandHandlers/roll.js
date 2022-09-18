@@ -207,7 +207,10 @@ let rollNameSpace = function () {
           embeds: warningEmbed.get(warningsText).embeds,
           components: [buttonsRow]
         }
-        const r = await replyOrFollowUp(interaction, content).catch(() => { return null })
+        const r = await replyOrFollowUp(interaction, content).catch(error => {
+          logger.error(`Failed to send a warning message`, error)
+          return null
+        })
         if (!r) return null
 
         const filter = i => i.message.id === r.id
@@ -218,19 +221,28 @@ let rollNameSpace = function () {
         })
 
         collector.on('collect', async i => {
-          switch(i.customId) {
+          switch (i.customId) {
             case 'roll_warning_yes': {
               await goOnFromWarning()
-              return await i.update({ components: [] })
+              return await i.update({components: []}).catch(error => {
+                logger.error(`Failed to remove warning buttons on "yes"`, error)
+                return null
+              })
             }
             case 'roll_warning_no': {
-              await i.update({ components: [] })
-              return await interaction.deleteReply()
+              await i.update({components: []})
+              return await interaction.deleteReply().catch(error => {
+                logger.error(`Failed to remove warning buttons on "no"`, error)
+                return null
+              })
             }
           }
         })
 
-        collector.on('end', () => r.edit({ components: [] }))
+        collector.on('end', () => r.edit({ components: [] })).catch(error => {
+          logger.error(`Failed to remove warning buttons on end`, error)
+          return null
+        })
       }
     }
   }
@@ -1935,7 +1947,10 @@ let rollNameSpace = function () {
       switch(i.customId) {
         case 'repeat': {
           await repeatRollCommand()
-          return i.update({ components: [] })
+          return i.update({ components: [] }).catch(error => {
+            logger.error(`Failed to remove roll buttons on "Repeat"`, error)
+            return null
+          })
         }
         case 'bb-code': {
           const text = formatThrowResults({
@@ -1943,7 +1958,10 @@ let rollNameSpace = function () {
           })
           const updatedEmbeds = content.embeds
           updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
-          return i.update({ embeds: updatedEmbeds, components: updatedComponents })
+          return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
+            logger.error(`Failed to update roll buttons on "BB-code"`, error)
+            return null
+          })
         }
         case 'markdown': {
           const text = formatThrowResults({
@@ -1951,12 +1969,18 @@ let rollNameSpace = function () {
           })
           const updatedEmbeds = content.embeds
           updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
-          return i.update({ embeds: updatedEmbeds, components: updatedComponents })
+          return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
+            logger.error(`Failed to update roll buttons on "Markdown"`, error)
+            return null
+          })
         }
       }
     })
 
-    collector.on('end', () => r.edit({ components: [] }))
+    collector.on('end', () => r.edit({ components: [] })).catch(error => {
+      logger.error(`Failed to update roll buttons on timeout`, error)
+      return null
+    })
   }
 
   /* ===============================================================================================

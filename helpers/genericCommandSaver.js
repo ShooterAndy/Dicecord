@@ -75,7 +75,10 @@ module.exports = {
             than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
         }
 
-        response.edit({ components: [] })
+        response.edit({ components: [] }).catch(error => {
+          logger.error(`Failed to remove the save button on click`, error)
+          return null
+        })
         try {
           const result = await pg.db.one(
             'SELECT upsert_saved_command(${userId}, ${name}, ${command}, ${limit}, ' +
@@ -123,11 +126,17 @@ module.exports = {
         } catch (error) {
           logger.error(`Failed to save a command`, error)
           return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your command. \
-              Please contact the author of this bot.`))
+              Please contact the author of this bot.`)).catch(error => {
+            logger.error(`Failed to send an error message about failing to save a command`, error)
+            return null
+          })
         }
       }
     })
 
-    collector.on('end', () => response.edit({ components: [] }))
+    collector.on('end', () => response.edit({ components: [] })).catch(error => {
+      logger.error(`Failed to remove the save button on timeout`, error)
+      return null
+    })
   }
 }
