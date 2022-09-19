@@ -239,10 +239,13 @@ let rollNameSpace = function () {
           }
         })
 
-        collector.on('end', () => r.edit({ components: [] }).catch(error => {
-          logger.error(`Failed to remove warning buttons on end`, error)
-          return null
-        }))
+        collector.on('end', async () => {
+          await interaction.webhook.editMessage(r, { components: [] })
+            .catch(error => {
+              logger.error(`Failed to remove warning buttons on timeout`, error)
+              return null
+            })
+        })
       }
     }
   }
@@ -1942,7 +1945,7 @@ let rollNameSpace = function () {
       if (updatedButtonsRow.length) {
         updatedComponents[1].components = updatedButtonsRow
       } else {
-        updatedComponents = []
+        updatedComponents[1].components = []
       }
       switch(i.customId) {
         case 'repeat': {
@@ -1976,11 +1979,6 @@ let rollNameSpace = function () {
         }
       }
     })
-
-    collector.on('end', () => r.edit({ components: [] }).catch(error => {
-      logger.error(`Failed to update roll buttons on timeout`, error)
-      return null
-    }))
   }
 
   /* ===============================================================================================

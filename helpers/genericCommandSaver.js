@@ -45,7 +45,7 @@ module.exports = {
 
       const submitted = await interaction.awaitModalSubmit({
         // Timeout after a minute of not receiving any valid Modals
-        time: 60000,
+        time: transformMinutesToMs(1),
         // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
         filter: mi => mi.user.id === interaction.user.id,
       }).catch(error => {
@@ -75,10 +75,12 @@ module.exports = {
             than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
         }
 
-        response.edit({ components: [] }).catch(error => {
-          logger.error(`Failed to remove the save button on click`, error)
-          return null
-        })
+        await interaction.webhook.editMessage(response, { components: [] })
+          .catch(error => {
+            logger.error(`Failed to remove buttons on save button click`, error)
+            return null
+          })
+
         try {
           const result = await pg.db.one(
             'SELECT upsert_saved_command(${userId}, ${name}, ${command}, ${limit}, ' +
@@ -134,9 +136,12 @@ module.exports = {
       }
     })
 
-    collector.on('end', () => response.edit({ components: [] }).catch(error => {
-      logger.error(`Failed to remove the save button on timeout`, error)
-      return null
-    }))
+    collector.on('end', async () => {
+      await interaction.webhook.editMessage(response, { components: [] })
+        .catch(error => {
+          logger.error(`Failed to remove buttons on save button timeout`, error)
+          return null
+        })
+    })
   }
 }
