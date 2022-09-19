@@ -54,6 +54,7 @@ const Client = module.exports = {
   client: null,
   reactionsCache: {},
   deckTypesCache: {},
+  isReady: false,
 
   async tryToLogIn (errorsCount, previousError, currentError) {
     if (currentError) {
@@ -144,7 +145,12 @@ const Client = module.exports = {
     Client.client.on('ready', async () =>
         await require(`../events/ready`)(Client.client))
 
+    const safeThis = this
+
     Client.client.on('interactionCreate', async interaction => {
+      if (!safeThis.isReady) {
+        return
+      }
       if (interaction.isCommand()) {
         if (!interaction.commandName) return
         const command = slashCommands.get(interaction.commandName)
@@ -266,5 +272,6 @@ const Client = module.exports = {
 
     logger.log('Trying to log in...')
     await Client.tryToLogIn(0, null, null)
+    this.isReady = true
   }
 }
