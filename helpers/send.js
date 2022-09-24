@@ -40,7 +40,7 @@ module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
     } else { // It's a DM
       let channel = message.channel
       if (!channel) {
-        channel = Client.client.channels.fetch(channelId)
+        channel = await Client.client.channels.fetch(channelId)
       }
       const response = await channel.send({ content: part, flags }).catch(error => { throw error })
       messages.push(response)

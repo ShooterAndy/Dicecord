@@ -80,7 +80,7 @@ const processDrawShuffledCommand =
         reply.fetchReply = true
 
         const r = await replyOrFollowUp(interaction, reply)
-        genericCommandSaver.launch(interaction, r)
+        await genericCommandSaver.launch(interaction, r)
       }
     } catch (error) {
       logger.error(`Failed to load the "${deckId}" deck for the "/drawShuffled" command`, error)

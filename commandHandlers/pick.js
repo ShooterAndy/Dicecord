@@ -72,5 +72,5 @@ module.exports = async (interaction, args) => {
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)
-  genericCommandSaver.launch(interaction, r)
+  await genericCommandSaver.launch(interaction, r)
 }

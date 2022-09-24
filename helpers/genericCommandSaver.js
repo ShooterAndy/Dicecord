@@ -17,7 +17,7 @@ const replyOrFollowUp = require('./replyOrFollowUp')
 const Client = require('./client')
 
 module.exports = {
-  launch(interaction, response) {
+  async launch(interaction, response) {
     const filter = i => {
       return (i.message.id === response.id) &&
         (i.customId === GENERIC_SAVE_BUTTON_ID) &&
@@ -26,19 +26,11 @@ module.exports = {
 
     let channel = interaction.channel
     if (!channel) {
-      channel = Client.client.channels.fetch(interaction.channelId)
+      channel = await Client.client.channels.fetch(interaction.channelId)
     }
     const collector = channel.createMessageComponentCollector({
       filter,
       time: transformMinutesToMs(SAVE_BUTTON_EXPIRE_AFTER_INT)
-    }).catch(async e => {
-      logger.error(`Failed to create save button collector`, e)
-      await interaction.webhook.editMessage(response, { components: [] })
-        .catch(error => {
-          logger.error(`Failed to remove buttons on save button timeout`, error)
-          return null
-        })
-      return null
     })
 
     collector.on('collect', async i => {

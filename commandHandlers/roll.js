@@ -237,20 +237,11 @@ const showWarnings = async () => {
 
       let channel = interaction.channel
       if (!channel) {
-        channel = Client.client.channels.fetch(interaction.channelId)
+        channel = await Client.client.channels.fetch(interaction.channelId)
       }
       const collector = channel.createMessageComponentCollector({
         filter,
         time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
-      }).catch(async e => {
-        logger.error(`Failed to create warning buttons collector`, e)
-        clearCaches(r.id)
-        await interaction.webhook.editMessage(r, { components: [] })
-          .catch(error => {
-            logger.error(`Failed to remove buttons on save button timeout`, error)
-            return null
-          })
-        return false
       })
 
       collector.on('collect', async i => {
@@ -1964,26 +1955,17 @@ const showResults = async () => {
     return null
   }
   Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
-  genericCommandSaver.launch(interaction, r)
+  await genericCommandSaver.launch(interaction, r)
 
   const filter = i => i.message.id === r.id
 
   let channel = interaction.channel
   if (!channel) {
-    channel = Client.client.channels.fetch(interaction.channelId)
+    channel = await Client.client.channels.fetch(interaction.channelId)
   }
   const collector = channel.createMessageComponentCollector({
     filter,
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
-  }).catch(async e => {
-    logger.error(`Failed to create roll buttons collector`, e)
-    clearCaches(r.id)
-    await interaction.webhook.editMessage(r, { components: [] })
-      .catch(error => {
-        logger.error(`Failed to remove buttons on save button timeout`, error)
-        return null
-      })
-    return false
   })
 
   collector.on('collect', async i => {
