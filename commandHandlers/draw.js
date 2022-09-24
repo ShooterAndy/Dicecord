@@ -39,7 +39,7 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
         deck: DECKS_COLUMNS.deck,
         db: pg.addPrefix(DECKS_DB_NAME),
         channelId: DECKS_COLUMNS.channel_id,
-        channelIdValue: interaction.channel.id
+        channelIdValue: interaction.channelId
       })
 
     if (!result || !result[DECKS_COLUMNS.deck]) {
@@ -51,7 +51,7 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
     try {
       deck = JSON.parse(result[DECKS_COLUMNS.deck]);
     } catch (error) {
-      logger.error(nws`Failed to parse the deck for channel "${interaction.channel.id}"`, error)
+      logger.error(nws`Failed to parse the deck for channel "${interaction.channelId}"`, error)
       return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to process the deck. \
         Please contact the author of this bot.`))
     }
@@ -94,7 +94,7 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
           deck: DECKS_COLUMNS.deck,
           deckValue: JSON.stringify(deck),
           channelId: DECKS_COLUMNS.channel_id,
-          channelIdValue: interaction.channel.id,
+          channelIdValue: interaction.channelId,
           timestamp: DECKS_COLUMNS.timestamp
         }
       )
@@ -116,10 +116,10 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
       const r = await replyOrFollowUp(interaction, reply)
       genericCommandSaver.launch(interaction, r)
     } catch (error) {
-      logger.error(nws`Failed to update the deck for channel "${interaction.channel.id}"`, error)
+      logger.error(nws`Failed to update the deck for channel "${interaction.channelId}"`, error)
       return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to save the deck.`))
     }
   } catch(error) {
-    logger.error(`Failed to get the deck for channel "${interaction.channel.id}"`, error)
+    logger.error(`Failed to get the deck for channel "${interaction.channelId}"`, error)
   }
 }

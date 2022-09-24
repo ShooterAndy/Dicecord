@@ -58,10 +58,10 @@ const getDeckFromDb = async (interaction) => {
         deck: DECKS_COLUMNS.deck,
         db: pg.addPrefix(DECKS_DB_NAME),
         channelId: DECKS_COLUMNS.channel_id,
-        channelIdValue: interaction.channel.id
+        channelIdValue: interaction.channelId
       })
   } catch(error) {
-    logger.error(`Failed to get the deck for channel "${interaction.channel.id}"`, error)
+    logger.error(`Failed to get the deck for channel "${interaction.channelId}"`, error)
     throw error
   }
 }
@@ -75,7 +75,7 @@ const processDeck = async (interaction, deckFromDb) => {
   try {
     return JSON.parse(deckFromDb[DECKS_COLUMNS.deck]);
   } catch (error) {
-    logger.error(nws`Failed to parse the deck for channel "${interaction.channel.id}"`, error)
+    logger.error(nws`Failed to parse the deck for channel "${interaction.channelId}"`, error)
     throw `Failed to process the deck. Please contact the bot author.`
   }
 }
@@ -99,7 +99,7 @@ const saveDeck = async (interaction, deck, cards) => {
         deck: DECKS_COLUMNS.deck,
         deckValue: JSON.stringify(deck),
         channelId: DECKS_COLUMNS.channel_id,
-        channelIdValue: interaction.channel.id,
+        channelIdValue: interaction.channelId,
         timestamp: DECKS_COLUMNS.timestamp
       }
     )
@@ -110,7 +110,7 @@ const saveDeck = async (interaction, deck, cards) => {
         deck:\n\`${cards.join('`, `')}\``
     }
   } catch (error) {
-    logger.error(`Failed to update the deck for channel "${interaction.channel.id}"`, error)
+    logger.error(`Failed to update the deck for channel "${interaction.channelId}"`, error)
     throw `Failed to save the deck. Please contact the bot author.`
   }
 }

@@ -18,8 +18,7 @@ const genericCommandSaver = require('../helpers/genericCommandSaver')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
-  let { customCards } = args
-  let deckId = args.deck
+  let { customCards, deckId } = args
   if (!deckId) deckId = DEFAULT_DECK_TYPE
   deckId = deckId.toLowerCase()
 
@@ -124,7 +123,7 @@ const saveShuffledDeck = async (interaction, deckId, deck) => {
         channelId: DECKS_COLUMNS.channel_id,
         deck: DECKS_COLUMNS.deck,
         type: DECKS_COLUMNS.type_id,
-        channelIdValue: interaction.channel.id,
+        channelIdValue: interaction.channelId,
         deckValue: JSON.stringify(deck),
         typeValue: deckId,
         timestamp: DECKS_COLUMNS.timestamp
@@ -133,7 +132,7 @@ const saveShuffledDeck = async (interaction, deckId, deck) => {
       will expire and be automatically deleted after ${DECKS_EXPIRE_AFTER} of last being \
       drawn from.`
   } catch(error) {
-    logger.error(nws`Failed to update the deck for channel ${interaction.channel.id}`, error)
+    logger.error(nws`Failed to update the deck for channel ${interaction.channelId}`, error)
     throw `Failed to save the deck. Please contact the bot author.`
   }
 }

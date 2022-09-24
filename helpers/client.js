@@ -52,7 +52,6 @@ const _getChannelById = async (clientOrShard, { id }) => {
 const Client = module.exports = {
 
   client: null,
-  saveableMessagesCache: {},
   rollThrowsCache: {},
   deckTypesCache: {},
   isReady: false,
