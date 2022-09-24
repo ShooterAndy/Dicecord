@@ -12,12 +12,13 @@ const send = require('./send')
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
-    // Filtering out common errors to prevent log spam
-    if (additionalInfo && additionalInfo.name === 'DiscordAPIError'
-      && (additionalInfo.message === 'Missing Access'
+    // Filtering out common expected errors to prevent log spam
+    if (additionalInfo && (additionalInfo.name === 'DiscordAPIError') && additionalInfo.message) {
+      if (additionalInfo.message === 'Missing Access'
         || additionalInfo.message === 'Missing Permissions'
         || additionalInfo.message === 'Unknown Message'
-        || additionalInfo.code === 503)) {
+        || additionalInfo.message === 'Invalid Webhook Token'
+        || additionalInfo.code === 503)
       return
     }
 
