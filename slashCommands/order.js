@@ -55,13 +55,14 @@ module.exports = {
         await submitted.deferReply().catch(error => {
           logger.error(`Failed to deferReply for modal submission in order`, error)
         })
+        return await handler(submitted,
+          { items, type, originalInteraction: interaction })
       }
     } else {
       await interaction.deferReply().catch(error => {
         logger.error(`Failed to deferReply in order`, error)
       })
+      return await handler(interaction, { items, type })
     }
-
-    return await handler(interaction, { items, type })
   }
 }

@@ -237,7 +237,11 @@ const showWarnings = async () => {
 
       let channel = interaction.channel
       if (!channel) {
-        channel = await Client.client.channels.fetch(interaction.channelId)
+        channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+          logger.error(nws`Failed to fetch channel ${interaction.channelId} in roll for warnings`,
+            err)
+          return null
+        })
       }
       const collector = channel.createMessageComponentCollector({
         filter,
@@ -1961,7 +1965,11 @@ const showResults = async () => {
 
   let channel = interaction.channel
   if (!channel) {
-    channel = await Client.client.channels.fetch(interaction.channelId)
+    channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+      logger.error(nws`Failed to fetch channel ${interaction.channelId} in roll for results`,
+        err)
+      return null
+    })
   }
   const collector = channel.createMessageComponentCollector({
     filter,

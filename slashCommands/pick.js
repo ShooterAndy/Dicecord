@@ -68,13 +68,14 @@ module.exports = {
         await submitted.deferReply().catch(error => {
           logger.error(`Failed to deferReply for modal submission in pick`, error)
         })
+        return await handler(submitted,
+          { items, amount, showRemaining, originalInteraction: interaction })
       }
     } else {
       await interaction.deferReply().catch(error => {
         logger.error(`Failed to deferReply in pick`, error)
       })
+      return await handler(interaction, { items, amount, showRemaining })
     }
-
-    return await handler(interaction, { items, amount, showRemaining })
   }
 }

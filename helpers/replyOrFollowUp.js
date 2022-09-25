@@ -10,7 +10,11 @@ module.exports = async (interaction, content) => {
     if (!interaction.channel) {
       if (interaction.channelId) {
         const Client = require('./client')
-        channel = await Client.client.channels.fetch(interaction.channelId)
+        channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+          logger.error(nws`Failed to fetch channel ${interaction.channelId} in \
+            replyOrFollowUp:\n${JSON.stringify(content)}`, err)
+          return null
+        })
         if (!channel) {
           logger.error(nws`Failed to get channel ${interaction.channelId} in \
             replyOrFollowUp:\n${JSON.stringify(content)}`)

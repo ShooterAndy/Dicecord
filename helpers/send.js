@@ -2,6 +2,8 @@ const Discord = require('discord.js')
 const splitMessage = require('./splitMessage')
 const sendToChannel = require('./sendToChannel')
 const handleBroadcastEval = require('./handleBroadcastEval')
+const logger = require('./logger')
+const nws = require('./nws')
 
 module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
   const Client = require('./client')
@@ -40,7 +42,11 @@ module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
     } else { // It's a DM
       let channel = message.channel
       if (!channel) {
-        channel = await Client.client.channels.fetch(channelId)
+        channel = await Client.client.channels.fetch(channelId).catch(err => {
+          logger.error(nws`Failed to fetch channel ${channelId} in send`,
+            err)
+          return null
+        })
       }
       const response = await channel.send({ content: part, flags }).catch(error => { throw error })
       messages.push(response)

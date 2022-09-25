@@ -43,7 +43,11 @@ const _getChannelById = async (clientOrShard, { id }) => {
     throw `Missing client channels data in _getChannelById for channel ${id}`
   }
   try {
-    return clientOrShard.channels.fetch(id)
+    return clientOrShard.channels.fetch(id).catch(err => {
+      logger.error(nws`Failed to fetch channel ${id} in _getChannelById`,
+        err)
+      return null
+    })
   } catch (err) {
     throw err
   }

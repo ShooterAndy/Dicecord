@@ -17,7 +17,7 @@ const replyOrFollowUp = require('./replyOrFollowUp')
 const Client = require('./client')
 
 module.exports = {
-  async launch(interaction, response) {
+  async launch(interaction, response, parameters) {
     const filter = i => {
       return (i.message.id === response.id) &&
         (i.customId === GENERIC_SAVE_BUTTON_ID) &&
@@ -26,7 +26,11 @@ module.exports = {
 
     let channel = interaction.channel
     if (!channel) {
-      channel = await Client.client.channels.fetch(interaction.channelId)
+      channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+        logger.error(nws`Failed to fetch channel ${interaction.channelId} in genericCommandSaver`,
+          err)
+        return null
+      })
     }
     const collector = channel.createMessageComponentCollector({
       filter,
@@ -95,7 +99,7 @@ module.exports = {
               name,
               command: interaction.commandName.toLowerCase(),
               limit: MAX_SAVED_COMMANDS_PER_USER,
-              parameters: JSON.stringify(interaction.options.data)
+              parameters: JSON.stringify(parameters || interaction.options.data)
             })
           if (!result || !result.upsert_saved_command) {
             logger.error(`The result of upsert_saved_command appears to be empty`)

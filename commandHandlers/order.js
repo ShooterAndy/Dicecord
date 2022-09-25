@@ -15,7 +15,8 @@ const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 module.exports = async (interaction, args) => {
   if (!interaction) return
   const { items } = args
-  let { type } = args
+  let { type, originalInteraction } = args
+  if (!originalInteraction) originalInteraction = interaction
 
   let separator = ','
   if (items.indexOf('\n') > 0) {
@@ -76,5 +77,7 @@ module.exports = async (interaction, args) => {
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)
-  await genericCommandSaver.launch(interaction, r)
+  const parameters = [{ name: 'items', type: 'STRING', value: items }]
+  if (type) parameters.push({ name: 'type', type: 'STRING', value: type })
+  await genericCommandSaver.launch(originalInteraction, r, parameters)
 }
