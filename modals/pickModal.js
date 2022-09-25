@@ -4,7 +4,6 @@ const {
   Modal
 } = require('discord.js')
 const { MAX_PICK_NUMBER, YES_EMOJI, NO_EMOJI } = require('../helpers/constants')
-const handler = require('../commandHandlers/pick')
 
 const itemsInput = new TextInputComponent()
   .setCustomId('items')
@@ -32,13 +31,5 @@ module.exports = {
   modal: new Modal()
     .setCustomId('pickModal')
     .setTitle('/pick options')
-    .addComponents(itemsRow, amountRow, showRemainingRow),
-  async processSubmission(interaction) {
-    if (!interaction || !interaction.fields) return
-    const items = interaction.fields.getTextInputValue('items')
-    const amount = interaction.fields.getTextInputValue('amount')
-    const showRemaining = interaction.fields.getTextInputValue('show_remaining')
-    await interaction.deferReply()
-    return await handler(interaction, { items, amount, showRemaining })
-  }
+    .addComponents(itemsRow, amountRow, showRemainingRow)
 }

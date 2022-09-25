@@ -160,19 +160,6 @@ const Client = module.exports = {
             ephemeral: true
           })
         }
-      } else if (interaction.isModalSubmit()) {
-        if (!interaction.customId) return
-        const modal = modals.get(interaction.customId)
-        if (!modal) return
-        try {
-          await modal.processSubmission(interaction)
-        } catch (error) {
-          logger.error(`Failed while trying to process a ${interaction.customId} modal`, error)
-          await replyOrFollowUp(interaction, {
-            content: `Failed to process the \`${interaction.customId}\` modal. Please contact the bot creator.`,
-            ephemeral: true
-          })
-        }
       } else if (interaction.isAutocomplete()) {
         // special case for /help
         if (interaction.commandName === 'help') {

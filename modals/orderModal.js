@@ -3,7 +3,6 @@ const {
   MessageActionRow,
   Modal
 } = require('discord.js')
-const handler = require('../commandHandlers/order')
 
 const itemsInput = new TextInputComponent()
   .setCustomId('items')
@@ -24,12 +23,5 @@ module.exports = {
   modal: new Modal()
     .setCustomId('orderModal')
     .setTitle('/order options')
-    .addComponents(itemsRow, typeRow),
-  async processSubmission(interaction) {
-    if (!interaction || !interaction.fields) return
-    const items = interaction.fields.getTextInputValue('items')
-    const type = interaction.fields.getTextInputValue('type')
-    await interaction.deferReply()
-    return await handler(interaction, { items, type })
-  }
+    .addComponents(itemsRow, typeRow)
 }

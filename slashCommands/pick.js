@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders')
 const handler = require('../commandHandlers/pick')
 const logger = require('../helpers/logger')
 const { modal } = require('../modals/pickModal')
+const {transformMinutesToMs} = require('../helpers/utilities')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -35,15 +36,45 @@ module.exports = {
       return
     }
 
-    const items = interaction.options.getString('items')
-    const amount = interaction.options.getInteger('amount')
-    const showRemaining = interaction.options.getBoolean('show_remaining')
+    let items = interaction.options.getString('items')
+    let amount = interaction.options.getInteger('amount')
+    let showRemaining = interaction.options.getBoolean('show_remaining')
 
     if (!items) {
-      return interaction.showModal(modal)
+      await interaction.showModal(modal)
+      const submitted = await interaction.awaitModalSubmit({
+        // Timeout after a minute of not receiving any valid Modals
+        time: transformMinutesToMs(1),
+        // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
+        filter: mi => mi.user.id === interaction.user.id,
+      }).catch(error => {
+        // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
+        if (!error ||
+          error.message !== 'Collector received no interactions before ending with reason: time') {
+          logger.error('Failed to create pick modal', error)
+        }
+        return null
+      })
+
+      if (submitted) {
+        items = submitted.fields.getTextInputValue('items')
+        amount = submitted.fields.getTextInputValue('amount')
+        if (amount) {
+          amount = Number.parseInt(amount)
+        } else {
+          amount = undefined
+        }
+        showRemaining = !!submitted.fields.getTextInputValue('show_remaining')
+        await submitted.deferReply().catch(error => {
+          logger.error(`Failed to deferReply for modal submission in pick`, error)
+        })
+      }
+    } else {
+      await interaction.deferReply().catch(error => {
+        logger.error(`Failed to deferReply in pick`, error)
+      })
     }
 
-    await interaction.deferReply()
     return await handler(interaction, { items, amount, showRemaining })
   }
 }
