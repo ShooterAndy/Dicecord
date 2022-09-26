@@ -1,5 +1,6 @@
 const logger = require('./logger')
 const nws = require('./nws')
+const Client = require('./client')
 
 module.exports = async (interaction, content) => {
   if (!content) {
@@ -9,16 +10,52 @@ module.exports = async (interaction, content) => {
     let channel
     if (!interaction.channel) {
       if (interaction.channelId) {
-        const Client = require('./client')
-        channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
-          logger.error(nws`Failed to fetch channel ${interaction.channelId} in \
-            replyOrFollowUp:\n${JSON.stringify(content)}`, err)
-          return null
-        })
-        if (!channel) {
-          logger.error(nws`Failed to get channel ${interaction.channelId} in \
+        if (interaction.inGuild()) {
+          // Apparently we need to make sure the guild is cached, otherwise fetching the channel
+          // might fail?
+          let guild = interaction.guild
+          if (!guild) {
+            if (!interaction.guildId) {
+              logger.error(nws`In-Guild interaction has no guildId in \
+              replyOrFollowUp:\n${JSON.stringify(content)}`)
+              return null
+            }
+            guild = await Client.client.guilds.fetch(interaction.guildId).catch(err => {
+              logger.error(nws`Failed to fetch guild ${interaction.guildId} in \
+              replyOrFollowUp:\n${JSON.stringify(content)}`, err)
+              return null
+            })
+          }
+          if (!guild) {
+            logger.error(nws`Failed to get guild ${interaction.guildId} in \
             replyOrFollowUp:\n${JSON.stringify(content)}`)
-          return null
+            return null
+          }
+          channel = await guild.channels.fetch(interaction.channelId).catch(err => {
+            logger.error(nws`Failed to fetch channel ${interaction.channelId} in \
+            guild-less replyOrFollowUp:\n${JSON.stringify(content)}`, err)
+            return null
+          })
+          if (!channel) {
+            logger.error(nws`Failed to get channel ${interaction.channelId} in \
+            replyOrFollowUp:\n${JSON.stringify(content)}`)
+            return null
+          }
+        } else { // It's DM then, so I think it should work?
+          let client = interaction.client
+          if (!client || !client.channels || !client.channels.fetch) {
+            client = require('./client').client
+          }
+          channel = await client.channels.fetch(interaction.channelId).catch(err => {
+            logger.error(nws`Failed to fetch channel ${interaction.channelId} in \
+            guild-less replyOrFollowUp:\n${JSON.stringify(content)}`, err)
+            return null
+          })
+          if (!channel) {
+            logger.error(nws`Failed to get channel ${interaction.channelId} in \
+            guild-less replyOrFollowUp:\n${JSON.stringify(content)}`)
+            return null
+          }
         }
       } else {
         logger.error(nws`Channel is ${interaction.channel} and channelId is \
