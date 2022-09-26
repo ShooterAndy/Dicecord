@@ -1,6 +1,5 @@
 const logger = require('./logger')
 const nws = require('./nws')
-const Client = require('./client')
 
 module.exports = async (interaction, content) => {
   if (!content) {
@@ -47,8 +46,20 @@ module.exports = async (interaction, content) => {
           }
         } else { // It's DM then, so I think it should work?
           let client = interaction.client
-          if (!client || !client.channels || !client.channels.fetch) {
-            client = require('./client').client
+          if (!client) {
+            logger.error(nws`No client in interaction ${interaction.channelId} in \
+            guild-less replyOrFollowUp:\n${JSON.stringify(content)}`)
+            return null
+          }
+          if (!client.channels) {
+            logger.error(nws`No ChannelManager in client of interaction \
+            ${interaction.channelId} in guild-less replyOrFollowUp:\n${JSON.stringify(content)}`)
+            return null
+          }
+          if (!client.channels.fetch) {
+            logger.error(nws`No "fetch" for ChannelManger in client of interaction \
+            ${interaction.channelId} in guild-less replyOrFollowUp:\n${JSON.stringify(content)}`)
+            return null
           }
           channel = await client.channels.fetch(interaction.channelId).catch(err => {
             logger.error(nws`Failed to fetch channel ${interaction.channelId} in \
