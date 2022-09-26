@@ -31,13 +31,17 @@ module.exports = async (interaction, content) => {
             replyOrFollowUp:\n${JSON.stringify(content)}`)
             return null
           }
+          const hadGuildHadToBeFetchedText = !interaction.guild ?
+            ' (guild had to be fetched)' : ''
           channel = await guild.channels.fetch(interaction.channelId).catch(err => {
-            logger.error(nws`Failed to fetch channel ${interaction.channelId} in \
-            guild-less replyOrFollowUp:\n${JSON.stringify(content)}`, err)
+            logger.error(nws`Failed to fetch channel ${interaction.channelId} of \
+            guild ${interaction.guildId}${hadGuildHadToBeFetchedText} \
+            replyOrFollowUp:\n${JSON.stringify(content)}`, err)
             return null
           })
           if (!channel) {
-            logger.error(nws`Failed to get channel ${interaction.channelId} in \
+            logger.error(nws`Failed to get channel ${interaction.channelId} of \
+            guild ${interaction.guildId}${hadGuildHadToBeFetchedText} \ 
             replyOrFollowUp:\n${JSON.stringify(content)}`)
             return null
           }

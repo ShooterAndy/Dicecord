@@ -114,6 +114,8 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
       reply.fetchReply = true
 
       const r = await replyOrFollowUp(interaction, reply)
+      if (!r) return null
+
       await genericCommandSaver.launch(interaction, r)
     } catch (error) {
       logger.error(nws`Failed to update the deck for channel "${interaction.channelId}"`, error)

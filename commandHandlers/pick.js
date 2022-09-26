@@ -73,6 +73,8 @@ module.exports = async (interaction, args) => {
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)
+  if (!r) return null
+
   const parameters = [{ name: 'items', type: 'STRING', value: items }]
   if (parsedAmount !== 1) parameters.push({ name: 'amount', type: 'INTEGER', value: parsedAmount })
   if (showRemaining) parameters.push({ name: 'showRemaining', type: 'BOOLEAN', value: true })

@@ -77,6 +77,8 @@ module.exports = async (interaction, args) => {
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)
+  if (!r) return null
+
   const parameters = [{ name: 'items', type: 'STRING', value: items }]
   if (type) parameters.push({ name: 'type', type: 'STRING', value: type })
   await genericCommandSaver.launch(originalInteraction, r, parameters)
