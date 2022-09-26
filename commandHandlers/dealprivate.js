@@ -50,21 +50,30 @@ module.exports = async (interaction, args) => {
 }
 
 const getMentionsList = async (interaction, usersList) => {
-  const userIds = usersList.match(/<@!(\d+)>/g)
+  const ids = usersList.match(/<@(\d+)>/g)
   let mentionsList = []
-  if (userIds && userIds.length) {
-    for (let userId of userIds) {
-      userId = userId.replace('<@!', '').replace('>', '')
+  if (ids && ids.length) {
+    for (let id of ids) {
+      id = id.slice(2, -1)
+      if (id.startsWith('&')) {
+        throw nws`Sorry, cannot deal to all users of a role yet. Maybe in a future update?`
+      }
+      if (id.startsWith('#')) {
+        throw nws`Sorry, cannot deal to all users of a channel yet. Maybe in a future update?`
+      }
+      if (id.startsWith('!')) {
+        id = id.slice(1)
+      }
       let user
       try {
-        user = await interaction.guild.members.fetch(userId)
+        user = await interaction.guild.members.fetch(id)
         if (user) {
           mentionsList.push(user)
         } else {
-          logger.error(`User "${userId}" not found in getMentionsList`)
+          logger.error(`User "${id}" not found in getMentionsList`)
         }
       } catch (e) {
-        logger.error(`Failed to resolve a mention of a user "${userId}" in getMentionsList`)
+        logger.error(`Failed to resolve a mention of a user "${id}" in getMentionsList`)
       }
     }
   }
