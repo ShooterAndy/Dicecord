@@ -183,6 +183,19 @@ const addWarning = (text) => {
 
 const showWarnings = async () => {
   if (warnings.length) {
+    let channel = interaction.channel
+    let canHaveButtons = true
+    if (!channel) {
+      channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+        logger.error(nws`Failed to fetch channel ${interaction.channelId} in roll for warnings`,
+          err)
+        return null
+      })
+    }
+    if (!channel) { // We probably have no rights to view this channel
+      canHaveButtons = false
+    }
+
     let warningsText = ''
     warnings.forEach((warning, index) => {
       if (warnings.length > 1) {
@@ -198,83 +211,85 @@ const showWarnings = async () => {
       }
     })
     let validCommandText
-    validCommandText = getCommandText()
-    if (validCommandText) {
-      warningsText += '\nDo you still wish to proceed? Your command would be:'
-      warningsText += '```' + validCommandText + '```'
-    } else {
-      warningsText += nws`\nThis will make your command empty. Please refer to \ 
+    if (canHaveButtons) {
+      validCommandText = getCommandText()
+      if (validCommandText) {
+        if (canHaveButtons) {
+          warningsText += '\nDo you still wish to proceed? Your command would be:'
+        }
+        warningsText += '```' + validCommandText + '```'
+      } else {
+        warningsText += nws`\nThis will make your command empty. Please refer to \ 
           \`/help topic:roll\` for help.`
+      }
+    } else {
+      warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
     }
     if (validCommandText) {
-      const buttonsRow = new MessageActionRow()
-        .addComponents(
-          new MessageButton()
-            .setCustomId('roll_warning_yes')
-            .setLabel('Yes')
-            .setEmoji(YES_EMOJI)
-            .setStyle('SECONDARY'),
-        )
-        .addComponents(
-          new MessageButton()
-            .setCustomId('roll_warning_no')
-            .setLabel('No')
-            .setEmoji(NO_EMOJI)
-            .setStyle('SECONDARY'),
-        )
       const content = {
-        embeds: warningEmbed.get(warningsText).embeds,
-        components: [buttonsRow]
+        embeds: warningEmbed.get(warningsText).embeds
+      }
+      if (canHaveButtons) {
+        const buttonsRow = new MessageActionRow()
+          .addComponents(
+            new MessageButton()
+              .setCustomId('roll_warning_yes')
+              .setLabel('Yes')
+              .setEmoji(YES_EMOJI)
+              .setStyle('SECONDARY'),
+          )
+          .addComponents(
+            new MessageButton()
+              .setCustomId('roll_warning_no')
+              .setLabel('No')
+              .setEmoji(NO_EMOJI)
+              .setStyle('SECONDARY'),
+          )
+        content.components = [buttonsRow]
       }
       const r = await replyOrFollowUp(interaction, content).catch(error => {
         logger.error(`Failed to send a warning message`, error)
         return null
       })
-      if (!r) return null
-      Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
+      if (canHaveButtons) {
+        if (!r) return null
+        Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
 
-      const filter = i => i.message.id === r.id
+        const filter = i => i.message.id === r.id
 
-      let channel = interaction.channel
-      if (!channel) {
-        channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
-          logger.error(nws`Failed to fetch channel ${interaction.channelId} in roll for warnings`,
-            err)
-          return null
+        const collector = channel.createMessageComponentCollector({
+          filter,
+          time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
+        })
+
+        collector.on('collect', async i => {
+          switch (i.customId) {
+            case 'roll_warning_yes': {
+              await module.exports.goOnFromWarning(r.id)
+              return await i.update({components: []}).catch(error => {
+                logger.error(`Failed to remove warning buttons on "yes"`, error)
+                return null
+              })
+            }
+            case 'roll_warning_no': {
+              await i.update({components: []})
+              return await interaction.deleteReply().catch(error => {
+                logger.error(`Failed to remove warning buttons on "no"`, error)
+                return null
+              })
+            }
+          }
+        })
+
+        collector.on('end', async () => {
+          clearCaches(r.id)
+          await interaction.webhook.editMessage(r, {components: []})
+            .catch(error => {
+              logger.error(`Failed to remove warning buttons on timeout`, error)
+              return null
+            })
         })
       }
-      const collector = channel.createMessageComponentCollector({
-        filter,
-        time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
-      })
-
-      collector.on('collect', async i => {
-        switch (i.customId) {
-          case 'roll_warning_yes': {
-            await module.exports.goOnFromWarning(r.id)
-            return await i.update({components: []}).catch(error => {
-              logger.error(`Failed to remove warning buttons on "yes"`, error)
-              return null
-            })
-          }
-          case 'roll_warning_no': {
-            await i.update({components: []})
-            return await interaction.deleteReply().catch(error => {
-              logger.error(`Failed to remove warning buttons on "no"`, error)
-              return null
-            })
-          }
-        }
-      })
-
-      collector.on('end', async () => {
-        clearCaches(r.id)
-        await interaction.webhook.editMessage(r, { components: [] })
-          .catch(error => {
-            logger.error(`Failed to remove warning buttons on timeout`, error)
-            return null
-          })
-      })
     }
   }
 }
@@ -1970,6 +1985,9 @@ const showResults = async () => {
         err)
       return null
     })
+  }
+  if (!channel) { // we probably have no rights to view this channel
+    return null
   }
   const collector = channel.createMessageComponentCollector({
     filter,

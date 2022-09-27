@@ -6,8 +6,10 @@ const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   let helpFileName = '!'
+  let helpTitle = ''
   if (args.topic && args.topic.trim().length > 0) {
     helpFileName = args.topic.trim().toLowerCase()
+    helpTitle = ` on the topic of ${args.topic.trim()}`
   }
   helpFileName += '.md'
 
@@ -15,10 +17,11 @@ module.exports = async (interaction, args) => {
     async (err, data) => {
       if (err) {
         return await replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find help \
-          information for "${helpFileName}".`))
+          information${helpTitle}.`))
       }
       else {
-        return await replyOrFollowUp(interaction, commonReplyEmbed.get('Documentation:', data))
+        return await replyOrFollowUp(interaction, commonReplyEmbed.get(
+          `Documentation${helpTitle}:`, data))
       }
     })
 }

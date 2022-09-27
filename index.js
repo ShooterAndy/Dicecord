@@ -22,28 +22,16 @@ manager.on('clusterCreate', cluster => {
       Exit code: "${process.exitCode}".`)
 
     if (process.exitCode === null) {
-      logger.warn(nws`WARNING: Cluster "${cluster.id}" exited with NULL error code. This may be a 
-      result of a lack of available system memory. Ensure that there is enough memory allocated 
+      logger.warn(nws`WARNING: Cluster "${cluster.id}" exited with NULL error code. This may be a \
+      result of a lack of available system memory. Ensure that there is enough memory allocated \
       to continue.`)
     }
   })
-
-  const postSystemResourcesUsage = () => {
-    const memUsage = process.memoryUsage()
-    let memUsageText = ''
-    for (const memEntry in memUsage) {
-      memUsageText += memEntry + ': ' + ((memUsage[memEntry] / 1024 / 1024).toFixed(2)).toString() + ' MB; '
-    }
-    logger.log(`Cluster "${cluster.id}", processId: "${process.pid}", resources usage: ${memUsageText}`)
-  }
-  postSystemResourcesUsage()
-  setInterval(async () => {
-    await postSystemResourcesUsage()
-  }, transformMinutesToMs(10))
 })
 
 manager.spawn().then(() => {
-  logger.log(`Launched cluster manager. ${manager.totalClusters} clusters, ${manager.totalShards} shards.`)
+  logger.log(`Launched cluster manager. ${manager.totalClusters} \
+  clusters, ${manager.totalShards} shards.`)
   if (process.env.DBL_TOKEN) {
     const TopGG = require('@top-gg/sdk')
     try {
@@ -56,7 +44,8 @@ manager.spawn().then(() => {
             serverCount: totalGuilds,
             shardCount: manager.totalShards
           }).then(() => {
-            logger.log(`Posted stats to top.gg: ${totalGuilds} total guilds, ${manager.totalShards} total shards`)
+            logger.log(nws`Posted stats to top.gg: ${totalGuilds} total \
+            guilds, ${manager.totalShards} total shards`)
           }).catch(err => {
             logger.error('Failed to post bot stats', err)
           })

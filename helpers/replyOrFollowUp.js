@@ -6,7 +6,7 @@ module.exports = async (interaction, content) => {
     logger.error(`No content in replyOrFollowUp`)
   }
   if (interaction) {
-    let channel
+    /*let channel
     if (!interaction.channel) {
       if (interaction.channelId) {
         if (interaction.inGuild()) {
@@ -80,7 +80,7 @@ module.exports = async (interaction, content) => {
     } else {
       channel = interaction.channel
     }
-    if ((typeof channel.isText === 'function') && channel.isText()) {
+    if ((typeof channel.isText === 'function') && channel.isText()) {*/
       if (interaction.isRepliable()) {
         if (!interaction.replied) {
           content.fetchReply = true
@@ -106,7 +106,7 @@ module.exports = async (interaction, content) => {
             replyOrFollowUp:\n${JSON.stringify(content)}`)
         return null
       }
-    } else {
+    /*} else {
       if (channel.type === 'GUILD_VOICE') { // This is expected, bug in Discord.js
         return null
       } else {
@@ -114,7 +114,7 @@ module.exports = async (interaction, content) => {
             replyOrFollowUp:\n${JSON.stringify(interaction.channel)}`)
         return null
       }
-    }
+    }*/
   } else {
     logger.error(`No interaction in replyOrFollowUp:\n${JSON.stringify(content)}`)
     return null

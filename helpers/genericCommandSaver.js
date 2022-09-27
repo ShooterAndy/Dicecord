@@ -15,6 +15,7 @@ const commonReplyEmbed = require('./commonReplyEmbed')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
 const Client = require('./client')
+const warningEmbed = require('./warningEmbed')
 
 module.exports = {
   async launch(interaction, response, parameters) {
@@ -31,6 +32,19 @@ module.exports = {
           err)
         return null
       })
+    }
+    if (!channel) {
+      await interaction.webhook.editMessage(response, { components: [] }).catch(error => {
+        logger.error(`Failed to remove buttons while trying to warn about lacking rights`, error)
+        return null
+      })
+      await interaction.followUp(warningEmbed.get(nws`Can't add buttons to this message. This is 
+        likely because the bot doesn't have the rights to view this channel. If so, please check 
+        out \`/help topic:permissions\` if you need help.`)).catch(error => {
+        logger.error(`Failed to followUp while trying to warn about lacking rights`, error)
+        return null
+      })
+      return null
     }
     const collector = channel.createMessageComponentCollector({
       filter,
