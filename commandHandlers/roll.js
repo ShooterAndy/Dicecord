@@ -160,11 +160,11 @@ module.exports.repeatRollCommand = async (id) => {
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 =============================================================================================== */
 const prepareFromCache = (id) => {
-  throws = Client.rollThrowsCache[id]
-  if (!throws) {
+  if (!Client.rollThrowsCache[id]) {
     logger.error(`Message "${id}" not cached in repeatRollCommand`)
     return false
   }
+  throws = JSON.parse(JSON.stringify(Client.rollThrowsCache[id]))
   clearCaches(id)
   warnings = []
   return true
