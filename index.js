@@ -30,7 +30,7 @@ manager.on('clusterCreate', cluster => {
 })
 
 manager.spawn().then(() => {
-  logger.log(`Launched cluster manager. ${manager.totalClusters} \
+  logger.log(nws`Launched cluster manager. ${manager.totalClusters} \
   clusters, ${manager.totalShards} shards.`)
   if (process.env.DBL_TOKEN) {
     const TopGG = require('@top-gg/sdk')

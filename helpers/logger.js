@@ -9,6 +9,7 @@ const {
 } = require('./constants')
 const nws = require('./nws')
 const send = require('./send')
+const Client = require('./client')
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
@@ -31,8 +32,7 @@ module.exports = {
       return this.sendMessage(LOG_TYPES.error, nws`Forgot to include the log type for this \
         log message`, text)
     }
-    if (!Client.client || !Client.client.channels
-      || !Client.client.channels.cache || !Client.client.channels.cache.size) {
+    if (!Client.client || !Client.client.cluster) {
       return this.sendConsoleMessage(type, text, additionalInfo)
     }
     if (IS_LOCAL) {
