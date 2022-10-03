@@ -11,7 +11,7 @@ existence and development, you can tip me on Ko-fi:
 ## Getting Started
 
 Getting this bot on your Discord server is very easy: all you need to do in a normal situation is 
-open **[this link](https://discord.com/api/oauth2/authorize?client_id=572698679618568193&permissions=0&scope=bot)**
+open **[this link](https://discord.com/api/oauth2/authorize?client_id=572698679618568193&permissions=1024&scope=bot)**
 and allow the bot to join a server you'll select in the page that you'll see there.
 
 ### Prerequisites

@@ -32,8 +32,9 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
     return await replyOrFollowUp(interaction, errorEmbed.get(`Can't ${verb} less than one card.`))
   }
 
+  let result
   try {
-    const result = await pg.db.oneOrNone(
+    result = await pg.db.oneOrNone(
       'SELECT ${deck~} FROM ${db#} WHERE ${channelId~} = ${channelIdValue}',
       {
         deck: DECKS_COLUMNS.deck,
@@ -41,87 +42,87 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
         channelId: DECKS_COLUMNS.channel_id,
         channelIdValue: interaction.channelId
       })
-
-    if (!result || !result[DECKS_COLUMNS.deck]) {
-      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find a deck for this \
-        channel. Please \`/shuffle\` one first. If there was a deck, perhaps it expired and was \
-        automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`))
-    }
-    let deck = []
-    try {
-      deck = JSON.parse(result[DECKS_COLUMNS.deck]);
-    } catch (error) {
-      logger.error(nws`Failed to parse the deck for channel "${interaction.channelId}"`, error)
-      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to process the deck. \
-        Please contact the author of this bot.`))
-    }
-
-    if (deck.length < numberOfCardsToDraw) {
-      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Not enough cards left in the \
-        deck (requested ${numberOfCardsToDraw}, but only ${deck.length} cards left). Please \
-        reshuffle the deck (by using the \`/shuffle\` command), or ${verb} fewer cards.`))
-    }
-
-    let drawnCards = deck.slice(0, numberOfCardsToDraw)
-    deck = deck.slice(numberOfCardsToDraw)
-    let cardOrCards = 'cards'
-    if (numberOfCardsToDraw === 1) {
-      cardOrCards = 'card'
-    }
-    text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw + ' ' + cardOrCards +
-      ' from the deck (' + deck.length + ' left)'
-    if (!isPrivate) {
-      text += `: \n`
-      if (comment) {
-        text += `\`${comment}:\` `
-      }
-      text += drawnCards.join(', ') + '.'
-    } else {
-      if (comment) {
-        text += ` with this comment:\n\`${comment}\``
-      } else {
-        text += '.'
-      }
-      text += `\nThe results were sent to your DMs.`
-    }
-
-    try {
-      await pg.db.none(
-        'UPDATE ${db#} SET ${deck~} = ${deckValue}, ${timestamp~} = NOW() ' +
-        'WHERE ${channelId~}=${channelIdValue}',
-        {
-          db: pg.addPrefix(DECKS_DB_NAME),
-          deck: DECKS_COLUMNS.deck,
-          deckValue: JSON.stringify(deck),
-          channelId: DECKS_COLUMNS.channel_id,
-          channelIdValue: interaction.channelId,
-          timestamp: DECKS_COLUMNS.timestamp
-        }
-      )
-      if (isPrivate) {
-        const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
-        const privateText = `${commentary}${drawnCards.join(', ')}`
-        if (!await sendDM(privateText, interaction)) {
-          try {
-            return await replyOrFollowUp(interaction, errorEmbed.get(`Failed to send you a DM.`))
-          } catch (error) {
-            logger.error(nws`Failed to inform a user about failing send a DM to them in \
-              drawPrivate`, error)
-          }
-        }
-      }
-      const reply = saveableReplyEmbed.get('Your cards:', text)
-      reply.fetchReply = true
-
-      const r = await replyOrFollowUp(interaction, reply)
-      if (!r) return null
-
-      await genericCommandSaver.launch(interaction, r)
-    } catch (error) {
-      logger.error(nws`Failed to update the deck for channel "${interaction.channelId}"`, error)
-      return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to save the deck.`))
-    }
   } catch(error) {
     logger.error(`Failed to get the deck for channel "${interaction.channelId}"`, error)
   }
+
+  if (!result || !result[DECKS_COLUMNS.deck]) {
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find a deck for this \
+      channel. Please \`/shuffle\` one first. If there was a deck, perhaps it expired and was \
+      automatically removed after ${DECKS_EXPIRE_AFTER} of not being drawn from?`))
+  }
+  let deck = []
+  try {
+    deck = JSON.parse(result[DECKS_COLUMNS.deck]);
+  } catch (error) {
+    logger.error(nws`Failed to parse the deck for channel "${interaction.channelId}"`, error)
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to process the deck. \
+      Please contact the author of this bot.`))
+  }
+
+  if (deck.length < numberOfCardsToDraw) {
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Not enough cards left in the \
+      deck (requested ${numberOfCardsToDraw}, but only ${deck.length} cards left). Please \
+      reshuffle the deck (by using the \`/shuffle\` command), or ${verb} fewer cards.`))
+  }
+
+  let drawnCards = deck.slice(0, numberOfCardsToDraw)
+  deck = deck.slice(numberOfCardsToDraw)
+  let cardOrCards = 'cards'
+  if (numberOfCardsToDraw === 1) {
+    cardOrCards = 'card'
+  }
+  text = 'You ' + pastVerb + ' ' + numberOfCardsToDraw + ' ' + cardOrCards +
+    ' from the deck (' + deck.length + ' left)'
+  if (!isPrivate) {
+    text += `: \n`
+    if (comment) {
+      text += `\`${comment}:\` `
+    }
+    text += drawnCards.join(', ') + '.'
+  } else {
+    if (comment) {
+      text += ` with this comment:\n\`${comment}\``
+    } else {
+      text += '.'
+    }
+    text += `\nThe results were sent to your DMs.`
+  }
+
+  try {
+    await pg.db.none(
+      'UPDATE ${db#} SET ${deck~} = ${deckValue}, ${timestamp~} = NOW() ' +
+      'WHERE ${channelId~}=${channelIdValue}',
+      {
+        db: pg.addPrefix(DECKS_DB_NAME),
+        deck: DECKS_COLUMNS.deck,
+        deckValue: JSON.stringify(deck),
+        channelId: DECKS_COLUMNS.channel_id,
+        channelIdValue: interaction.channelId,
+        timestamp: DECKS_COLUMNS.timestamp
+      }
+    )
+  } catch (error) {
+    logger.error(nws`Failed to update the deck for channel "${interaction.channelId}"`, error)
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to save the deck.`))
+  }
+  if (isPrivate) {
+    const commentary = comment ? `\`${comment}:\`\n` : `Your ${cardOrCards}:\n`
+    const privateText = `${commentary}${drawnCards.join(', ')}`
+    if (!await sendDM(privateText, interaction)) {
+      try {
+        return await replyOrFollowUp(interaction, errorEmbed.get(`Failed to send you a DM.`))
+      } catch (error) {
+        logger.error(nws`Failed to inform a user about failing send a DM to them in \
+          drawPrivate`, error)
+      }
+    }
+  }
+  const reply = saveableReplyEmbed.get('Your cards:', text)
+  reply.fetchReply = true
+
+  const r = await replyOrFollowUp(interaction, reply).catch(() => { return null })
+  if (!r) return null
+
+  await genericCommandSaver.launch(interaction, r).catch(() => { return null })
 }
