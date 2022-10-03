@@ -110,7 +110,11 @@ const Client = module.exports = {
     options.shards = Cluster.data.SHARD_LIST // An array of shards that will get spawned
     options.shardCount = Cluster.data.TOTAL_SHARDS // Total number of shards
 
-    options.intents = new Discord.Intents()
+    const myIntents = new Discord.Intents()
+    myIntents.add(
+      Discord.Intents.FLAGS.GUILDS
+    )
+    options.intents = myIntents
     options.makeCache = Options.cacheWithLimits({
       MessageManager: 0,
       PresenceManager: 0,

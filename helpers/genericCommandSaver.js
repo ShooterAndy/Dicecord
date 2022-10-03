@@ -24,8 +24,15 @@ module.exports = {
         (i.user.id === interaction.user.id)
     }
 
-    const responseMessage = await interaction.webhook.fetchMessage(response.id)
-    if (!responseMessage || !responseMessage.createMessageComponentCollector) {
+    let channel = interaction.channel
+    if (!channel) {
+      channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+        logger.error(nws`Failed to fetch channel ${interaction.channelId} in genericCommandSaver`,
+          err)
+        return null
+      })
+    }
+    if (!channel) {
       await interaction.webhook.editMessage(response, { components: [] }).catch(error => {
         logger.error(`Failed to remove buttons while trying to warn about lacking rights`, error)
         return null
@@ -38,7 +45,7 @@ module.exports = {
       })
       return null
     }
-    const collector = responseMessage.createMessageComponentCollector({
+    const collector = channel.createMessageComponentCollector({
       filter,
       time: transformMinutesToMs(SAVE_BUTTON_EXPIRE_AFTER_INT)
     })
