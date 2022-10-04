@@ -15,6 +15,7 @@ const commonReplyEmbed = require('./commonReplyEmbed')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
 const warningEmbed = require('./warningEmbed')
+const Client = require('./client')
 
 module.exports = {
   async launch(interaction, response, parameters) {
