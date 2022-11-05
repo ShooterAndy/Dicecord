@@ -133,7 +133,7 @@ module.exports.goOnFromWarning = async (id) => {
 
   try {
     if (await topLevelCatcher(calculateWholeCommand)) {
-      await topLevelCatcher(showResults)
+      await topLevelCatcher(showResults, ' modified')
     }
   } catch (error) {
     logger.error(`Top level error in goOnFromWarning`, error)
@@ -149,7 +149,7 @@ module.exports.repeatRollCommand = async (id) => {
 
   try {
     if (await topLevelCatcher(calculateWholeCommand)) {
-      await topLevelCatcher(showResults)
+      await topLevelCatcher(showResults, ' re-roll')
     }
   } catch (error) {
     logger.error(`Top level error in repeatRollCommand`, error)
@@ -1936,7 +1936,7 @@ const getThrowFormulaText = t => {
   return text
 }
 
-const showResults = async () => {
+const showResults = async (additionalText) => {
   if (!throws || !throws.length) {
     return
   }
@@ -1965,7 +1965,8 @@ const showResults = async () => {
         .setEmoji(M_EMOJI)
         .setStyle('SECONDARY'),
     )
-  const content = saveableReplyEmbed.get('Your results:', formattedThrowResults)
+  const content = saveableReplyEmbed.get(`Your${additionalText || ''} results:`,
+    formattedThrowResults)
   content.components.push(buttonsRow)
 
   const r = await replyOrFollowUp(interaction, content).catch(() => { return null })
