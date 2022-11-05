@@ -82,7 +82,7 @@ const warningEmbed = require('../helpers/warningEmbed')
 const errorEmbed = require('../helpers/errorEmbed')
 const {
   MessageActionRow,
-  MessageButton
+  MessageButton, InteractionCollector
 } = require('discord.js')
 const { transformMinutesToMs } = require('../helpers/utilities')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
@@ -255,10 +255,9 @@ const showWarnings = async () => {
         if (!r) return null
         Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
 
-        const filter = i => i.message.id === r.id
-
-        const collector = channel.createMessageComponentCollector({
-          filter,
+        const collector = new InteractionCollector(interaction.client, {
+          message: r,
+          componentType: 'BUTTON',
           time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
         })
 
@@ -1976,21 +1975,9 @@ const showResults = async () => {
   Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
   await genericCommandSaver.launch(interaction, r)
 
-  const filter = i => i.message.id === r.id
-
-  let channel = interaction.channel
-  if (!channel) {
-    channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
-      logger.error(nws`Failed to fetch channel ${interaction.channelId} in roll for results`,
-        err)
-      return null
-    })
-  }
-  if (!channel) { // we probably have no rights to view this channel
-    return null
-  }
-  const collector = channel.createMessageComponentCollector({
-    filter,
+  const collector = new InteractionCollector(interaction.client, {
+    message: r,
+    componentType: 'BUTTON',
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
   })
 

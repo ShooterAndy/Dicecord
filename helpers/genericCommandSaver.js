@@ -8,46 +8,24 @@ const {
   UPSERT_SAVED_COMMAND_RESULTS,
   SAVED_COMMANDS_EXPIRE_AFTER
 } = require('./constants')
-const { TextInputComponent, MessageActionRow, Modal} = require('discord.js')
+const { TextInputComponent, MessageActionRow, Modal, InteractionCollector} = require('discord.js')
 const nws = require('./nws')
 const errorEmbed = require('./errorEmbed')
 const commonReplyEmbed = require('./commonReplyEmbed')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
-const warningEmbed = require('./warningEmbed')
-const Client = require('./client')
 
 module.exports = {
   async launch(interaction, response, parameters) {
     const filter = i => {
-      return (i.message.id === response.id) &&
-        (i.customId === GENERIC_SAVE_BUTTON_ID) &&
+      return (i.customId === GENERIC_SAVE_BUTTON_ID) &&
         (i.user.id === interaction.user.id)
     }
 
-    let channel = interaction.channel
-    if (!channel) {
-      channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
-        logger.error(nws`Failed to fetch channel ${interaction.channelId} in genericCommandSaver`,
-          err)
-        return null
-      })
-    }
-    if (!channel) {
-      await interaction.webhook.editMessage(response, { components: [] }).catch(error => {
-        logger.error(`Failed to remove buttons while trying to warn about lacking rights`, error)
-        return null
-      })
-      await interaction.followUp(warningEmbed.get(nws`Can't add buttons to this message. This is 
-        likely because the bot doesn't have the rights to view this channel. If so, please check 
-        out \`/help topic:permissions\` if you need help.`)).catch(error => {
-        logger.error(`Failed to followUp while trying to warn about lacking rights`, error)
-        return null
-      })
-      return null
-    }
-    const collector = channel.createMessageComponentCollector({
+    const collector = new InteractionCollector(interaction.client, {
       filter,
+      message: response,
+      componentType: 'BUTTON',
       time: transformMinutesToMs(SAVE_BUTTON_EXPIRE_AFTER_INT)
     })
 
