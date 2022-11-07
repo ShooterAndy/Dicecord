@@ -1973,6 +1973,7 @@ const showResults = async (additionalText) => {
   if (!r) {
     return null
   }
+  if (Client.rollThrowsCache[r.id]) logger.error(`Already cached roll throws for id ${r.id}`)
   Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
   await genericCommandSaver.launch(interaction, r)
 
