@@ -125,7 +125,8 @@ module.exports = async (_interaction, args) => {
   }
 }
 
-module.exports.goOnFromWarning = async (id) => {
+module.exports.goOnFromWarning = async (i, id) => {
+  interaction = i
   if (!prepareFromCache(id)) {
     return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to go on from warning, \
       the bot possibly restarted after the original message. Sorry.`)).catch(() => { return false })
@@ -133,14 +134,15 @@ module.exports.goOnFromWarning = async (id) => {
 
   try {
     if (await topLevelCatcher(calculateWholeCommand)) {
-      await topLevelCatcher(showResults, ' modified')
+      await topLevelCatcher(showResults, i, ' modified')
     }
   } catch (error) {
     logger.error(`Top level error in goOnFromWarning`, error)
   }
 }
 
-module.exports.repeatRollCommand = async (id) => {
+module.exports.repeatRollCommand = async (i, id) => {
+  interaction = i
   if (!prepareFromCache(id)) {
     return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to repeat roll command, \
       the bot possibly restarted after the original message. Sorry.`)).catch(() => { return false })
@@ -149,7 +151,7 @@ module.exports.repeatRollCommand = async (id) => {
 
   try {
     if (await topLevelCatcher(calculateWholeCommand)) {
-      await topLevelCatcher(showResults, ' re-roll')
+      await topLevelCatcher(showResults, i, ' re-roll')
     }
   } catch (error) {
     logger.error(`Top level error in repeatRollCommand`, error)
@@ -161,7 +163,7 @@ module.exports.repeatRollCommand = async (id) => {
 =============================================================================================== */
 const prepareFromCache = (id) => {
   if (!Client.rollThrowsCache[id]) {
-    logger.error(`Message "${id}" not cached in repeatRollCommand`)
+    logger.error(`Message "${id}" not cached in prepareFromCache`)
     return false
   }
   throws = JSON.parse(JSON.stringify(Client.rollThrowsCache[id]))
@@ -263,7 +265,8 @@ const showWarnings = async () => {
       collector.on('collect', async i => {
         switch (i.customId) {
           case 'roll_warning_yes': {
-            await module.exports.goOnFromWarning(r.id)
+            await module.exports.goOnFromWarning(interaction, r.id)
+            await collector.stop('Warning yes button clicked')
             return await i.update({components: []}).catch(error => {
               logger.error(`Failed to remove warning buttons on "yes"`, error)
               return null
@@ -271,6 +274,7 @@ const showWarnings = async () => {
           }
           case 'roll_warning_no': {
             await i.update({components: []})
+            await collector.stop('Warning no button clicked')
             return await interaction.deleteReply().catch(error => {
               logger.error(`Failed to remove warning buttons on "no"`, error)
               return null
@@ -1939,7 +1943,10 @@ const getThrowFormulaText = t => {
   return text
 }
 
-const showResults = async (additionalText) => {
+const showResults = async (_interaction, additionalText) => {
+  if (!_interaction) {
+    _interaction = interaction
+  }
   if (!throws || !throws.length) {
     return
   }
@@ -1972,15 +1979,15 @@ const showResults = async (additionalText) => {
     formattedThrowResults)
   content.components.push(buttonsRow)
 
-  const r = await replyOrFollowUp(interaction, content).catch(() => { return null })
+  const r = await replyOrFollowUp(_interaction, content).catch(() => { return null })
   if (!r) {
     return null
   }
   if (Client.rollThrowsCache[r.id]) logger.error(`Already cached roll throws for id ${r.id}`)
   Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
-  await genericCommandSaver.launch(interaction, r)
+  await genericCommandSaver.launch(_interaction, r)
 
-  const collector = new InteractionCollector(interaction.client, {
+  const collector = new InteractionCollector(_interaction.client, {
     message: r,
     componentType: 'BUTTON',
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
@@ -1997,8 +2004,9 @@ const showResults = async (additionalText) => {
     }
     switch(i.customId) {
       case 'repeat': {
-        await module.exports.repeatRollCommand(r.id)
-        clearCaches(r.id)
+        await module.exports.repeatRollCommand(_interaction, r.id)
+        await collector.stop('Re-roll command triggered')
+        //clearCaches(r.id)
         return i.update({ components: [] }).catch(error => {
           logger.error(`Failed to remove roll buttons on "Repeat"`, error)
           return null
