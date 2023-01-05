@@ -12,6 +12,7 @@ const errorEmbed = require('../helpers/errorEmbed')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
+const {CUSTOM_DECK_TYPE, DECKS_COLUMNS, DECKS_DB_NAME} = require('../helpers/constants')
 
 module.exports = async (interaction, args) => {
   const { numberOfCardsToDraw } = args
@@ -34,15 +35,25 @@ const processDrawShuffledCommand =
 
     let result
     try {
-      result = await pg.db.oneOrNone(
-        'SELECT ${deck~} FROM ${db#} WHERE ${deckId~} = ${deckIdValue}',
-        {
-          deck: DECK_TYPES_COLUMNS.deck,
-          db: pg.addPrefix(DECK_TYPES_DB_NAME),
-          deckId: DECK_TYPES_COLUMNS.id,
-          deckIdValue: deckId
-        }
-      )
+      if (deckId === CUSTOM_DECK_TYPE) {
+        result = await pg.db.oneOrNone(
+          'SELECT ${deck~} FROM ${db#} WHERE ${channelId~} = ${channelIdValue}',
+          {
+            deck: DECKS_COLUMNS.deck,
+            db: pg.addPrefix(DECKS_DB_NAME),
+            channelId: DECKS_COLUMNS.channel_id,
+            channelIdValue: interaction.channelId
+          })
+      } else {
+        result = await pg.db.oneOrNone(
+          'SELECT ${deck~} FROM ${db#} WHERE ${deckId~} = ${deckIdValue}',
+          {
+            deck: DECK_TYPES_COLUMNS.deck,
+            db: pg.addPrefix(DECK_TYPES_DB_NAME),
+            deckId: DECK_TYPES_COLUMNS.id,
+            deckIdValue: deckId
+          })
+      }
     } catch (error) {
       logger.error(`Failed to load the "${deckId}" deck for the "/drawShuffled" command`, error)
       return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to load the deck. \
@@ -76,8 +87,13 @@ const processDrawShuffledCommand =
         isOrAre = '\'s'
         cardOrCards = 'card'
       }
-      text = 'Here' + isOrAre + ' your ' + numberOfCardsToDraw + ' ' + cardOrCards + ' from a `' +
-        deckId + '` deck: '
+      text = 'Here' + isOrAre + ' your ' + numberOfCardsToDraw + ' ' + cardOrCards + ' from '
+      if (deckId !== CUSTOM_DECK_TYPE) {
+        text += 'a'
+      } else {
+        text += 'the'
+      }
+      text += ' `' + deckId + '` deck: '
       if (comment) {
         text += '\n`' + (comment.endsWith(':') ? comment : (comment + ':')) + '` '
       }
