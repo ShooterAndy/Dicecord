@@ -1134,14 +1134,22 @@ const processDiceModifier = (args) => {
   switch (modName) {
     case DICE_MODIFIERS.countEqual:
     case DICE_MODIFIERS.countOver:
-    case DICE_MODIFIERS.countUnder: {
+    case DICE_MODIFIERS.countUnder:
+    case DICE_MODIFIERS.countEqualOver:
+    case DICE_MODIFIERS.countEqualUnder:
+    case DICE_MODIFIERS.hitsVersus:
+    case DICE_MODIFIERS.missesVersus: {
       const otherCountMods = dice.diceMods.filter(mod =>
         mod.type === DICE_MODIFIERS.countEqual
         || mod.type === DICE_MODIFIERS.countOver
         || mod.type === DICE_MODIFIERS.countUnder
+        || mod.type === DICE_MODIFIERS.countEqualOver
+        || mod.type === DICE_MODIFIERS.countEqualUnder
+        || mod.type === DICE_MODIFIERS.hitsVersus
+        || mod.type === DICE_MODIFIERS.missesVersus
       )
       if (otherCountMods && otherCountMods.length) {
-        throw w(nws`there appear to be several count checks in \
+        throw w(nws`there appear to be several count/hits/misses checks in \
                   \`${dice.formula}\`, so only the first one will be applied to it`)
       }
       if (modValue < 1) {
@@ -1157,11 +1165,24 @@ const processDiceModifier = (args) => {
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
                   under 1, since 1 is the lowest possible result, so this check will be ignored`)
       }
+      if ((modName === DICE_MODIFIERS.countEqualUnder || modName === DICE_MODIFIERS.hitsVersus) &&
+        modValue === 0) {
+        throw w(nws`since you can't roll a zero, the counter-equal-or-over check here \
+                  ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
+                  ignored`)
+      }
       if (modName === DICE_MODIFIERS.countOver && modValue >= dice.sides) {
         throw w(nws`no dice roll result for a roll of \
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
                   over ${modValue}, since each die only has ${dice.sides} sides. This check will \ 
                   be ignored`)
+      }
+      if ((modName === DICE_MODIFIERS.countEqualOver || modName === DICE_MODIFIERS.missesVersus) &&
+        modValue > dice.sides) {
+        throw w(nws`no dice roll result for a roll of \
+                  ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
+                  equal to or over ${modValue}, since each die only has ${dice.sides} sides. This \ 
+                  check will be ignored`)
       }
       return { type: modName, value: modValue }
     }
@@ -1624,12 +1645,16 @@ const calculateNormalDice = (dice) => {
     return modValue
   }
 
-  const checkOverUnderEqual = (thisDieResult, over, under, equal) => {
+  const checkOverUnderEqual = (thisDieResult, over, under, equal, equalOver, equalUnder) => {
     if (over !== -1 && thisDieResult > over) {
       return 1
     } else if (under !== -1 && thisDieResult < under) {
       return 1
     } else if (equal !== -1 && thisDieResult === equal) {
+      return 1
+    } else if (equalOver !== -1 && thisDieResult >= equalOver) {
+      return 1
+    } else if (equalUnder !== -1 && thisDieResult <= equalUnder) {
       return 1
     }
     return 0
@@ -1640,7 +1665,12 @@ const calculateNormalDice = (dice) => {
   const countOver = setMod(DICE_MODIFIERS.countOver, -1)
   const countUnder = setMod(DICE_MODIFIERS.countUnder, -1)
   const countEqual = setMod(DICE_MODIFIERS.countEqual, -1)
-  const isCounting = (countOver > 0 || countUnder > 0 || countEqual > 0)
+  const countEqualUnder = setMod(DICE_MODIFIERS.countEqualUnder, -1)
+  const countEqualOver = setMod(DICE_MODIFIERS.countEqualOver, -1)
+  const hitsVersus = setMod(DICE_MODIFIERS.hitsVersus, -1)
+  const missesVersus = setMod(DICE_MODIFIERS.missesVersus, -1)
+  const isCounting = (countOver > 0 || countUnder > 0 || countEqual > 0 ||
+    countEqualUnder > 0 || countEqualOver > 0 || hitsVersus > 0 || missesVersus > 0)
   const keepHighest = setMod(DICE_MODIFIERS.keepHighest, -1)
   const keepLowest = setMod(DICE_MODIFIERS.keepLowest, -1)
   const reRollIfOver = setMod(DICE_MODIFIERS.reRollIfOver, -1)
@@ -1773,7 +1803,10 @@ const calculateNormalDice = (dice) => {
     if (isCounting) {
       diceResults.forEach(result => {
         if (result.type !== RESULT_TYPES.ignored) {
-          finalResult += checkOverUnderEqual(result.result, countOver, countUnder, countEqual)
+          let ceo = countEqualOver !== -1 ? countEqualOver : hitsVersus
+          let ceu = countEqualUnder !== -1 ? countEqualUnder : missesVersus
+          finalResult += checkOverUnderEqual(result.result, countOver, countUnder, countEqual,
+            ceo, ceu)
         }
       })
     }

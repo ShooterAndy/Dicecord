@@ -133,6 +133,10 @@ module.exports.DICE_MODIFIERS = {
   countOver: 'co',
   countUnder: 'cu',
   countEqual: 'ce',
+  countEqualOver: 'ceo',
+  countEqualUnder: 'ceu',
+  hitsVersus: 'hv', // alias for 'ceo'
+  missesVersus: 'mv', // alias for 'ceu'
   keepHighest: 'kh',
   keepLowest: 'kl',
   reRollIfOver: 'ro',

@@ -107,6 +107,10 @@ strictly over 3 are counted).
 * `ce` — **count equal** — see above, except this dice modifier counts how many die roll results 
 _equal_ the value of the parameter. For the die roll results above, a throw of `4d6cu3` will have 
 **1** as its result (since only the second die rolled a value of 3).
+* `ceo` — **count equal/over** (alias: `hv` — **hits versus**) operates the same as `co`, except 
+ that it will count the exact matches as well.
+* `ceu` — **count equal/under** (alias: `mv` — **misses versus**) operates the same as `cu`, except
+ that it will count the exact matches as well.
 * `kh` — **keep highest** — in a throw of multiple dice, will only keep the number (of the ones
 with the highest roll result) that equals the parameter value. For example, a throw of `4d6kh2` 
 will roll four six-sided dice, but will only count the results of two of them with the highest
