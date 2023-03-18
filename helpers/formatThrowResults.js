@@ -474,7 +474,11 @@ const checkForVerboseOnlyRollModifiers = t => {
           const diceMod = formulaPart.diceMods[j]
           if ((diceMod.type === DICE_MODIFIERS.countEqual) ||
             (diceMod.type === DICE_MODIFIERS.countOver) ||
-            (diceMod.type === DICE_MODIFIERS.countUnder)) {
+            (diceMod.type === DICE_MODIFIERS.countUnder) ||
+            (diceMod.type === DICE_MODIFIERS.countEqualOver) ||
+            (diceMod.type === DICE_MODIFIERS.countEqualUnder) ||
+            (diceMod.type === DICE_MODIFIERS.hitsVersus) ||
+            (diceMod.type === DICE_MODIFIERS.missesVersus)) {
             return true
           }
         }
