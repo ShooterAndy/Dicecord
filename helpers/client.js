@@ -9,7 +9,6 @@ const {
 } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
-const Cluster = require('discord-hybrid-sharding')
 const {
   Options,
 } = require('discord.js')
@@ -17,6 +16,7 @@ const fs = require('fs')
 const path = require('path')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
+const { ClusterClient, getInfo } = require('discord-hybrid-sharding')
 
 const _getEntityFromBroadcastResponse = (response) => {
   if (!response) {
@@ -105,10 +105,10 @@ const Client = module.exports = {
     })
   },
 
-  async readyBasics (slashCommands, modals) {
+  async readyBasics (slashCommands) {
     let options = { }
-    options.shards = Cluster.data.SHARD_LIST // An array of shards that will get spawned
-    options.shardCount = Cluster.data.TOTAL_SHARDS // Total number of shards
+    options.shards = getInfo().SHARD_LIST // An array of shards that will get spawned
+    options.shardCount = getInfo().TOTAL_SHARDS // Total number of shards
 
     const myIntents = new Discord.Intents()
     myIntents.add(
@@ -130,12 +130,12 @@ const Client = module.exports = {
       ReactionManager: 0, // message.reactions
       ReactionUserManager: 0, // reaction.users
       StageInstanceManager: 0, // guild.stageInstances
-      ThreadMemberManager: 0, // threadchannel.members
+      ThreadMemberManager: 0, // threadChannel.members
       UserManager: 0, // client.users
       VoiceStateManager: 0 // guild.voiceStates
     })
     Client.client = new Discord.Client(options)
-    Client.client.cluster = new Cluster.Client(Client.client)
+    Client.client.cluster = new ClusterClient(Client.client)
 
     //This is quite a hack, but I couldn't find a better way
     Client.client.functions = {

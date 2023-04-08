@@ -1,7 +1,7 @@
-const Cluster = require('discord-hybrid-sharding')
+const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding')
 const logger = require('./helpers/logger')
 require('dotenv').config()
-const manager = new Cluster.Manager('./bot.js', {
+const manager = new ClusterManager('./bot.js', {
   totalShards: 'auto',
   totalClusters: 'auto',
   shardsPerClusters: 2,
@@ -33,14 +33,14 @@ manager.spawn().then(() => {
   logger.log(nws`Launched cluster manager. ${manager.totalClusters} \
   clusters, ${manager.totalShards} shards.`)
   if (process.env.DBL_TOKEN) {
-    const TopGG = require('@top-gg/sdk')
+    const { api } = require('@top-gg/sdk')
     try {
-      const api = new TopGG.Api(process.env.DBL_TOKEN)
+      const topGGApi = new api(process.env.DBL_TOKEN)
       const postBotStats = () => {
         manager.fetchClientValues('guilds.cache.size').then(results => {
           logger.log('Received stats: ' + JSON.stringify(results))
           const totalGuilds = results.reduce((prev, val) => prev + val, 0)
-          api.postStats({
+          topGGApi.postStats({
             serverCount: totalGuilds,
             shardCount: manager.totalShards
           }).then(() => {
@@ -65,3 +65,10 @@ manager.spawn().then(() => {
 }).catch(err => {
   logger.error('Failed to spawn cluster manager', err)
 })
+
+manager.extend(
+  new HeartbeatManager({
+    interval: 2000, // Interval to send a heartbeat
+    maxMissedHeartbeats: 5, // Maximum amount of missed Heartbeats until Cluster will get respawned
+  })
+)
