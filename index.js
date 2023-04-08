@@ -33,9 +33,9 @@ manager.spawn().then(() => {
   logger.log(nws`Launched cluster manager. ${manager.totalClusters} \
   clusters, ${manager.totalShards} shards.`)
   if (process.env.DBL_TOKEN) {
-    const { api } = require('@top-gg/sdk')
+    const { Api } = require('@top-gg/sdk')
     try {
-      const topGGApi = new api(process.env.DBL_TOKEN)
+      const topGGApi = new Api(process.env.DBL_TOKEN)
       const postBotStats = () => {
         manager.fetchClientValues('guilds.cache.size').then(results => {
           logger.log('Received stats: ' + JSON.stringify(results))
