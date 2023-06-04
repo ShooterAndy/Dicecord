@@ -11,10 +11,6 @@ module.exports = async (cluster, script, { context, callback }) => {
   let result = null
   for (const response of responses) {
     if (response) {
-      if (typeof response === 'string') {
-        logger.error(`Error response from broadcast script ${script.name}: ${response}`)
-        return null
-      }
       if (callback && (typeof callback === 'function')) {
         callback(response)
       }
