@@ -25,14 +25,14 @@
     "dotenv": "^7.0.0",
     "kind-of": ">=6.0.3",
     "mixin-deep": "^2.0.1",
-    "pg": "^7.12.1",
+    "pg": "^8.11.1",
     "pg-promise": "^10.7.0",
     "random": "^2.1.1",
     "set-value": "^4.0.1",
     "underscore": "^1.12.1"
   },
   "devDependencies": {
-    "auto-changelog": "^1.13.0",
-    "nodemon": "^2.0.15"
+    "auto-changelog": "^2.4.0",
+    "nodemon": "^3.0.1"
   }
 }
