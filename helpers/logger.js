@@ -9,7 +9,6 @@ const {
 } = require('./constants')
 const nws = require('./nws')
 const send = require('./send')
-const Client = require('./client')
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
@@ -19,7 +18,8 @@ module.exports = {
         || additionalInfo.message === 'Missing Permissions'
         || additionalInfo.message === 'Unknown Message'
         || additionalInfo.message === 'Invalid Webhook Token'
-        || additionalInfo.code === 503)
+        || additionalInfo.code === 503
+        || additionalInfo.code === 502)
       return
     }
 
