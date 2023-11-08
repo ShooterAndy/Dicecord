@@ -1871,7 +1871,7 @@ const calculateNormalDice = (dice) => {
           let ceo = countEqualOver !== -1 ? countEqualOver : hitsVersus
           let ceu = countEqualUnder !== -1 ? countEqualUnder : missesVersus
           let resultToCheck = result.result
-          if (FORMULA_PART_TYPES.operands.falloutCombatDice) {
+          if (dice.type === FORMULA_PART_TYPES.operands.falloutCombatDice) {
             resultToCheck = (FCD_DIE_SIDES_VALUES[result.result - 1])
           }
           finalResult += checkOverUnderEqual(resultToCheck, countOver, countUnder, countEqual,
