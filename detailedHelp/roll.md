@@ -194,9 +194,9 @@ This shorthand allows you to roll a special six-sided die:
 
 ```/roll roll_command: fcd```
 
-The possible results for it are 1️⃣ (instead of rolling a 1 on a normal six-sided die), 2️⃣ (instead of 2), 0️⃣ (instead of 3 and 4), and 🆙 (instead of 5 and 6).
+The possible results for it are <img src="../img/dicecord_FCD_1.png" style="width:16px" /> (instead of rolling a 1 on a normal six-sided die), <img src="../img/dicecord_FCD_2.png" style="width:16px" /> (instead of 2), <img src="../img/dicecord_FCD_34.png" style="width:16px" /> (instead of 3 and 4), and <img src="../img/dicecord_FCD_56.png" style="width:16px" /> (instead of 5 and 6).
 
-🆙 counts as 1 for the purposes of calculating numerical results, so this die can roll either a 0, a 1, or a 2, with 1 being the most probable result, followed by 0, and then by 2.
+<img src="../img/dicecord_FCD_56.png" style="width:16px" /> counts as 1 for the purposes of calculating numerical results, so this die can roll either a 0, a 1, or a 2, with 1 being the most probable result, followed by 0, and then by 2.
 
 You can roll multiple combat dice, just as you could with regular dice:
 

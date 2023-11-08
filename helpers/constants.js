@@ -165,7 +165,14 @@ module.exports.DND4_SYMBOL = 'dnd4'
 
 module.exports.FCD_DIE_SIDES = 6
 module.exports.FCD_DIE_SIDES_VALUES = [1, 2, 0, 0, 1, 1]
-module.exports.FCD_DIE_SIDES_LIST = [':one:', ':two:', ':zero:', ':zero:', ':cool:', ':cool:']
+module.exports.FCD_DIE_SIDES_LIST = [
+  '<:dicecord_FCD_1:1171739484304441446>',
+  '<:dicecord_FCD_2:1171739485940232202>',
+  '<:dicecord_FCD_34:1171739488142237727>',
+  '<:dicecord_FCD_34:1171739488142237727>',
+  '<:dicecord_FCD_56:1171739489413115995>',
+  '<:dicecord_FCD_56:1171739489413115995>'
+]
 module.exports.FCD_SYMBOL = 'fcd'
 
 module.exports.FUDGE_DICE_NUMBER = 4
