@@ -38,6 +38,10 @@ const {
   DND_CRITICAL,
   DND4_SYMBOL,
 
+  FCD_DIE_SIDES,
+  FCD_DIE_SIDES_VALUES,
+  FCD_SYMBOL,
+
   THROW_SEPARATOR,
   THROW_SEPARATOR_VS,
   COMMENT_SEPARATOR,
@@ -890,6 +894,8 @@ const processDiceOperand = (unparsedFormula) => {
     return catcher(processRnKDice, unparsedFormula)
   } else if (formula.startsWith(DND4_SYMBOL)) {
     return catcher(processDnD4Dice, unparsedFormula)
+  } else if (formula.match(getFalloutCombatDiceRegex())) {
+    return catcher(processFalloutCombatDice, unparsedFormula)
   } else {
     let startingFudgeDiceSymbol = ''
     FUDGE_DICE_SYMBOLS.forEach(fudgeDiceSymbol => {
@@ -925,6 +931,34 @@ const processDnD4Dice = (unparsedFormula) => {
   }
 
   let parsedFormula = unparsedFormula.slice(DND4_SYMBOL.length)
+
+  processDiceModifiers(dice, parsedFormula, unparsedFormula)
+
+  return dice
+}
+
+// -----------------------------------------------------------------------------------------------
+
+const processFalloutCombatDice = (unparsedFormula) => {
+  const dice = {
+    formula: unparsedFormula,
+    type: FORMULA_PART_TYPES.operands.falloutCombatDice,
+    sides: FCD_DIE_SIDES,
+    diceMods: []
+  }
+
+  let parsedFormula = unparsedFormula
+
+  let result = catcher(getDiceNumber, { unparsedFormula, parsedFormula, word: 'roll' })
+  if (result) {
+    if (result instanceof Warning) {
+      return result
+    }
+    dice.number = result
+    parsedFormula = parsedFormula.slice(dice.number.toString().length)
+  }
+
+  parsedFormula = parsedFormula.slice(FCD_SYMBOL.length)
 
   processDiceModifiers(dice, parsedFormula, unparsedFormula)
 
@@ -1102,7 +1136,7 @@ const processDiceModifiers = (dice, parsedFormula, unparsedFormula) => {
   const diceMods = parsedFormula.toString().match(getDiceModifierRegex())
   if (diceMods && diceMods.length) {
     diceMods.forEach(diceMod => {
-      const result = catcher(processDiceModifier, {diceMod, dice})
+      const result = catcher(processDiceModifier, { diceMod, dice })
       if (result && !(result instanceof Warning)) {
         if (result.toBeDeleted) {
           dice.diceMods = dice.diceMods.filter(dm => dm.type !== result.type)
@@ -1152,37 +1186,47 @@ const processDiceModifier = (args) => {
         throw w(nws`there appear to be several count/hits/misses checks in \
                   \`${dice.formula}\`, so only the first one will be applied to it`)
       }
-      if (modValue < 1) {
+      let minimumValue = 1
+      if (dice.type === FORMULA_PART_TYPES.operands.falloutCombatDice) {
+        minimumValue = 0
+      }
+      if (modValue < minimumValue) {
         throw w(nws`can't compare a die roll result to ${modValue}, the minimum value is \
-                  1, this check will be ignored`)
+                  ${minimumValue}, this check will be ignored`)
       }
-      if (modValue > dice.sides) {
-        throw w(nws`can't compare a ${dice.sides}-sided die roll result to ${modValue}, \
-                  it is too high, this check will be ignored`)
+      let maximumValue = dice.sides
+      if (dice.type === FORMULA_PART_TYPES.operands.falloutCombatDice) {
+        maximumValue = FCD_DIE_SIDES_VALUES.length
       }
-      if (modName === DICE_MODIFIERS.countUnder && modValue === 1) {
+      if (modValue > maximumValue) {
+        throw w(nws`can't compare a die roll result to ${modValue}, the maximum value on this type \
+                  of die is ${maximumValue}, this check will be ignored`)
+      }
+      if (modName === DICE_MODIFIERS.countUnder && modValue === minimumValue) {
         throw w(nws`no dice roll result for a roll of \
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
-                  under 1, since 1 is the lowest possible result, so this check will be ignored`)
+                  under ${minimumValue}, since ${minimumValue} is the lowest possible result, so \
+                  this check will be ignored`)
       }
       if ((modName === DICE_MODIFIERS.countEqualUnder || modName === DICE_MODIFIERS.hitsVersus) &&
-        modValue === 0) {
-        throw w(nws`since you can't roll a zero, the counter-equal-or-over check here \
+        modValue === (minimumValue - 1)) {
+        throw w(nws`since you can't roll below ${minimumValue} on this type of die, the \
+                  counter-equal-or-over check here \
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
                   ignored`)
       }
-      if (modName === DICE_MODIFIERS.countOver && modValue >= dice.sides) {
+      if (modName === DICE_MODIFIERS.countOver && modValue >= maximumValue) {
         throw w(nws`no dice roll result for a roll of \
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
-                  over ${modValue}, since each die only has ${dice.sides} sides. This check will \ 
-                  be ignored`)
+                  over ${modValue}, since each die of this type can roll a maximum of \
+                  ${maximumValue}. This check will be ignored`)
       }
       if ((modName === DICE_MODIFIERS.countEqualOver || modName === DICE_MODIFIERS.missesVersus) &&
-        modValue > dice.sides) {
+        modValue > maximumValue) {
         throw w(nws`no dice roll result for a roll of \
                   ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides}${modName}${modValue} will be \
-                  equal to or over ${modValue}, since each die only has ${dice.sides} sides. This \ 
-                  check will be ignored`)
+                  equal to or over ${modValue}, since each die of this type can roll a maximum of \
+                  ${maximumValue}. This check will be ignored`)
       }
       return { type: modName, value: modValue }
     }
@@ -1562,6 +1606,18 @@ const calculateThrow = (thisThrow) => {
           }
           break
         }
+        case FORMULA_PART_TYPES.operands.falloutCombatDice: {
+          catcher(calculateNormalDice, formulaPart)
+          if (formulaPart.valueResults && formulaPart.valueResults[i]) {
+            sumOrSubtract(formulaPart.valueResults[i])
+          } else {
+            sumOrSubtract(formulaPart.finalResults[i])
+          }
+          if (formulaPart.specialResults && formulaPart.specialResults.length) {
+            addSpecialResults(formulaPart.specialResults[i])
+          }
+          break
+        }
         case FORMULA_PART_TYPES.operands.fudgeDice: {
           catcher(calculateNormalDice, formulaPart)
           sumOrSubtract(formulaPart.finalResults[i])
@@ -1669,8 +1725,8 @@ const calculateNormalDice = (dice) => {
   const countEqualOver = setMod(DICE_MODIFIERS.countEqualOver, -1)
   const hitsVersus = setMod(DICE_MODIFIERS.hitsVersus, -1)
   const missesVersus = setMod(DICE_MODIFIERS.missesVersus, -1)
-  const isCounting = (countOver > 0 || countUnder > 0 || countEqual > 0 ||
-    countEqualUnder > 0 || countEqualOver > 0 || hitsVersus > 0 || missesVersus > 0)
+  const isCounting = (countOver >= 0 || countUnder >= 0 || countEqual >= 0 ||
+    countEqualUnder >= 0 || countEqualOver >= 0 || hitsVersus >= 0 || missesVersus >= 0)
   const keepHighest = setMod(DICE_MODIFIERS.keepHighest, -1)
   const keepLowest = setMod(DICE_MODIFIERS.keepLowest, -1)
   const reRollIfOver = setMod(DICE_MODIFIERS.reRollIfOver, -1)
@@ -1687,6 +1743,9 @@ const calculateNormalDice = (dice) => {
 
   const diceResults = []
   let finalResult = 0
+  let valueResult = 0
+  let useValueResult =
+    (!isCounting && (dice.type === FORMULA_PART_TYPES.operands.falloutCombatDice))
 
   let continueReRollingTotal = true
   let reRollTotalNumber = 0
@@ -1694,6 +1753,7 @@ const calculateNormalDice = (dice) => {
   while (continueReRollingTotal) {
     const thisDiceResults = []
     finalResult = 0
+    valueResult = 0
     for (let i = 0; i < numberOfRolls; i++) {
       let continueReRolling = true
       let reRollNumber = 0
@@ -1765,8 +1825,13 @@ const calculateNormalDice = (dice) => {
     }
 
     thisDiceResults.forEach(result => {
-      if (sortedResults.find(
-        remainingResult => remainingResult.index === result.index)) {
+      if (sortedResults.find(remainingResult => remainingResult.index === result.index)) {
+        if (FORMULA_PART_TYPES.operands.falloutCombatDice) {
+          valueResult += (FCD_DIE_SIDES_VALUES[result.result - 1])
+        } else {
+          valueResult += result.result
+        }
+
         if (!isCounting && result.type !== RESULT_TYPES.ignored) {
           finalResult += result.result
           if (!dice.specialResults) dice.specialResults = []
@@ -1805,7 +1870,11 @@ const calculateNormalDice = (dice) => {
         if (result.type !== RESULT_TYPES.ignored) {
           let ceo = countEqualOver !== -1 ? countEqualOver : hitsVersus
           let ceu = countEqualUnder !== -1 ? countEqualUnder : missesVersus
-          finalResult += checkOverUnderEqual(result.result, countOver, countUnder, countEqual,
+          let resultToCheck = result.result
+          if (FORMULA_PART_TYPES.operands.falloutCombatDice) {
+            resultToCheck = (FCD_DIE_SIDES_VALUES[result.result - 1])
+          }
+          finalResult += checkOverUnderEqual(resultToCheck, countOver, countUnder, countEqual,
             ceo, ceu)
         }
       })
@@ -1814,6 +1883,7 @@ const calculateNormalDice = (dice) => {
     if (checkOverUnderEqual(
       finalResult, reRollIfTotalOver, reRollIfTotalUnder, reRollIfTotalEquals
     )) {
+      useValueResult = false
       if (reRollTotalNumber === reRollTimesMax) {
         continueReRollingTotal = false
       } else {
@@ -1836,6 +1906,12 @@ const calculateNormalDice = (dice) => {
     dice.finalResults = []
   }
   dice.finalResults.push(finalResult)
+  if (useValueResult) {
+    if (!dice.valueResults) {
+      dice.valueResults = []
+    }
+    dice.valueResults.push(valueResult)
+  }
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1927,6 +2003,17 @@ const getThrowFormulaText = t => {
       }
       case FORMULA_PART_TYPES.operands.dnd4Dice: {
         text += DND4_SYMBOL
+        if (formulaPart.diceMods && formulaPart.diceMods.length) {
+          formulaPart.diceMods.forEach(diceMod => {
+            if (!diceMod.default) {
+              text += diceMod.type + diceMod.value.toString()
+            }
+          })
+        }
+        break
+      }
+      case FORMULA_PART_TYPES.operands.falloutCombatDice: {
+        text += FCD_SYMBOL
         if (formulaPart.diceMods && formulaPart.diceMods.length) {
           formulaPart.diceMods.forEach(diceMod => {
             if (!diceMod.default) {
@@ -2123,6 +2210,11 @@ const getNormalDiceRegex = () => {
 
 const getRnKDiceRegex = () => {
   const regexString = `^\\d*${RNK_DICE_SYMBOL}\\d+`
+  return new RegExp(regexString, 'gi')
+}
+
+const getFalloutCombatDiceRegex = () => {
+  const regexString = `^\\d*${FCD_SYMBOL}`
   return new RegExp(regexString, 'gi')
 }
 

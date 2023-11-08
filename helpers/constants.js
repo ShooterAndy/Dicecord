@@ -117,6 +117,7 @@ module.exports.FORMULA_PART_TYPES = {
     normalDice: 'normalDice',
     fudgeDice: 'fudgeDice',
     dnd4Dice: 'dnd4Dice',
+    falloutCombatDice: 'fcd',
     rnkDice: 'rnkDice',
     child: 'child'
   }
@@ -161,6 +162,11 @@ module.exports.DND_CRITICAL = this.DND_DIE_SIDES
 module.exports.DND_BOTCH = 1
 
 module.exports.DND4_SYMBOL = 'dnd4'
+
+module.exports.FCD_DIE_SIDES = 6
+module.exports.FCD_DIE_SIDES_VALUES = [1, 2, 0, 0, 1, 1]
+module.exports.FCD_DIE_SIDES_LIST = [':one:', ':two:', ':zero:', ':zero:', ':cool:', ':cool:']
+module.exports.FCD_SYMBOL = 'fcd'
 
 module.exports.FUDGE_DICE_NUMBER = 4
 module.exports.FUDGE_DIE_SIDES = 3 // I know it's supposed to be 6, but who cares

@@ -12,7 +12,9 @@ const {
   RESULT_TYPES,
   SPECIAL_THROW_RESULTS,
   FUDGE_RESULT_SYMBOLS,
-  VS_CHECK_RESULTS
+  VS_CHECK_RESULTS,
+  FCD_DIE_SIDES_LIST,
+  FCD_SYMBOL
 } = require('./constants')
 
 module.exports = (args) => {
@@ -81,8 +83,8 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
     if (t.formulaParts && t.formulaParts.length) {
       const numberOperands = t.formulaParts.filter(
         formulaPart => formulaPart.type === FORMULA_PART_TYPES.operands.number)
-      const totalOperands = t.formulaParts.filter(
-        formulaPart => Object.keys(FORMULA_PART_TYPES.operands).indexOf(formulaPart.type) !== -1)
+      const totalOperands = t.formulaParts.filter(formulaPart =>
+        Object.values(FORMULA_PART_TYPES.operands).indexOf(formulaPart.type) !== -1)
       if (numberOperands.length === 1 && totalOperands.length === 1) {
         return true
       }
@@ -200,6 +202,15 @@ const getFormulaText = (t, format, shouldShowResults, repeatIndex) => {
         }
         break
       }
+      case FORMULA_PART_TYPES.operands.falloutCombatDice: {
+        text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
+        if (shouldShowResults) {
+          text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
+        } else {
+          text += getFalloutCombatDiceFormulaText(formulaPart)
+        }
+        break
+      }
       case FORMULA_PART_TYPES.operands.rnkDice: {
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
         if (shouldShowResults) {
@@ -297,6 +308,12 @@ const getDnDDiceFormulaText = (formulaPart) => {
   return text + getDiceModsText(formulaPart)
 }
 
+const getFalloutCombatDiceFormulaText = (formulaPart) => {
+  let text = formulaPart.number + FCD_SYMBOL
+
+  return text + getDiceModsText(formulaPart)
+}
+
 const getDiceResultsText = (throwResults, throwType, format) => {
   if (!throwResults || !throwResults.length) {
     return ''
@@ -370,11 +387,20 @@ const getDiceResultText = (throwResult, throwType) => {
     return text
   }
 
+  const getFalloutCombatDiceText = () => {
+    const text = FCD_DIE_SIDES_LIST[throwResult.result - 1]
+    if (!text) return 'ERROR'
+    return text
+  }
+
   switch (throwType) {
     case FORMULA_PART_TYPES.operands.rnkDice:
     case FORMULA_PART_TYPES.operands.dnd4Dice:
     case FORMULA_PART_TYPES.operands.normalDice: {
       return throwResult.result.toString()
+    }
+    case FORMULA_PART_TYPES.operands.falloutCombatDice: {
+      return getFalloutCombatDiceText()
     }
     case FORMULA_PART_TYPES.operands.fudgeDice: {
       return getFudgeDiceText()
@@ -395,6 +421,7 @@ const checkForNonStaticParts = (t) => {
       switch (formulaPart.type) {
         case FORMULA_PART_TYPES.operands.rnkDice:
         case FORMULA_PART_TYPES.operands.dnd4Dice:
+        case FORMULA_PART_TYPES.operands.falloutCombatDice:
         case FORMULA_PART_TYPES.operands.normalDice:
         case FORMULA_PART_TYPES.operands.fudgeDice: {
           nonStaticPartsNumber += formulaPart.number
@@ -467,6 +494,7 @@ const checkForVerboseOnlyRollModifiers = t => {
     const formulaPart = t.formulaParts[i]
     if ((formulaPart.type === FORMULA_PART_TYPES.operands.rnkDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.dnd4Dice) ||
+      (formulaPart.type === FORMULA_PART_TYPES.operands.falloutCombatDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.normalDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.fudgeDice)) {
       if (formulaPart.diceMods && formulaPart.diceMods.length) {
