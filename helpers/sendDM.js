@@ -44,10 +44,16 @@ module.exports = async (text, context) => {
       return null
     }
   }
+
   try {
     return await dmChannel.send(text)
   } catch (error) {
-    logger.error(`Failed to send a DM message with text ${text} to ${context.id} in sendDM`, error)
+    if (error && error.name === 'DiscordAPIError'
+        && error.message === 'Cannot send messages to this user') {
+      return null // Common and expected error, no need to log it
+    }
+    logger.error(`Failed to send a DM message with text ${text} to ${context.id} in sendDM`,
+      error)
     return null
   }
 }
