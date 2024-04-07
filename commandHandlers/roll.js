@@ -385,6 +385,9 @@ const removeAnyResults = level => {
   if (level.isSkipped) {
     delete level.isSkipped
   }
+  if (level.valueResults) {
+    delete level.valueResults
+  }
 }
 
 const removeFormulaResults = t => {
@@ -944,7 +947,8 @@ const processFalloutCombatDice = (unparsedFormula) => {
     formula: unparsedFormula,
     type: FORMULA_PART_TYPES.operands.falloutCombatDice,
     sides: FCD_DIE_SIDES,
-    diceMods: []
+    diceMods: [],
+    number: 1
   }
 
   let parsedFormula = unparsedFormula
@@ -1081,7 +1085,6 @@ const processRegularDice = (unparsedFormula) => {
 const getDiceNumber = (args) => {
   let { unparsedFormula, parsedFormula, word } = args
   let diceNumber = parsedFormula.match(/^\d+/g)
-
   if (diceNumber && diceNumber.length) {
     diceNumber = Number(diceNumber[0])
     if (isNaN(diceNumber)) {
@@ -1608,7 +1611,7 @@ const calculateThrow = (thisThrow) => {
         }
         case FORMULA_PART_TYPES.operands.falloutCombatDice: {
           catcher(calculateNormalDice, formulaPart)
-          if (formulaPart.valueResults && formulaPart.valueResults[i]) {
+          if (formulaPart.valueResults && formulaPart.valueResults.length > i) {
             sumOrSubtract(formulaPart.valueResults[i])
           } else {
             sumOrSubtract(formulaPart.finalResults[i])

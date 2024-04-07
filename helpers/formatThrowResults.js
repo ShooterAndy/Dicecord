@@ -492,9 +492,10 @@ const getNonStaticIntermediateResultsText = (t) => {
 const checkForVerboseOnlyRollModifiers = t => {
   for (let i = 0; i < t.formulaParts.length; i++) {
     const formulaPart = t.formulaParts[i]
+    if (formulaPart.type === FORMULA_PART_TYPES.operands.falloutCombatDice) return true
+
     if ((formulaPart.type === FORMULA_PART_TYPES.operands.rnkDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.dnd4Dice) ||
-      (formulaPart.type === FORMULA_PART_TYPES.operands.falloutCombatDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.normalDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.fudgeDice)) {
       if (formulaPart.diceMods && formulaPart.diceMods.length) {
