@@ -8,6 +8,9 @@ existence and development, you can tip me on Ko-fi:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H35Y7TO)
 
+If you have any additional questions, requests, or any other topic that is relevant to Dicecord,
+you can discuss it on the [Dicecord's support server](https://discord.gg/UPRHn2m).
+
 ## Getting Started
 
 Getting this bot on your Discord server is very easy: all you need to do in a normal situation is 
@@ -95,6 +98,14 @@ The full, up-to-date list of [contributors](https://github.com/ShooterAndy/Dicec
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ShooterAndy/Dicecord/blob/master/LICENSE.md) file for details
+
+## Terms of Service
+
+Read [here](https://github.com/ShooterAndy/Dicecord/blob/master/TOS.md).
+
+## Privacy Policy
+
+Read [here](https://github.com/ShooterAndy/Dicecord/blob/master/PRIVACY.md).
 
 ## Acknowledgments
 
