@@ -103,7 +103,7 @@ const processDrawShuffledCommand =
       reply.fetchReply = true
 
       const r = await replyOrFollowUp(interaction, reply)
-      if (r) return null
+      if (!r) return null
 
       await genericCommandSaver.launch(interaction, r)
     }
