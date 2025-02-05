@@ -6,7 +6,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('shuffle')
     .setNameLocalization('ru', 'перетасуй')
-    .setDescription('Shuffles a deck of cards and saves it ot be used on this channel')
+    .setDescription('Shuffles a deck of cards and saves it to be used on this channel')
     .setDescriptionLocalization('ru',
       'Тасует колоду карт и сохраняет её для использования на этом канале')
     .addStringOption(option => option
