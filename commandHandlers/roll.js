@@ -38,6 +38,10 @@ const {
   DND_CRITICAL,
   DND4_SYMBOL,
 
+  DH_DICE_NUM,
+  DH_DIE_SIDES,
+  DH_SYMBOL,
+
   FCD_DIE_SIDES,
   FCD_DIE_SIDES_VALUES,
   FCD_SYMBOL,
@@ -80,7 +84,9 @@ const {
   M_EMOJI,
   YES_EMOJI,
   NO_EMOJI,
-  THROW_RESULTS_FORMATS
+  THROW_RESULTS_FORMATS,
+
+  DH_DICE_TYPES
 } = require('../helpers/constants')
 const warningEmbed = require('../helpers/warningEmbed')
 const errorEmbed = require('../helpers/errorEmbed')
@@ -897,6 +903,8 @@ const processDiceOperand = (unparsedFormula) => {
     return catcher(processRnKDice, unparsedFormula)
   } else if (formula.startsWith(DND4_SYMBOL)) {
     return catcher(processDnD4Dice, unparsedFormula)
+  } else if (formula.startsWith(DH_SYMBOL)) {
+    return catcher(processDhDice, unparsedFormula)
   } else if (formula.match(getFalloutCombatDiceRegex())) {
     return catcher(processFalloutCombatDice, unparsedFormula)
   } else {
@@ -934,6 +942,24 @@ const processDnD4Dice = (unparsedFormula) => {
   }
 
   let parsedFormula = unparsedFormula.slice(DND4_SYMBOL.length)
+
+  processDiceModifiers(dice, parsedFormula, unparsedFormula)
+
+  return dice
+}
+
+// -----------------------------------------------------------------------------------------------
+
+const processDhDice = (unparsedFormula) => {
+  const dice = {
+    formula: unparsedFormula,
+    type: FORMULA_PART_TYPES.operands.dhDice,
+    number: DH_DICE_NUM,
+    sides: DH_DIE_SIDES,
+    diceMods: [],
+  }
+
+  let parsedFormula = unparsedFormula.slice(DH_SYMBOL.length)
 
   processDiceModifiers(dice, parsedFormula, unparsedFormula)
 
@@ -1609,6 +1635,25 @@ const calculateThrow = (thisThrow) => {
           }
           break
         }
+        case FORMULA_PART_TYPES.operands.dhDice: {
+          catcher(calculateNormalDice, formulaPart)
+          formulaPart.results[0][0].dhType = DH_DICE_TYPES.hope;
+          formulaPart.results[0][1].dhType = DH_DICE_TYPES.fear;
+          if (formulaPart.results[0][0].result > formulaPart.results[0][1].result) {
+            formulaPart.specialResults[0].push(SPECIAL_THROW_RESULTS.rollWithHopeDh)
+          }
+          else if (formulaPart.results[0][0].result === formulaPart.results[0][1].result) {
+            formulaPart.specialResults[0].push(SPECIAL_THROW_RESULTS.criticalSuccessDh)
+          }
+          else {
+            formulaPart.specialResults[0].push(SPECIAL_THROW_RESULTS.rollWithFearDh)
+          }
+          sumOrSubtract(formulaPart.finalResults[i])
+          if (formulaPart.specialResults && formulaPart.specialResults.length) {
+            addSpecialResults(formulaPart.specialResults[i])
+          }
+          break
+        }
         case FORMULA_PART_TYPES.operands.falloutCombatDice: {
           catcher(calculateNormalDice, formulaPart)
           if (formulaPart.valueResults && formulaPart.valueResults.length > i) {
@@ -1679,6 +1724,20 @@ const calculateThrow = (thisThrow) => {
             }
             case SPECIAL_THROW_RESULTS.criticalFailureDnD4: {
               vsResult = VS_CHECK_RESULTS.botchDnD4
+              break
+            }
+            case SPECIAL_THROW_RESULTS.rollWithHopeDh: {
+              vsResult = vsResult === VS_CHECK_RESULTS.success ?
+                VS_CHECK_RESULTS.successWithHopeDh : VS_CHECK_RESULTS.failureWithHopeDh
+              break
+            }
+            case SPECIAL_THROW_RESULTS.rollWithFearDh: {
+              vsResult = vsResult === VS_CHECK_RESULTS.success ?
+                VS_CHECK_RESULTS.successWithFearDh : VS_CHECK_RESULTS.successWithFearDh
+              break
+            }
+            case SPECIAL_THROW_RESULTS.criticalSuccessDh: {
+              vsResult = VS_CHECK_RESULTS.criticalDh
               break
             }
           }
@@ -2006,6 +2065,17 @@ const getThrowFormulaText = t => {
       }
       case FORMULA_PART_TYPES.operands.dnd4Dice: {
         text += DND4_SYMBOL
+        if (formulaPart.diceMods && formulaPart.diceMods.length) {
+          formulaPart.diceMods.forEach(diceMod => {
+            if (!diceMod.default) {
+              text += diceMod.type + diceMod.value.toString()
+            }
+          })
+        }
+        break
+      }
+      case FORMULA_PART_TYPES.operands.dhDice: {
+        text += DH_SYMBOL
         if (formulaPart.diceMods && formulaPart.diceMods.length) {
           formulaPart.diceMods.forEach(diceMod => {
             if (!diceMod.default) {

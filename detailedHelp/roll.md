@@ -202,6 +202,21 @@ You can roll multiple combat dice, just as you could with regular dice:
 
 ```/roll roll_command: 2fcd```
 
+#### Daggerheart Duality dice
+This shorthand allows you to roll two twelve-sided dice, the first counting as the Hope die, and the second counting as the Fear die:
+
+```/roll roll_command: dh```
+
+You can add the advantage die to the roll like this:
+
+```/roll roll_command: dh + 1d6```
+
+And a disadvantage die like this:
+
+```/roll roll_command: dh - 1d6```
+
+The results of the roll will show you whether your roll was a roll with Hope, with Fear, or a Critical Success. 
+
 ## Repeating a command part
 An entire command part with multiple dice and static modifiers can be repeated a number of times by 
 using a `|` symbol followed by a number at the end of the formula, like this:

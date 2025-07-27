@@ -202,6 +202,15 @@ const getFormulaText = (t, format, shouldShowResults, repeatIndex) => {
         }
         break
       }
+      case FORMULA_PART_TYPES.operands.dhDice: {
+        text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
+        if (shouldShowResults) {
+          text += getDiceResultsText(formulaPart.results[repeatIndex], formulaPart.type, format)
+        } else {
+          text += getDhDiceFormulaText(formulaPart)
+        }
+        break
+      }
       case FORMULA_PART_TYPES.operands.falloutCombatDice: {
         text += getSpaceIfNeeded(previousFormulaPart, isPrecededByOperatorOrNothing, format)
         if (shouldShowResults) {
@@ -308,6 +317,12 @@ const getDnDDiceFormulaText = (formulaPart) => {
   return text + getDiceModsText(formulaPart)
 }
 
+const getDhDiceFormulaText = (formulaPart) => {
+  let text = formulaPart.number + NORMAL_DICE_SYMBOL + formulaPart.sides
+
+  return text + getDiceModsText(formulaPart)
+}
+
 const getFalloutCombatDiceFormulaText = (formulaPart) => {
   let text = formulaPart.number + FCD_SYMBOL
 
@@ -396,7 +411,8 @@ const getDiceResultText = (throwResult, throwType) => {
   switch (throwType) {
     case FORMULA_PART_TYPES.operands.rnkDice:
     case FORMULA_PART_TYPES.operands.dnd4Dice:
-    case FORMULA_PART_TYPES.operands.normalDice: {
+    case FORMULA_PART_TYPES.operands.normalDice:
+    case FORMULA_PART_TYPES.operands.dhDice: {
       return throwResult.result.toString()
     }
     case FORMULA_PART_TYPES.operands.falloutCombatDice: {
@@ -421,6 +437,7 @@ const checkForNonStaticParts = (t) => {
       switch (formulaPart.type) {
         case FORMULA_PART_TYPES.operands.rnkDice:
         case FORMULA_PART_TYPES.operands.dnd4Dice:
+        case FORMULA_PART_TYPES.operands.dhDice:
         case FORMULA_PART_TYPES.operands.falloutCombatDice:
         case FORMULA_PART_TYPES.operands.normalDice:
         case FORMULA_PART_TYPES.operands.fudgeDice: {
@@ -496,6 +513,7 @@ const checkForVerboseOnlyRollModifiers = t => {
 
     if ((formulaPart.type === FORMULA_PART_TYPES.operands.rnkDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.dnd4Dice) ||
+      (formulaPart.type === FORMULA_PART_TYPES.operands.dhDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.normalDice) ||
       (formulaPart.type === FORMULA_PART_TYPES.operands.fudgeDice)) {
       if (formulaPart.diceMods && formulaPart.diceMods.length) {
@@ -572,6 +590,45 @@ const getFinalResultText = (t, format, index) => {
           text += format.italicsStart + 'critical failure' + format.italicsEnd
           break
         }
+        case VS_CHECK_RESULTS.criticalDh: {
+          text += format.boldStart + 'critical success' + format.boldEnd
+          break
+        }
+        case VS_CHECK_RESULTS.successWithHopeDh: {
+          text += format.boldStart + 'success' + format.boldEnd + ' with ' +
+            format.boldStart + 'Hope' + format.boldEnd
+          break
+        }
+        case VS_CHECK_RESULTS.successWithFearDh: {
+          text += format.boldStart + 'success' + format.boldEnd + ' with ' +
+            format.italicsStart + 'Fear' + format.italicsEnd
+          break
+        }
+        case VS_CHECK_RESULTS.failureWithHopeDh: {
+          text += format.italicsStart + 'failure' + format.italicsEnd + ' with ' +
+            format.boldStart + 'Hope' + format.boldEnd
+          break
+        }
+        case VS_CHECK_RESULTS.failureWithFearDh: {
+          text += format.italicsStart + 'failure' + format.italicsEnd + ' with ' +
+            format.italicsStart + 'Fear' + format.italicsEnd
+          break
+        }
+      }
+    }
+  } else if (t.specialResults && t.specialResults[0] && t.specialResults[0][0]) {
+    switch (t.specialResults[0][0]) {
+      case SPECIAL_THROW_RESULTS.rollWithHopeDh: {
+        text += ', roll with ' + format.boldStart + 'Hope' + format.boldEnd
+        break
+      }
+      case SPECIAL_THROW_RESULTS.rollWithFearDh: {
+        text += ', roll with ' + format.italicsStart + 'Fear' + format.italicsEnd
+        break
+      }
+      case SPECIAL_THROW_RESULTS.criticalSuccessDh: {
+        text += ', ' + format.boldStart + 'critical success' + format.boldEnd
+        break
       }
     }
   }

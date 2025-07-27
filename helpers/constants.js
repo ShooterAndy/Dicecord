@@ -119,6 +119,7 @@ module.exports.FORMULA_PART_TYPES = {
     dnd4Dice: 'dnd4Dice',
     falloutCombatDice: 'fcd',
     rnkDice: 'rnkDice',
+    dhDice: 'dhDice',
     child: 'child'
   }
 }
@@ -161,7 +162,11 @@ module.exports.DND_DICE_NUM = 1
 module.exports.DND_CRITICAL = this.DND_DIE_SIDES
 module.exports.DND_BOTCH = 1
 
+module.exports.DH_DIE_SIDES = 12
+module.exports.DH_DICE_NUM = 2
+
 module.exports.DND4_SYMBOL = 'dnd4'
+module.exports.DH_SYMBOL = 'dh';
 
 module.exports.FCD_DIE_SIDES = 6
 module.exports.FCD_DIE_SIDES_VALUES = [1, 2, 0, 0, 1, 1]
@@ -235,14 +240,22 @@ module.exports.SPECIAL_THROW_RESULTS = {
   criticalSuccess: 'criticalSuccess',
   criticalFailure: 'criticalFailure',
   criticalSuccessDnD4: 'criticalSuccessDnD4',
-  criticalFailureDnD4: 'criticalFailureDnD4'
+  criticalFailureDnD4: 'criticalFailureDnD4',
+  rollWithHopeDh: 'rollWithHopeDh',
+  rollWithFearDh: 'rollWithFearDh',
+  criticalSuccessDh: 'criticalSuccessDh'
 }
 // -------------------------------------------------------------------------------------------------
 module.exports.VS_CHECK_RESULTS = {
   success: 'success',
   failure: 'failure',
   criticalDnD4: 'criticalDnD4',
-  botchDnD4: 'botchDnD4'
+  botchDnD4: 'botchDnD4',
+  criticalDh: 'criticalDh',
+  successWithHopeDh: 'successWithHopeDh',
+  successWithFearDh: 'successWithFearDh',
+  failureWithHopeDh: 'failureWithHopeDh',
+  failureWithFearDh: 'failureWithFearDh'
 }
 // -------------------------------------------------------------------------------------------------
 module.exports.SPECIAL_CONDITION_TYPES = {
@@ -257,6 +270,11 @@ this.SPECIAL_CONDITIONS[this.SPECIAL_THROW_RESULTS.criticalSuccessDnD4] = [
     type: this.SPECIAL_CONDITION_TYPES.maximizeRolls
   }
 ]
+// -------------------------------------------------------------------------------------------------
+module.exports.DH_DICE_TYPES = {
+  hope: 'hope',
+  fear: 'fear'
+}
 // -------------------------------------------------------------------------------------------------
 module.exports.THROW_RESULTS_FORMATS = {
   discord: {
