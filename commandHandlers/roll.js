@@ -1733,7 +1733,7 @@ const calculateThrow = (thisThrow) => {
             }
             case SPECIAL_THROW_RESULTS.rollWithFearDh: {
               vsResult = vsResult === VS_CHECK_RESULTS.success ?
-                VS_CHECK_RESULTS.successWithFearDh : VS_CHECK_RESULTS.successWithFearDh
+                VS_CHECK_RESULTS.successWithFearDh : VS_CHECK_RESULTS.failureWithFearDh
               break
             }
             case SPECIAL_THROW_RESULTS.criticalSuccessDh: {
