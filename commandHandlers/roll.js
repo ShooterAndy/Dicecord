@@ -1536,7 +1536,8 @@ const calculateWholeCommand = () => {
       } else if (previousThrow.vsResults && previousThrow.vsResults.length) {
         // TODO: For now we use ANY success from a throw with repeats. Maybe have some other way?
         const i = previousThrow.vsResults.findIndex(vsResult =>
-          vsResult === VS_CHECK_RESULTS.success || vsResult === VS_CHECK_RESULTS.criticalDnD4
+          vsResult === VS_CHECK_RESULTS.success || vsResult === VS_CHECK_RESULTS.criticalDnD4 ||
+          vsResult === VS_CHECK_RESULTS.criticalDh
         )
         if (i === -1) {
           rollForResults = false
