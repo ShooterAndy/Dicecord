@@ -29,7 +29,7 @@
     "pg-promise": "^11.5.5",
     "random": "^2.1.1",
     "set-value": "^4.0.1",
-    "underscore": "^1.12.1"
+    "underscore": "^1.13.8"
   },
   "devDependencies": {
     "auto-changelog": "^2.4.0",
