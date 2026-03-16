@@ -1,4 +1,4 @@
-const { MessageActionRow, MessageButton } = require('discord.js')
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
 const logger = require('./logger')
 const { SAVE_EMOJI, GENERIC_SAVE_BUTTON_ID } = require('./constants')
 const commonReplyEmbed = require('./commonReplyEmbed')
@@ -14,13 +14,13 @@ module.exports = {
       return null
     }
 
-    const buttonsRow = new MessageActionRow()
+    const buttonsRow = new ActionRowBuilder()
       .addComponents(
-        new MessageButton()
+        new ButtonBuilder()
           .setCustomId(GENERIC_SAVE_BUTTON_ID)
           .setLabel('Save command')
           .setEmoji(SAVE_EMOJI)
-          .setStyle('PRIMARY')
+          .setStyle(ButtonStyle.Primary)
       )
 
     content.components = [buttonsRow]

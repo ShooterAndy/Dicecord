@@ -2,6 +2,7 @@ const random = require('random')
 const _ = require('underscore')
 const formatThrowResults = require('../helpers/formatThrowResults')
 const Client = require('../helpers/client')
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionCollector, ComponentType } = require('discord.js')
 
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
@@ -90,10 +91,6 @@ const {
 } = require('../helpers/constants')
 const warningEmbed = require('../helpers/warningEmbed')
 const errorEmbed = require('../helpers/errorEmbed')
-const {
-  MessageActionRow,
-  MessageButton, InteractionCollector
-} = require('discord.js')
 const { transformMinutesToMs } = require('../helpers/utilities')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
@@ -241,20 +238,20 @@ const showWarnings = async () => {
       embeds: warningEmbed.get(warningsText).embeds
     }
     if (validCommandText) {
-      const buttonsRow = new MessageActionRow()
+      const buttonsRow = new ActionRowBuilder()
         .addComponents(
-          new MessageButton()
+          new ButtonBuilder()
             .setCustomId('roll_warning_yes')
             .setLabel('Yes')
             .setEmoji(YES_EMOJI)
-            .setStyle('SECONDARY'),
+            .setStyle(ButtonStyle.Secondary),
         )
         .addComponents(
-          new MessageButton()
+          new ButtonBuilder()
             .setCustomId('roll_warning_no')
             .setLabel('No')
             .setEmoji(NO_EMOJI)
-            .setStyle('SECONDARY'),
+            .setStyle(ButtonStyle.Secondary),
         )
       content.components = [buttonsRow]
     }
@@ -268,7 +265,7 @@ const showWarnings = async () => {
 
       const collector = new InteractionCollector(interaction.client, {
         message: r,
-        componentType: 'BUTTON',
+        componentType: ComponentType.Button,
         time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
       })
 
@@ -2147,27 +2144,27 @@ const showResults = async (_interaction, additionalText) => {
 
   const formattedThrowResults = formatThrowResults(
     { throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
-  const buttonsRow = new MessageActionRow()
+  const buttonsRow = new ActionRowBuilder()
     .addComponents(
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('repeat')
         .setLabel('Repeat')
         .setEmoji(REPEAT_EMOJI)
-        .setStyle('SUCCESS'),
+        .setStyle(ButtonStyle.Success),
     )
     .addComponents(
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('bb-code')
         .setLabel('BB-code')
         .setEmoji(B_EMOJI)
-        .setStyle('SECONDARY'),
+        .setStyle(ButtonStyle.Secondary),
     )
     .addComponents(
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('markdown')
         .setLabel('Markdown')
         .setEmoji(M_EMOJI)
-        .setStyle('SECONDARY'),
+        .setStyle(ButtonStyle.Secondary),
     )
   const content = saveableReplyEmbed.get(`Your${additionalText || ''} results:`,
     formattedThrowResults)
@@ -2183,7 +2180,7 @@ const showResults = async (_interaction, additionalText) => {
 
   const collector = new InteractionCollector(_interaction.client, {
     message: r,
-    componentType: 'BUTTON',
+    componentType: ComponentType.Button,
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
   })
 

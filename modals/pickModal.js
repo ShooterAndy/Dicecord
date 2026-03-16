@@ -1,34 +1,35 @@
 const {
-  TextInputComponent,
-  MessageActionRow,
-  Modal
+  TextInputBuilder,
+  ActionRowBuilder,
+  ModalBuilder,
+  TextInputStyle
 } = require('discord.js')
 const { MAX_PICK_NUMBER, YES_EMOJI, NO_EMOJI } = require('../helpers/constants')
 
-const itemsInput = new TextInputComponent()
+const itemsInput = new TextInputBuilder()
   .setCustomId('items')
   .setLabel('Items list (separate by new lines or commas)')
   .setPlaceholder('First item\nSecond item\nThird item')
   .setRequired(true)
-  .setStyle('PARAGRAPH')
-const itemsRow = new MessageActionRow().addComponents(itemsInput)
+  .setStyle(TextInputStyle.Paragraph)
+const itemsRow = new ActionRowBuilder().addComponents(itemsInput)
 
-const amountInput = new TextInputComponent()
+const amountInput = new TextInputBuilder()
   .setCustomId('amount')
   .setLabel(`How many items to pick?`)
   .setPlaceholder(`Please enter a number from 1 to ${MAX_PICK_NUMBER} (default: 1)`)
-  .setStyle('SHORT')
-const amountRow = new MessageActionRow().addComponents(amountInput)
+  .setStyle(TextInputStyle.Short)
+const amountRow = new ActionRowBuilder().addComponents(amountInput)
 
-const showRemainingInput = new TextInputComponent()
+const showRemainingInput = new TextInputBuilder()
   .setCustomId('show_remaining')
   .setLabel(`Show un-picked items as well?`)
   .setPlaceholder(`Leave empty for "${NO_EMOJI} no", type anything for "${YES_EMOJI} yes"`)
-  .setStyle('SHORT')
-const showRemainingRow = new MessageActionRow().addComponents(showRemainingInput)
+  .setStyle(TextInputStyle.Short)
+const showRemainingRow = new ActionRowBuilder().addComponents(showRemainingInput)
 
 module.exports = {
-  modal: new Modal()
+  modal: new ModalBuilder()
     .setCustomId('pickModal')
     .setTitle('/pick options')
     .addComponents(itemsRow, amountRow, showRemainingRow)

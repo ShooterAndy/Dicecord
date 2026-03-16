@@ -1,26 +1,27 @@
 const {
-  TextInputComponent,
-  MessageActionRow,
-  Modal
+  TextInputBuilder,
+  ActionRowBuilder,
+  ModalBuilder,
+  TextInputStyle
 } = require('discord.js')
 
-const itemsInput = new TextInputComponent()
+const itemsInput = new TextInputBuilder()
   .setCustomId('items')
   .setLabel('Items list (separate by new lines or commas)')
   .setPlaceholder('First item\nSecond item\nThird item')
   .setRequired(true)
-  .setStyle('PARAGRAPH')
-const itemsRow = new MessageActionRow().addComponents(itemsInput)
+  .setStyle(TextInputStyle.Paragraph)
+const itemsRow = new ActionRowBuilder().addComponents(itemsInput)
 
-const typeInput = new TextInputComponent()
+const typeInput = new TextInputBuilder()
   .setCustomId('type')
   .setLabel(`Type of the resulting list (optional)`)
   .setPlaceholder(`Leave empty, or type "ul" or "ol"`)
-  .setStyle('SHORT')
-const typeRow = new MessageActionRow().addComponents(typeInput)
+  .setStyle(TextInputStyle.Short)
+const typeRow = new ActionRowBuilder().addComponents(typeInput)
 
 module.exports = {
-  modal: new Modal()
+  modal: new ModalBuilder()
     .setCustomId('orderModal')
     .setTitle('/order options')
     .addComponents(itemsRow, typeRow)

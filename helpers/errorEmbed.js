@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js')
+const { EmbedBuilder } = require('discord.js')
 const logger = require('./logger')
 const { ICON_URL } = require('./constants')
 
@@ -6,7 +6,7 @@ module.exports = {
   get(text) {
     let embed
     try {
-      embed = new MessageEmbed()
+      embed = new EmbedBuilder()
         .setColor('#FF0000')
         .setAuthor({ name: 'Error', iconURL: ICON_URL })
         .setDescription(text || 'Unknown error. Please contact the bot creator.')

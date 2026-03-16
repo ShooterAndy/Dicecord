@@ -8,7 +8,7 @@ const {
   UPSERT_SAVED_COMMAND_RESULTS,
   SAVED_COMMANDS_EXPIRE_AFTER
 } = require('./constants')
-const { TextInputComponent, MessageActionRow, Modal, InteractionCollector} = require('discord.js')
+const { TextInputBuilder, ActionRowBuilder, ModalBuilder, InteractionCollector, ComponentType } = require('discord.js')
 const nws = require('./nws')
 const errorEmbed = require('./errorEmbed')
 const commonReplyEmbed = require('./commonReplyEmbed')
@@ -25,20 +25,20 @@ module.exports = {
     const collector = new InteractionCollector(interaction.client, {
       filter,
       message: response,
-      componentType: 'BUTTON',
+      componentType: ComponentType.Button,
       time: transformMinutesToMs(SAVE_BUTTON_EXPIRE_AFTER_INT)
     })
 
     collector.on('collect', async i => {
-      const nameInput = new TextInputComponent()
+      const nameInput = new TextInputBuilder()
         .setCustomId('name')
         .setLabel(`Name for your saved command`)
         .setPlaceholder(nws`${MAX_SAVED_COMMAND_NAME_LENGTH} characters max, only lowercase latin \
           letters, numbers, underscore, and minus symbols allowed.` )
         .setRequired(true)
         .setStyle('SHORT')
-      const nameRow = new MessageActionRow().addComponents(nameInput)
-      const modal = new Modal()
+      const nameRow = new ActionRowBuilder().addComponents(nameInput)
+      const modal = new ModalBuilder()
         .setCustomId('genericSaveModal')
         .setTitle('Save your command?')
         .addComponents(nameRow)

@@ -4,7 +4,7 @@ module.exports = async (client, { channelId, messageText, flags }) => {
     return logger.error(`Failed to fetch channel "${channelId}" in sendToChannel`, err)
   })
   if (channel) {
-    if (channel.isText()) {
+    if (channel.isDMBased() || channel.isTextBased()) {
       return await channel.send(messageText, { flags }).catch(err => {
         return logger.error('Failed to send a message in sendToChannel', err)
       })

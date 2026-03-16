@@ -10,7 +10,7 @@ const {
 const nws = require('./nws')
 const logger = require('./logger')
 const {
-  Options,
+  GatewayIntentBits,
 } = require('discord.js')
 const fs = require('fs')
 const path = require('path')
@@ -110,12 +110,10 @@ const Client = module.exports = {
     options.shards = getInfo().SHARD_LIST // An array of shards that will get spawned
     options.shardCount = getInfo().TOTAL_SHARDS // Total number of shards
 
-    const myIntents = new Discord.Intents()
-    myIntents.add(
-      Discord.Intents.FLAGS.GUILDS
-    )
-    options.intents = myIntents
-    options.makeCache = Options.cacheWithLimits({
+    options.intents = [
+      GatewayIntentBits.Guilds
+    ]
+    options.makeCache = Discord.Options.cacheWithLimits({
       MessageManager: 0,
       PresenceManager: 0,
       ThreadManager: 0,
@@ -146,7 +144,7 @@ const Client = module.exports = {
 
     Client.client.on('error', async error =>
         await require(`../events/error`)(Client.client, error))
-    Client.client.on('ready', async () =>
+    Client.client.on('clientReady', async () =>
         await require(`../events/ready`)(Client.client))
 
     const safeThis = this

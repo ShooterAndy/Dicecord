@@ -1,4 +1,5 @@
 const Discord = require('discord.js')
+const { MessageFlagsBitField } = require('discord.js')
 const splitMessage = require('./splitMessage')
 const sendToChannel = require('./sendToChannel')
 const handleBroadcastEval = require('./handleBroadcastEval')
@@ -26,9 +27,9 @@ module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
   const parts = splitMessage(text)
   const messages = []
   for (const part of parts) {
-    const flags = new Discord.MessageFlags()
+    const flags = new MessageFlagsBitField()
     if (shouldSuppressEmbeds) {
-      flags.add(Discord.MessageFlags.FLAGS.SUPPRESS_EMBEDS)
+      flags.add(MessageFlagsBitField.Flags.SuppressEmbeds)
     }
     if (channelId || message.guildId) {
       if (!channelId) {
