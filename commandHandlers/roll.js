@@ -308,7 +308,7 @@ const showWarnings = async () => {
 
       collector.on('end', async () => {
         clearCaches(r.id)
-        await retryable(() => interaction.webhook.editMessage(r, {components: []}))
+        await retryable(() => r.edit({components: []}))
           .catch(error => {
             logger.error(`Failed to remove warning buttons on timeout`, error)
             return null
@@ -2256,7 +2256,7 @@ const showResults = async (_interaction, additionalText) => {
 
   collector.on('end', async () => {
     clearCaches(r.id)
-    await retryable(() => _interaction.webhook.editMessage(r, { components: [] }))
+    await retryable(() => r.edit({ components: [] }))
       .catch(error => {
         logger.error(`Failed to remove roll result buttons on timeout`, error)
         return null

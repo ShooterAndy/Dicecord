@@ -30,13 +30,16 @@ const _trySendDirect = async (text) => {
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
     // Filtering out common expected errors to prevent log spam
-    if (additionalInfo && (additionalInfo.name === 'DiscordAPIError') && additionalInfo.message) {
+    if (additionalInfo && additionalInfo.name &&
+      (additionalInfo.name === 'DiscordAPIError' ||
+        additionalInfo.name.startsWith('DiscordAPIError['))) {
       if (additionalInfo.message === 'Missing Access'
         || additionalInfo.message === 'Missing Permissions'
         || additionalInfo.message === 'Unknown Message'
         || additionalInfo.message === 'Invalid Webhook Token'
-        || additionalInfo.code === 503
-        || additionalInfo.code === 502)
+        || additionalInfo.code === 50027
+        || additionalInfo.status === 503
+        || additionalInfo.status === 502)
       return
     }
 

@@ -1,5 +1,5 @@
 const logger = require('./logger')
-const { Message, User, Interaction, GuildMember} = require('discord.js')
+const { Message, User, BaseInteraction, GuildMember} = require('discord.js')
 
 module.exports = async (text, context) => {
   if (!context) {
@@ -17,7 +17,7 @@ module.exports = async (text, context) => {
       return null
     }
     context = context.author
-  } else if (context instanceof Interaction) {
+  } else if (context instanceof BaseInteraction) {
     if (!context.user) {
       logger.error(`Original interaction has no user in sendDM`)
       return null
@@ -48,7 +48,7 @@ module.exports = async (text, context) => {
   try {
     return await dmChannel.send(text)
   } catch (error) {
-    if (error && error.name === 'DiscordAPIError'
+    if (error && error.name && error.name.startsWith('DiscordAPIError')
         && error.message === 'Cannot send messages to this user') {
       return null // Common and expected error, no need to log it
     }

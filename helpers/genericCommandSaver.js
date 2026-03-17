@@ -78,7 +78,7 @@ module.exports = {
             than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
         }
 
-        await retryable(() => interaction.webhook.editMessage(response, { components: [] }))
+        await retryable(() => response.edit({ components: [] }))
           .catch(error => {
             logger.error(`Failed to remove buttons on save button click`, error)
             return null
@@ -136,7 +136,7 @@ module.exports = {
     })
 
     collector.on('end', async () => {
-      await retryable(() => interaction.webhook.editMessage(response, { components: [] }))
+      await retryable(() => response.edit({ components: [] }))
         .catch(error => {
           logger.error(`Failed to remove buttons on save button timeout`, error)
           return null
