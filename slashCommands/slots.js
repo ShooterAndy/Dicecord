@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const handler = require('../commandHandlers/slots')
 const logger = require('../helpers/logger')
+const retryable = require('../helpers/retryableDiscordRequest')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -31,7 +32,7 @@ module.exports = {
     const slotsNumber = interaction.options.getInteger('slots_number')
     const customSlots = interaction.options.getString('custom_slots')
 
-    await interaction.deferReply()
+    await retryable(() => interaction.deferReply())
     return await handler(interaction, { slotsNumber, customSlots })
   }
 }

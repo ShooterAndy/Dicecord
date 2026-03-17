@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const handler = require('../commandHandlers/executesaved')
 const logger = require('../helpers/logger')
+const retryable = require('../helpers/retryableDiscordRequest')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -26,7 +27,7 @@ module.exports = {
 
     const name = interaction.options.getString('name')
 
-    await interaction.deferReply()
+    await retryable(() => interaction.deferReply())
     return await handler(interaction, { name })
   }
 }

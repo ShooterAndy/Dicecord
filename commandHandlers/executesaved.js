@@ -10,7 +10,7 @@ const errorEmbed = require('../helpers/errorEmbed')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
-  const name = args.name.trim().toLowerCase()
+  const name = args.name ? args.name.trim().toLowerCase() : null
   if (name) {
     let result
     try {

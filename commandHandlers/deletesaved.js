@@ -9,6 +9,7 @@ const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
 const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
+const Client = require('../helpers/client')
 
 module.exports = async (interaction, args) => {
   let { name } = args
@@ -30,6 +31,7 @@ module.exports = async (interaction, args) => {
           ${SAVED_COMMANDS_EXPIRE_AFTER} of not being used? You can also try listing all your \
           saved commands via the \`/listSaved\` command.`))
       }
+      Client.invalidateSavedCmdNamesCache(interaction.user.id)
       return await replyOrFollowUp(interaction, commonReplyEmbed.get(`Success`,
         nws`The \`${name}\` saved command has been successfully deleted from the \
         list of your saved commands.`))

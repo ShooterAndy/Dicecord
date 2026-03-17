@@ -16,6 +16,7 @@ const fs = require('fs')
 const path = require('path')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
+const retryable = require('./retryableDiscordRequest')
 const { ClusterClient, getInfo } = require('discord-hybrid-sharding')
 
 const _getEntityFromBroadcastResponse = (response) => {
@@ -53,17 +54,108 @@ const _getChannelById = async (clientOrShard, { id }) => {
   }
 }
 
+const ROLL_CACHE_MAX_SIZE = 1000
+const ROLL_CACHE_TTL_MS = 15 * 60 * 1000 // 15 minutes
+const ROLL_CACHE_SWEEP_INTERVAL_MS = 5 * 60 * 1000 // sweep every 5 minutes
+
+const _rollCache = new Map()       // id -> data
+const _rollCacheTs = new Map()     // id -> timestamp
+
+const _sweepRollCache = () => {
+  const now = Date.now()
+  for (const [id, ts] of _rollCacheTs) {
+    if (now - ts > ROLL_CACHE_TTL_MS) {
+      _rollCache.delete(id)
+      _rollCacheTs.delete(id)
+    }
+  }
+}
+
+setInterval(_sweepRollCache, ROLL_CACHE_SWEEP_INTERVAL_MS)
+
+// --- Saved-command-names autocomplete cache (per user, short TTL) ---
+const SAVED_CMD_CACHE_MAX_SIZE = 500
+const SAVED_CMD_CACHE_TTL_MS = 60 * 1000 // 60 seconds
+const SAVED_CMD_CACHE_SWEEP_INTERVAL_MS = 30 * 1000
+
+const _savedCmdCache = new Map()   // userId -> string[]
+const _savedCmdCacheTs = new Map() // userId -> timestamp
+
+const _sweepSavedCmdCache = () => {
+  const now = Date.now()
+  for (const [id, ts] of _savedCmdCacheTs) {
+    if (now - ts > SAVED_CMD_CACHE_TTL_MS) {
+      _savedCmdCache.delete(id)
+      _savedCmdCacheTs.delete(id)
+    }
+  }
+}
+
+setInterval(_sweepSavedCmdCache, SAVED_CMD_CACHE_SWEEP_INTERVAL_MS)
+
 const Client = module.exports = {
 
   client: null,
-  rollThrowsCache: {},
   deckTypesCache: {},
   isReady: false,
 
+  // --- rollThrowsCache helpers (bounded Map with TTL) ---
+  getRollCache (id) {
+    return _rollCache.get(id) ?? null
+  },
+  setRollCache (id, data) {
+    // Evict oldest entries if we've hit the size cap
+    if (_rollCache.size >= ROLL_CACHE_MAX_SIZE) {
+      const oldestId = _rollCacheTs.keys().next().value
+      _rollCache.delete(oldestId)
+      _rollCacheTs.delete(oldestId)
+    }
+    _rollCache.set(id, data)
+    _rollCacheTs.set(id, Date.now())
+  },
+  hasRollCache (id) {
+    return _rollCache.has(id)
+  },
+  deleteRollCache (id) {
+    _rollCache.delete(id)
+    _rollCacheTs.delete(id)
+  },
+
+  // --- savedCommandNames cache helpers (bounded Map with TTL) ---
+  getSavedCmdNamesCache (userId) {
+    if (!_savedCmdCache.has(userId)) return null
+    const ts = _savedCmdCacheTs.get(userId)
+    if (Date.now() - ts > SAVED_CMD_CACHE_TTL_MS) {
+      _savedCmdCache.delete(userId)
+      _savedCmdCacheTs.delete(userId)
+      return null
+    }
+    return _savedCmdCache.get(userId)
+  },
+  setSavedCmdNamesCache (userId, names) {
+    if (_savedCmdCache.size >= SAVED_CMD_CACHE_MAX_SIZE) {
+      const oldestId = _savedCmdCacheTs.keys().next().value
+      _savedCmdCache.delete(oldestId)
+      _savedCmdCacheTs.delete(oldestId)
+    }
+    _savedCmdCache.set(userId, names)
+    _savedCmdCacheTs.set(userId, Date.now())
+  },
+  invalidateSavedCmdNamesCache (userId) {
+    _savedCmdCache.delete(userId)
+    _savedCmdCacheTs.delete(userId)
+  },
+
   async tryToLogIn (errorsCount, previousError, currentError) {
+    const MAX_LOGIN_RETRIES = 10
     if (currentError) {
       previousError = currentError
       errorsCount++
+    }
+    if (errorsCount >= MAX_LOGIN_RETRIES) {
+      logger.error(nws`${LOG_PREFIX} Failed to log in after ${MAX_LOGIN_RETRIES} attempts, \
+        giving up. Last error:`, previousError)
+      process.exit(1)
     }
     try {
       await this.client.login(process.env.BOT_TOKEN)
@@ -72,19 +164,27 @@ const Client = module.exports = {
           being`, previousError)
       }
     } catch (error) {
+      const delay = Math.min(1000 * Math.pow(2, errorsCount), 30000)
+      logger.warn(nws`${LOG_PREFIX} Login attempt ${errorsCount + 1} failed, \
+        retrying in ${delay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
       await this.tryToLogIn(errorsCount, previousError, error)
     }
   },
 
   async getChannelById (id) {
     try {
+      // Try local fetch first — avoids expensive cross-cluster IPC
+      const localChannel = await _getChannelById(this.client, { id })
+      if (localChannel) return localChannel
+
+      // Fall back to broadcast only if this cluster doesn't have the channel
       if (this.client.cluster) {
         const response =
             await this.client.cluster.broadcastEval(_getChannelById, { context: { id } })
         return _getEntityFromBroadcastResponse(response)
-      } else {
-        return _getChannelById(this.client, { id })
       }
+      return null
     } catch (err) {
       throw err
     }
@@ -130,7 +230,8 @@ const Client = module.exports = {
       StageInstanceManager: 0, // guild.stageInstances
       ThreadMemberManager: 0, // threadChannel.members
       UserManager: 0, // client.users
-      VoiceStateManager: 0 // guild.voiceStates
+      VoiceStateManager: 0, // guild.voiceStates
+      ChannelManager: 0 // client.channels — fetched on demand
     })
     Client.client = new Discord.Client(options)
     Client.client.cluster = new ClusterClient(Client.client)
@@ -160,6 +261,10 @@ const Client = module.exports = {
         try {
           await command.execute(interaction)
         } catch (error) {
+          if (error?.code === 10062) {
+            logger.warn(`Interaction expired before ${interaction.commandName} could be processed`)
+            return
+          }
           logger.error(`Failed while trying to execute a ${interaction.commandName} command`, error)
           await replyOrFollowUp(interaction, {
             content: `Failed to execute the \`${interaction.commandName}\` command. Please contact the bot creator.`,
@@ -180,8 +285,10 @@ const Client = module.exports = {
             }
           }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
-          await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice }))
+          await retryable(
+            () => interaction.respond(
+              filtered.map(choice => ({ name: choice, value: choice }))
+            )
           ).catch(error => {
             logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
           })
@@ -200,8 +307,10 @@ const Client = module.exports = {
             }
           }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
-          await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice }))
+          await retryable(
+            () => interaction.respond(
+              filtered.map(choice => ({ name: choice, value: choice }))
+            )
           ).catch(error => {
             logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
           })
@@ -209,28 +318,34 @@ const Client = module.exports = {
           (interaction.commandName === 'deletesaved') ||
           (interaction.commandName === 'executesaved')) {
           const focusedValue = interaction.options.getFocused()
-          const choices = []
-          try {
-            const result = await pg.db.any(
-              'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue}',
-              {
-                name: SAVED_COMMANDS_COLUMNS.name,
-                db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
-                userId: SAVED_COMMANDS_COLUMNS.user_id,
-                userIdValue: interaction.user.id
-              })
+          let choices = safeThis.getSavedCmdNamesCache(interaction.user.id)
+          if (!choices) {
+            choices = []
+            try {
+              const result = await pg.db.any(
+                'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue}',
+                {
+                  name: SAVED_COMMANDS_COLUMNS.name,
+                  db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+                  userId: SAVED_COMMANDS_COLUMNS.user_id,
+                  userIdValue: interaction.user.id
+                })
 
-            if (result && result.length) {
-              result.forEach(command => {
-                choices.push(command.name)
-              })
+              if (result && result.length) {
+                result.forEach(command => {
+                  choices.push(command.name)
+                })
+              }
+              safeThis.setSavedCmdNamesCache(interaction.user.id, choices)
+            } catch(error) {
+              logger.log(`Failed to get the list of saved commands for autocomplete`, error)
             }
-          } catch(error) {
-            logger.log(`Failed to get the list of saved commands for autocomplete`, error)
           }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
-          await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice }))
+          await retryable(
+            () => interaction.respond(
+              filtered.map(choice => ({ name: choice, value: choice }))
+            )
           ).catch(error => {
             logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
           })

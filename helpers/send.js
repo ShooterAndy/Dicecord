@@ -38,7 +38,7 @@ module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
       const pushToMessages = (response) => { if (response) messages.push(response) }
       await handleBroadcastEval(Client.client.cluster, sendToChannel, {
         context: { channelId, messageText: part, flags },
-        pushToMessages
+        callback: pushToMessages
       })
     } else { // It's a DM
       let channel = message.channel

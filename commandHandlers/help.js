@@ -13,15 +13,12 @@ module.exports = async (interaction, args) => {
   }
   helpFileName += '.md'
 
-  fs.readFile(`./help/${helpFileName}`, 'utf8',
-    async (err, data) => {
-      if (err) {
-        return await replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find help \
-          information${helpTitle}.`))
-      }
-      else {
-        return await replyOrFollowUp(interaction, commonReplyEmbed.get(
-          `Documentation${helpTitle}:`, data))
-      }
-    })
+  try {
+    const data = await fs.promises.readFile(`./help/${helpFileName}`, 'utf8')
+    return await replyOrFollowUp(interaction, commonReplyEmbed.get(
+      `Documentation${helpTitle}:`, data))
+  } catch (err) {
+    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Couldn't find help \
+      information${helpTitle}.`))
+  }
 }

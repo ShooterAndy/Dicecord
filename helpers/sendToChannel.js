@@ -5,7 +5,7 @@ module.exports = async (client, { channelId, messageText, flags }) => {
   })
   if (channel) {
     if (channel.isDMBased() || channel.isTextBased()) {
-      return await channel.send(messageText, { flags }).catch(err => {
+      return await channel.send({ content: messageText, flags }).catch(err => {
         return logger.error('Failed to send a message in sendToChannel', err)
       })
     } else {

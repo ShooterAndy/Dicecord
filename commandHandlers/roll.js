@@ -1,4 +1,4 @@
-const random = require('random')
+const random = require('random').default
 const _ = require('underscore')
 const formatThrowResults = require('../helpers/formatThrowResults')
 const Client = require('../helpers/client')
@@ -95,103 +95,116 @@ const { transformMinutesToMs } = require('../helpers/utilities')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
+const retryable = require('../helpers/retryableDiscordRequest')
+const { AsyncLocalStorage } = require('node:async_hooks')
 
 // -------------------------------------------------------------------------------------------------
 
+// Per-invocation context stored via AsyncLocalStorage so concurrent /roll
+// commands never share mutable state.
+const rollContext = new AsyncLocalStorage()
 
-let warnings = []
-let throws = []
+const createContext = (interaction, rollCommand) => ({
+  warnings: [],
+  throws: [],
+  interaction,
+  originalCommandText: rollCommand || 'EMPTY'
+})
 
-let interaction = null
-let originalCommandText = 'EMPTY'
+const getCtx = () => rollContext.getStore()
 
 module.exports = async (_interaction, args) => {
-  warnings = []
-  throws = []
-  interaction = _interaction
+  const ctx = createContext(_interaction, args.rollCommand)
+  return rollContext.run(ctx, async () => {
+    if (!ctx.interaction) {
+      logger.error('No interaction in processMessage')
+      return
+    }
 
-  originalCommandText = args.rollCommand
-
-  if (!interaction) {
-    logger.error('No interaction in processMessage')
-    return
-  }
-
-  try {
-    if (await topLevelCatcher(processWholeCommand, args.rollCommand)) {
-      if (warnings.length) {
-        await topLevelCatcher(showWarnings)
-      } else {
-        if (await topLevelCatcher(calculateWholeCommand)) {
-          await topLevelCatcher(showResults)
+    try {
+      if (await topLevelCatcher(processWholeCommand, args.rollCommand)) {
+        if (ctx.warnings.length) {
+          await topLevelCatcher(showWarnings)
+        } else {
+          if (await topLevelCatcher(calculateWholeCommand)) {
+            await topLevelCatcher(showResults)
+          }
         }
       }
+    } catch (error) {
+      logger.error(`Top level error in roll command`, error)
     }
-  } catch (error) {
-    logger.error(`Top level error in roll command`, error)
-  }
+  })
 }
 
 module.exports.goOnFromWarning = async (i, id) => {
-  interaction = i
-  if (!prepareFromCache(id)) {
-    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to go on from warning, \
-      the bot possibly restarted after the original message. Sorry.`)).catch(() => { return false })
-  }
-
-  try {
-    if (await topLevelCatcher(calculateWholeCommand)) {
-      await topLevelCatcher(showResults, i, ' modified')
+  const ctx = createContext(i)
+  return rollContext.run(ctx, async () => {
+    if (!prepareFromCache(id)) {
+      return await replyOrFollowUp(ctx.interaction, errorEmbed.get(nws`Failed to go on from warning, \
+        the bot possibly restarted after the original message. Sorry.`)).catch(() => { return false })
     }
-  } catch (error) {
-    logger.error(`Top level error in goOnFromWarning`, error)
-  }
+
+    try {
+      if (await topLevelCatcher(calculateWholeCommand)) {
+        await topLevelCatcher(showResults, i, ' modified')
+      }
+    } catch (error) {
+      logger.error(`Top level error in goOnFromWarning`, error)
+    }
+  })
 }
 
 module.exports.repeatRollCommand = async (i, id) => {
-  interaction = i
-  if (!prepareFromCache(id)) {
-    return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to repeat roll command, \
-      the bot possibly restarted after the original message. Sorry.`)).catch(() => { return false })
-  }
-  removeResults()
-
-  try {
-    if (await topLevelCatcher(calculateWholeCommand)) {
-      await topLevelCatcher(showResults, i, ' re-roll')
+  const ctx = createContext(i)
+  return rollContext.run(ctx, async () => {
+    if (!prepareFromCache(id)) {
+      return await replyOrFollowUp(ctx.interaction, errorEmbed.get(nws`Failed to repeat roll command, \
+        the bot possibly restarted after the original message. Sorry.`)).catch(() => { return false })
     }
-  } catch (error) {
-    logger.error(`Top level error in repeatRollCommand`, error)
-  }
+    removeResults()
+
+    try {
+      if (await topLevelCatcher(calculateWholeCommand)) {
+        await topLevelCatcher(showResults, i, ' re-roll')
+      }
+    } catch (error) {
+      logger.error(`Top level error in repeatRollCommand`, error)
+    }
+  })
 }
 
 /* ===============================================================================================
                                 TECHNICAL STUFF (LIKE ERROR HANDLING)
 =============================================================================================== */
 const prepareFromCache = (id) => {
-  if (!Client.rollThrowsCache[id]) {
-    logger.error(`Message "${id}" not cached in prepareFromCache`)
+  const ctx = getCtx()
+  if (!Client.hasRollCache(id)) {
+    logger.warn(`Message "${id}" not cached in prepareFromCache`)
     return false
   }
-  throws = JSON.parse(JSON.stringify(Client.rollThrowsCache[id]))
+  ctx.throws = JSON.parse(JSON.stringify(Client.getRollCache(id)))
   clearCaches(id)
-  warnings = []
+  ctx.warnings = []
   return true
 }
 
 const clearCaches = (id) => {
-  if (Client.rollThrowsCache[id]) delete Client.rollThrowsCache[id]
+  Client.deleteRollCache(id)
 }
 
 const addWarning = (text) => {
-  const existingWarning = warnings.find(warning => warning === text)
+  const ctx = getCtx()
+  const existingWarning = ctx.warnings.find(warning => warning === text)
   if (!existingWarning) {
-    warnings.push(text)
+    ctx.warnings.push(text)
   }
 }
 
 const showWarnings = async () => {
-  if (warnings.length) {
+  const ctx = getCtx()
+  const interaction = ctx.interaction
+  if (ctx.warnings.length) {
     let channel = interaction.channel
     let canHaveButtons = true
     if (!channel) {
@@ -206,14 +219,14 @@ const showWarnings = async () => {
     }
 
     let warningsText = ''
-    warnings.forEach((warning, index) => {
-      if (warnings.length > 1) {
+    ctx.warnings.forEach((warning, index) => {
+      if (ctx.warnings.length > 1) {
         warningsText += nws`${(index + 1).toString()}. \
                   ${warning[0].toUpperCase() + warning.slice(1)}`
       } else {
         warningsText += warning
       }
-      if (index < warnings.length - 1) {
+      if (index < ctx.warnings.length - 1) {
         warningsText += ';\n'
       } else {
         warningsText += '.'
@@ -232,7 +245,7 @@ const showWarnings = async () => {
           \`/help topic:roll\` for help.`
       }
     } else {
-      warningsText += `\nHere's your original command text:\`\`\`${originalCommandText}\`\`\``
+      warningsText += `\nHere's your original command text:\`\`\`${ctx.originalCommandText}\`\`\``
     }
     const content = {
       embeds: warningEmbed.get(warningsText).embeds
@@ -261,7 +274,7 @@ const showWarnings = async () => {
     })
     if (validCommandText) {
       if (!r) return null
-      Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
+      Client.setRollCache(r.id, JSON.parse(JSON.stringify(ctx.throws)))
 
       const collector = new InteractionCollector(interaction.client, {
         message: r,
@@ -269,7 +282,10 @@ const showWarnings = async () => {
         time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
       })
 
+      let warningCollected = false
       collector.on('collect', async i => {
+        if (warningCollected) return
+        warningCollected = true
         switch (i.customId) {
           case 'roll_warning_yes': {
             await module.exports.goOnFromWarning(interaction, r.id)
@@ -292,7 +308,7 @@ const showWarnings = async () => {
 
       collector.on('end', async () => {
         clearCaches(r.id)
-        await interaction.webhook.editMessage(r, {components: []})
+        await retryable(() => interaction.webhook.editMessage(r, {components: []}))
           .catch(error => {
             logger.error(`Failed to remove warning buttons on timeout`, error)
             return null
@@ -303,23 +319,25 @@ const showWarnings = async () => {
 }
 
 const showUncaughtError = async (error) => {
+  const ctx = getCtx()
   if (error) {
     logger.error(`Unhandled error was thrown in roll command`, error.stack)
   } else {
     logger.error(`Unknown error was thrown in roll command`, (new Error()).stack)
   }
-  return await replyOrFollowUp(interaction, errorEmbed.get(nws`Some uncaught error \
+  return await replyOrFollowUp(ctx.interaction, errorEmbed.get(nws`Some uncaught error \
       occurred, please contact the author of this bot.`)).catch(() => { return false })
 }
 
 const topLevelCatcher = async (fn, args) => {
+  const ctx = getCtx()
   try {
     const result = await fn(args)
     return result === undefined ? true : result
   } catch (error) {
     if (error &&
       error.name === HANDLED_ERROR_TYPE_NAME || error.name === HANDLED_WARNING_TYPE_NAME) {
-      await replyOrFollowUp(interaction, errorEmbed.get(error.message)).catch(() => {
+      await replyOrFollowUp(ctx.interaction, errorEmbed.get(error.message)).catch(() => {
         return false
       })
       return false
@@ -360,11 +378,12 @@ const w = text => {
 }
 
 const removeResults = () => {
-  if (!throws || !throws.length) {
+  const ctx = getCtx()
+  if (!ctx.throws || !ctx.throws.length) {
     return
   }
 
-  throws.forEach((t) => {
+  ctx.throws.forEach((t) => {
     removeFormulaResults(t)
   })
 }
@@ -421,6 +440,7 @@ const removeFormulaResults = t => {
 =============================================================================================== */
 
 const processWholeCommand = unprocessedCommand => {
+  const ctx = getCtx()
   const isSeparator = (part) => {
     return (part === THROW_SEPARATOR || part === THROW_SEPARATOR_VS)
   }
@@ -447,14 +467,14 @@ const processWholeCommand = unprocessedCommand => {
         if (previousPart === THROW_SEPARATOR_VS) {
           result.isConditional = true
         }
-        throws.push(result)
+        ctx.throws.push(result)
       }
     }
     previousPart = part
   })
   // After that, we go over the now structured throws
   // First, we check their formulae for various throw sub-commands, starting with the 'versus' one
-  throws.forEach((t) => {
+  ctx.throws.forEach((t) => {
     let result = catcher(processVsPart, t)
     if (result instanceof Warning) {
       // In case something serious was caught, let's remove the throw
@@ -473,9 +493,9 @@ const processWholeCommand = unprocessedCommand => {
       t.markedForDeletion = true
     }
   })
-  throws = _.filter(throws, t => !t.markedForDeletion)
+  ctx.throws = _.filter(ctx.throws, t => !t.markedForDeletion)
 
-  //console.log('THROWS:\n' + JSON.stringify(throws))
+  //console.log('THROWS:\n' + JSON.stringify(ctx.throws))
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1523,9 +1543,10 @@ const processDiceModifier = (args) => {
 =============================================================================================== */
 
 const calculateWholeCommand = () => {
+  const ctx = getCtx()
   let previousThrow = null
 
-  throws.forEach(t => {
+  ctx.throws.forEach(t => {
     let rollForResults = true
     if (t.isConditional && previousThrow) {
       if (previousThrow.isSkipped) {
@@ -1577,7 +1598,7 @@ const calculateWholeCommand = () => {
     previousThrow = t
   })
 
-  //console.log(`RESULTS:\n${JSON.stringify(throws)}`)
+  //console.log(`RESULTS:\n${JSON.stringify(ctx.throws)}`)
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1988,12 +2009,13 @@ const roll = (dieSides) => {
 =============================================================================================== */
 
 const getCommandText = () => {
-  if (!throws || !throws.length) {
+  const ctx = getCtx()
+  if (!ctx.throws || !ctx.throws.length) {
     return ''
   }
 
   let text = ''
-  throws.forEach((t, index) => {
+  ctx.throws.forEach((t, index) => {
     if (index > 0) {
       if (t.isConditional) {
         text += ' ' + THROW_SEPARATOR_VS + ' '
@@ -2135,15 +2157,16 @@ const getThrowFormulaText = t => {
 }
 
 const showResults = async (_interaction, additionalText) => {
+  const ctx = getCtx()
   if (!_interaction) {
-    _interaction = interaction
+    _interaction = ctx.interaction
   }
-  if (!throws || !throws.length) {
+  if (!ctx.throws || !ctx.throws.length) {
     return
   }
 
   const formattedThrowResults = formatThrowResults(
-    { throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
+    { throws: ctx.throws, DEFAULT_THROW_RESULT_FORMAT_NAME })
   const buttonsRow = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
@@ -2174,8 +2197,8 @@ const showResults = async (_interaction, additionalText) => {
   if (!r) {
     return null
   }
-  if (Client.rollThrowsCache[r.id]) logger.error(`Already cached roll throws for id ${r.id}`)
-  Client.rollThrowsCache[r.id] = JSON.parse(JSON.stringify(throws))
+  if (Client.hasRollCache(r.id)) logger.warn(`Already cached roll throws for id ${r.id}`)
+  Client.setRollCache(r.id, JSON.parse(JSON.stringify(ctx.throws)))
   await genericCommandSaver.launch(_interaction, r)
 
   const collector = new InteractionCollector(_interaction.client, {
@@ -2184,6 +2207,7 @@ const showResults = async (_interaction, additionalText) => {
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
   })
 
+  let repeatCollected = false
   collector.on('collect', async i => {
     const updatedButtonsRow =
       i.message.components[1].components.filter(c => c.customId !== i.customId)
@@ -2195,6 +2219,8 @@ const showResults = async (_interaction, additionalText) => {
     }
     switch(i.customId) {
       case 'repeat': {
+        if (repeatCollected) return
+        repeatCollected = true
         await module.exports.repeatRollCommand(_interaction, r.id)
         await collector.stop('Re-roll command triggered')
         //clearCaches(r.id)
@@ -2205,7 +2231,7 @@ const showResults = async (_interaction, additionalText) => {
       }
       case 'bb-code': {
         const text = formatThrowResults({
-          throws: Client.rollThrowsCache[r.id], formatName: THROW_RESULTS_FORMATS.bbcode.name
+          throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.bbcode.name
         })
         const updatedEmbeds = content.embeds
         updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
@@ -2216,7 +2242,7 @@ const showResults = async (_interaction, additionalText) => {
       }
       case 'markdown': {
         const text = formatThrowResults({
-          throws: Client.rollThrowsCache[r.id], formatName: THROW_RESULTS_FORMATS.markdown.name
+          throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.markdown.name
         })
         const updatedEmbeds = content.embeds
         updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
@@ -2228,8 +2254,13 @@ const showResults = async (_interaction, additionalText) => {
     }
   })
 
-  collector.on('end', () => {
+  collector.on('end', async () => {
     clearCaches(r.id)
+    await retryable(() => _interaction.webhook.editMessage(r, { components: [] }))
+      .catch(error => {
+        logger.error(`Failed to remove roll result buttons on timeout`, error)
+        return null
+      })
   })
 }
 
@@ -2248,7 +2279,7 @@ const getChildThrowRegex = () => {
 }
 
 const getStrictChildThrowRegex = () => {
-  const regexString = `^${OPENING_PARENTHESES_REPLACER}[0-9]+${CLOSING_PARENTHESES_REPLACER}$`
+  const regexString = `^${OPENING_PARENTHESIS}[0-9]+${CLOSING_PARENTHESIS}$`
   return new RegExp(regexString, 'g')
 }
 
@@ -2298,3 +2329,9 @@ const getTypoOrCommentHint = () => {
   return nws`Perhaps you've made a typo or forgot a \`${COMMENT_SEPARATOR}\` symbol to mark it as \
           a comment`
 }
+
+
+
+
+
+

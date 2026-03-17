@@ -1,5 +1,5 @@
 const pg = require('../helpers/pgHandler')
-const random = require('random')
+const random = require('random').default
 const {
   DECKS_DB_NAME,
   DECKS_COLUMNS,

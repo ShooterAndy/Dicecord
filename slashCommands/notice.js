@@ -3,6 +3,7 @@ const logger = require('../helpers/logger')
 const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 const nws = require('../helpers/nws')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
+const retryable = require('../helpers/retryableDiscordRequest')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,7 +19,7 @@ module.exports = {
       return
     }
 
-    await interaction.deferReply()
+    await retryable(() => interaction.deferReply())
     return await replyOrFollowUp(interaction, commonReplyEmbed.get('Important notice',
       nws`No special notices.`))
   }

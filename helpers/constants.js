@@ -64,6 +64,7 @@ module.exports.MESSAGE_TYPES = {
 }
 module.exports.WARNING_MESSAGE_EXPIRE_AFTER_INT = 5
 module.exports.WARNING_MESSAGE_EXPIRE_AFTER = `${this.WARNING_MESSAGE_EXPIRE_AFTER_INT} minutes`
+module.exports.SAVE_BUTTON_EXPIRE_AFTER_INT = 10
 module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT = this.SAVE_BUTTON_EXPIRE_AFTER_INT
 module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER =
   `${this.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT} minutes`
@@ -71,6 +72,7 @@ module.exports.ROLL_RESULTS_MESSAGE_EXPIRE_AFTER =
 // -------------------------------------------------------------------------------------------------
 
 module.exports.MAX_MESSAGE_LENGTH = 2000
+module.exports.MAX_EMBED_DESCRIPTION_LENGTH = 4096
 
 // -------------------------------------------------------------------------------------------------
 
@@ -379,7 +381,6 @@ module.exports.MINIMUM_SLOTS_SYMBOLS = 2
 module.exports.MAXIMUM_SLOTS_SYMBOLS = 32
 // -------------------------------------------------------------------------------------------------
 module.exports.GENERIC_SAVE_BUTTON_ID = 'generic_save'
-module.exports.SAVE_BUTTON_EXPIRE_AFTER_INT = 10
 
 module.exports.SAVED_COMMANDS_DB_NAME = 'saved_commands'
 module.exports.SAVED_COMMANDS_COLUMNS = {

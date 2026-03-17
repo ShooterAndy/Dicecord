@@ -29,6 +29,13 @@ manager.on('clusterCreate', cluster => {
   })
 })
 
+manager.extend(
+  new HeartbeatManager({
+    interval: 2000, // Interval to send a heartbeat
+    maxMissedHeartbeats: 5, // Maximum amount of missed Heartbeats until Cluster will get respawned
+  })
+)
+
 manager.spawn().then(() => {
   logger.log(nws`Launched cluster manager. ${manager.totalClusters} \
   clusters, ${manager.totalShards} shards.`)
@@ -55,9 +62,7 @@ manager.spawn().then(() => {
       }
 
       postBotStats()
-      setInterval(async () => {
-        await postBotStats()
-      }, transformMinutesToMs(30))
+      setInterval(postBotStats, transformMinutesToMs(30))
     } catch (err) {
       logger.error('Failed to create Top GG API instance', err)
     }
@@ -65,10 +70,3 @@ manager.spawn().then(() => {
 }).catch(err => {
   logger.error('Failed to spawn cluster manager', err)
 })
-
-manager.extend(
-  new HeartbeatManager({
-    interval: 2000, // Interval to send a heartbeat
-    maxMissedHeartbeats: 5, // Maximum amount of missed Heartbeats until Cluster will get respawned
-  })
-)

@@ -1,4 +1,4 @@
-const random = require('random')
+const random = require('random').default
 const _ = require('underscore')
 const { MIN_PICK_NUMBER, MAX_PICK_NUMBER, } = require('../helpers/constants')
 

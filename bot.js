@@ -1,9 +1,10 @@
 const fs = require('fs')
 const client = require('./helpers/client')
 const { Collection } = require('discord.js')
+const logger = require('./helpers/logger')
+const pg = require('./helpers/pgHandler')
 
 let slashCommands = new Collection()
-let modals = new Collection()
 
 const commandFiles = fs.readdirSync('./slashCommands').filter(file => file.endsWith('.js'))
 for (const file of commandFiles) {
@@ -11,10 +12,26 @@ for (const file of commandFiles) {
   slashCommands.set(command.data.name, command)
 }
 
-const modalFiles = fs.readdirSync('./modals').filter(file => file.endsWith('.js'))
-for (const file of modalFiles) {
-  const modalFile = require(`./modals/${file}`)
-  modals.set(modalFile.modal.customId, modalFile)
+client.readyBasics(slashCommands)
+
+// Graceful shutdown — clean up resources before Heroku dyno restart, etc.
+const shutdown = async (signal) => {
+  logger.log(`Received ${signal}, shutting down gracefully...`)
+  try {
+    if (client.client) {
+      client.client.destroy()
+    }
+  } catch (err) {
+    logger.error('Error destroying Discord client during shutdown', err)
+  }
+  try {
+    pg.db.$pool.end()
+  } catch (err) {
+    logger.error('Error closing DB pool during shutdown', err)
+  }
+  process.exit(0)
 }
 
-client.readyBasics(slashCommands, modals)
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
+

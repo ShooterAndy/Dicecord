@@ -8,12 +8,14 @@ const {
   UPSERT_SAVED_COMMAND_RESULTS,
   SAVED_COMMANDS_EXPIRE_AFTER
 } = require('./constants')
-const { TextInputBuilder, ActionRowBuilder, ModalBuilder, InteractionCollector, ComponentType } = require('discord.js')
+const { TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder, InteractionCollector, ComponentType } = require('discord.js')
 const nws = require('./nws')
 const errorEmbed = require('./errorEmbed')
 const commonReplyEmbed = require('./commonReplyEmbed')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
+const Client = require('./client')
+const retryable = require('./retryableDiscordRequest')
 
 module.exports = {
   async launch(interaction, response, parameters) {
@@ -36,13 +38,13 @@ module.exports = {
         .setPlaceholder(nws`${MAX_SAVED_COMMAND_NAME_LENGTH} characters max, only lowercase latin \
           letters, numbers, underscore, and minus symbols allowed.` )
         .setRequired(true)
-        .setStyle('SHORT')
+        .setStyle(TextInputStyle.Short)
       const nameRow = new ActionRowBuilder().addComponents(nameInput)
       const modal = new ModalBuilder()
         .setCustomId('genericSaveModal')
         .setTitle('Save your command?')
         .addComponents(nameRow)
-      await i.showModal(modal)
+      await retryable(() => i.showModal(modal))
 
       const submitted = await interaction.awaitModalSubmit({
         // Timeout after a minute of not receiving any valid Modals
@@ -59,7 +61,7 @@ module.exports = {
       })
 
       if (submitted) {
-        await submitted.deferReply().catch(error => {
+        await retryable(() => submitted.deferReply()).catch(error => {
           logger.error(`Failed to deferReply for modal submission in genericCommandSaver`, error)
         })
         let name = submitted.fields.getTextInputValue('name').trim().toLowerCase()
@@ -76,7 +78,7 @@ module.exports = {
             than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
         }
 
-        await interaction.webhook.editMessage(response, { components: [] })
+        await retryable(() => interaction.webhook.editMessage(response, { components: [] }))
           .catch(error => {
             logger.error(`Failed to remove buttons on save button click`, error)
             return null
@@ -99,19 +101,15 @@ module.exports = {
               command. Please contact the author of this bot.`))
           }
           switch (result.upsert_saved_command) {
-            case UPSERT_SAVED_COMMAND_RESULTS.inserted: {
-              return await replyOrFollowUp(submitted, commonReplyEmbed.get('Save successful!',
-                nws`Your command \`${name}\` was saved successfully! You can use it via \
-                \`/executeSaved\` or examine it via \`/examineSaved\`.\nBe aware that your saved \
-                commands will expire and be automatically **deleted** after \
-                ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
-            }
+            case UPSERT_SAVED_COMMAND_RESULTS.inserted:
             case UPSERT_SAVED_COMMAND_RESULTS.updated: {
+              Client.invalidateSavedCmdNamesCache(interaction.user.id)
+              const isInsert = result.upsert_saved_command === UPSERT_SAVED_COMMAND_RESULTS.inserted
               return await replyOrFollowUp(submitted, commonReplyEmbed.get(
-                'Update successful!',
-                nws`Your command \`${name}\` was successfully updated! You can use it via \
-                \`/executeSaved\` or examine it via \`/examineSaved\`.\nBe aware that your saved \
-                commands will expire and be automatically **deleted** after \
+                isInsert ? 'Save successful!' : 'Update successful!',
+                nws`Your command \`${name}\` was ${isInsert ? 'saved' : 'successfully updated'}! \
+                You can use it via \`/executeSaved\` or examine it via \`/examineSaved\`.\nBe \
+                aware that your saved commands will expire and be automatically **deleted** after \
                 ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
             }
             case UPSERT_SAVED_COMMAND_RESULTS.limit: {
@@ -138,7 +136,7 @@ module.exports = {
     })
 
     collector.on('end', async () => {
-      await interaction.webhook.editMessage(response, { components: [] })
+      await retryable(() => interaction.webhook.editMessage(response, { components: [] }))
         .catch(error => {
           logger.error(`Failed to remove buttons on save button timeout`, error)
           return null

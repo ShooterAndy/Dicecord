@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const handler = require('../commandHandlers/drawshuffled')
 const logger = require('../helpers/logger')
+const retryable = require('../helpers/retryableDiscordRequest')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,7 +40,7 @@ module.exports = {
     const numberOfCardsToDraw = interaction.options.getInteger('number_of_cards_to_draw')
     const comment = interaction.options.getString('comment')
 
-    await interaction.deferReply()
+    await retryable(() => interaction.deferReply())
     return await handler(interaction, { deck, numberOfCardsToDraw, comment })
   }
 }

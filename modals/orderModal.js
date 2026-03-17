@@ -17,6 +17,7 @@ const typeInput = new TextInputBuilder()
   .setCustomId('type')
   .setLabel(`Type of the resulting list (optional)`)
   .setPlaceholder(`Leave empty, or type "ul" or "ol"`)
+  .setRequired(false)
   .setStyle(TextInputStyle.Short)
 const typeRow = new ActionRowBuilder().addComponents(typeInput)
 

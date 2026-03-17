@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": "17.x"
+    "node": "22.x"
   },
   "dependencies": {
     "@discordjs/builders": "^1.13.1",

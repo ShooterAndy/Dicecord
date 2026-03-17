@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const handler = require('../commandHandlers/draw')
 const logger = require('../helpers/logger')
+const retryable = require('../helpers/retryableDiscordRequest')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -38,7 +39,7 @@ module.exports = {
     const comment = interaction.options.getString('comment')
     const isPrivate = interaction.options.getBoolean('is_private')
 
-    await interaction.deferReply()
+    await retryable(() => interaction.deferReply())
     return await handler(interaction, { numberOfCardsToDraw, comment, isPrivate })
   }
 }

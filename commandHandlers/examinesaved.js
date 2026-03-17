@@ -11,7 +11,7 @@ const commonReplyEmbed = require('../helpers/commonReplyEmbed')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
-  const name = args.name.trim().toLowerCase()
+  const name = args.name ? args.name.trim().toLowerCase() : null
   if (name) {
     try {
       const result = await pg.db.oneOrNone(

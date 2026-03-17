@@ -1,5 +1,5 @@
 const { REST } = require('@discordjs/rest')
-const { Routes } = require('discord-api-types/v9')
+const { Routes } = require('discord-api-types/v10')
 const dotenv = require('dotenv')
 const path = require('path')
 const fs = require('fs')
@@ -15,43 +15,15 @@ for (const file of commandFiles) {
   commands.push(command.data.toJSON())
 }
 
-const rest = new REST({ version: '9' }).setToken(process.env.BOT_TOKEN)
+const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN)
 
-if (process.env.IS_LOCAL) {
-  rest.get(Routes.applicationGuildCommands(process.env.APP_ID, process.env.GUILD_ID)).then(data => {
-    const promises = []
-    for (const command of data) {
-      const deleteUrl = `${ Routes.applicationGuildCommands(process.env.APP_ID, process.env.GUILD_ID) }/${ command.id }`
-      promises.push(rest.delete(deleteUrl).then(() => console.log(`Deleted ${ command.name } (local)`)))
-    }
-    return Promise.all(promises)
-  }).then(() => {
-    console.log('Successfully deleted all application commands (local).')
-    rest.put(Routes.applicationGuildCommands(process.env.APP_ID, process.env.GUILD_ID),
-      { body: commands }).then(() => {
-      const commandNames = []
-      for (const command of commands) {
-        commandNames.push(command.name)
-      }
-      console.log(`Successfully registered application commands: "${ commandNames.join('", "') }" (local).`)
-    }).catch(console.error)
-  }).catch(console.error)
-} else {
-  rest.get(Routes.applicationCommands(process.env.APP_ID)).then(data => {
-    const promises = []
-    for (const command of data) {
-      const deleteUrl = `${ Routes.applicationCommands(process.env.APP_ID) }/${ command.id }`
-      promises.push(rest.delete(deleteUrl).then(() => console.log(`Deleted ${ command.id }`)))
-    }
-    return Promise.all(promises)
-  }).then(() => {
-    console.log('Successfully deleted all application commands.')
-    rest.put(Routes.applicationCommands(process.env.APP_ID), { body: commands }).then(() => {
-      const commandNames = []
-      for (const command of commands) {
-        commandNames.push(command.name)
-      }
-      console.log(`Successfully registered application commands: "${ commandNames.join('", "') }".`)
-    }).catch(console.error)
-  }).catch(console.error)
-}
+// PUT bulk overwrite is atomic — no need to delete first
+const route = process.env.IS_LOCAL
+  ? Routes.applicationGuildCommands(process.env.APP_ID, process.env.GUILD_ID)
+  : Routes.applicationCommands(process.env.APP_ID)
+
+rest.put(route, { body: commands }).then(() => {
+  const commandNames = commands.map(c => c.name)
+  const suffix = process.env.IS_LOCAL ? ' (local)' : ''
+  console.log(`Successfully registered application commands${suffix}: "${commandNames.join('", "')}".`)
+}).catch(console.error)

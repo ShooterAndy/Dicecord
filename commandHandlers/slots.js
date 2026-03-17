@@ -1,4 +1,4 @@
-const random = require('random')
+const random = require('random').default
 const {
   DEFAULT_SLOTS_NUMBER,
   DEFAULT_SLOTS_SYMBOLS,

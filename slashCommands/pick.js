@@ -1,8 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
+const { ModalBuilder } = require('discord.js')
 const handler = require('../commandHandlers/pick')
 const logger = require('../helpers/logger')
 const { modal } = require('../modals/pickModal')
 const {transformMinutesToMs} = require('../helpers/utilities')
+const retryable = require('../helpers/retryableDiscordRequest')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -41,12 +43,16 @@ module.exports = {
     let showRemaining = interaction.options.getBoolean('show_remaining')
 
     if (!items) {
-      await interaction.showModal(modal)
+      // Unique customId per invocation prevents two concurrent /pick modals
+      // from the same user racing on the same submission
+      const uniqueId = `pickModal-${interaction.id}`
+      const uniqueModal = new ModalBuilder(modal.toJSON()).setCustomId(uniqueId)
+      await retryable(() => interaction.showModal(uniqueModal))
       const submitted = await interaction.awaitModalSubmit({
         // Timeout after a minute of not receiving any valid Modals
         time: transformMinutesToMs(1),
         // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
-        filter: mi => mi.user.id === interaction.user.id,
+        filter: mi => mi.customId === uniqueId && mi.user.id === interaction.user.id,
       }).catch(error => {
         // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
         if (!error ||
@@ -64,15 +70,16 @@ module.exports = {
         } else {
           amount = undefined
         }
-        showRemaining = !!submitted.fields.getTextInputValue('show_remaining')
-        await submitted.deferReply().catch(error => {
+        const showRemainingValues = submitted.fields.getTextInputValue('show_remaining')
+        showRemaining = !!showRemainingValues
+        await retryable(() => submitted.deferReply()).catch(error => {
           logger.error(`Failed to deferReply for modal submission in pick`, error)
         })
         return await handler(submitted,
           { items, amount, showRemaining, originalInteraction: interaction })
       }
     } else {
-      await interaction.deferReply().catch(error => {
+      await retryable(() => interaction.deferReply()).catch(error => {
         logger.error(`Failed to deferReply in pick`, error)
       })
       return await handler(interaction, { items, amount, showRemaining })

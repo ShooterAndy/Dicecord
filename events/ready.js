@@ -8,7 +8,6 @@ const {
   DECKS_DB_NAME,
   DECKS_COLUMNS,
   DECKS_EXPIRE_AFTER,
-  USE_INTERACTIVE_REACTIONS,
   IS_LOCAL
 } = require('../helpers/constants')
 const Client = require('../helpers/client')
@@ -80,16 +79,17 @@ module.exports = async (client) => {
   }, transformMinutesToMs(15))
 
   if (!IS_LOCAL) {
-    await deleteExpiredDecks()
-    setInterval(async () => {
+    // Only run cleanup on the first cluster to avoid redundant DELETE queries
+    const isFirstCluster = !client.cluster || client.cluster.id === 0
+    if (isFirstCluster) {
       await deleteExpiredDecks()
-    }, transformHoursToMs(6))
+      setInterval(async () => {
+        await deleteExpiredDecks()
+      }, transformHoursToMs(6))
 
-    if (USE_INTERACTIVE_REACTIONS) {
       await deleteExpiredSavedCommands()
-
-      setInterval(() => {
-        deleteExpiredSavedCommands()
+      setInterval(async () => {
+        await deleteExpiredSavedCommands()
       }, transformHoursToMs(6))
     }
   }
