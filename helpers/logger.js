@@ -9,6 +9,23 @@ const {
 } = require('./constants')
 const nws = require('./nws')
 const send = require('./send')
+const truncate = require('./truncate')
+
+const _trySendDirect = async (text) => {
+  const Client = require('./client')
+  if (!Client.client) return false
+  try {
+    const { MessageFlagsBitField } = require('discord.js')
+    const channel = await Client.client.channels.fetch(LOG_CHANNEL_ID)
+    if (!channel) return false
+    const flags = new MessageFlagsBitField()
+    flags.add(MessageFlagsBitField.Flags.SuppressEmbeds)
+    await channel.send({ content: truncate(text), flags })
+    return true
+  } catch {
+    return false
+  }
+}
 
 module.exports = {
   async sendMessage (type, text, additionalInfo) {
@@ -64,7 +81,9 @@ module.exports = {
           messageText += `\`\`\`${additionalInfo}\`\`\``
         }
 
-        return send(messageText, LOG_CHANNEL_ID, true)
+        messageText = truncate(messageText)
+
+        return await _trySendDirect(messageText) || send(messageText, LOG_CHANNEL_ID, true)
       } catch (error) {
         return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Failed to send a message to the \
           log channel:\n${error}\n\nOriginal log message:\n${text}`)
