@@ -16,6 +16,7 @@ const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
 const Client = require('./client')
 const retryable = require('./retryableDiscordRequest')
+const editMessage = require('./editMessage')
 
 module.exports = {
   async launch(interaction, response, parameters) {
@@ -78,7 +79,7 @@ module.exports = {
             than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
         }
 
-        await retryable(() => response.edit({ components: [] }))
+        await retryable(() => editMessage(interaction.client, response.channelId, response.id, { components: [] }))
           .catch(error => {
             logger.error(`Failed to remove buttons on save button click`, error)
             return null
@@ -136,7 +137,7 @@ module.exports = {
     })
 
     collector.on('end', async () => {
-      await retryable(() => response.edit({ components: [] }))
+      await retryable(() => editMessage(interaction.client, response.channelId, response.id, { components: [] }))
         .catch(error => {
           logger.error(`Failed to remove buttons on save button timeout`, error)
           return null

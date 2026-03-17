@@ -96,6 +96,7 @@ const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 const saveableReplyEmbed = require('../helpers/saveableReplyEmbed')
 const genericCommandSaver = require('../helpers/genericCommandSaver')
 const retryable = require('../helpers/retryableDiscordRequest')
+const editMessage = require('../helpers/editMessage')
 const { AsyncLocalStorage } = require('node:async_hooks')
 
 // -------------------------------------------------------------------------------------------------
@@ -308,7 +309,7 @@ const showWarnings = async () => {
 
       collector.on('end', async () => {
         clearCaches(r.id)
-        await retryable(() => r.edit({components: []}))
+        await retryable(() => editMessage(interaction.client, r.channelId, r.id, {components: []}))
           .catch(error => {
             logger.error(`Failed to remove warning buttons on timeout`, error)
             return null
@@ -2256,7 +2257,7 @@ const showResults = async (_interaction, additionalText) => {
 
   collector.on('end', async () => {
     clearCaches(r.id)
-    await retryable(() => r.edit({ components: [] }))
+    await retryable(() => editMessage(_interaction.client, r.channelId, r.id, { components: [] }))
       .catch(error => {
         logger.error(`Failed to remove roll result buttons on timeout`, error)
         return null

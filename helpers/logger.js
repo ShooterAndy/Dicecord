@@ -13,14 +13,13 @@ const truncate = require('./truncate')
 
 const _trySendDirect = async (text) => {
   const Client = require('./client')
-  if (!Client.client) return false
+  if (!Client.client || !Client.client.rest) return false
   try {
-    const { MessageFlagsBitField } = require('discord.js')
-    const channel = await Client.client.channels.fetch(LOG_CHANNEL_ID)
-    if (!channel) return false
-    const flags = new MessageFlagsBitField()
-    flags.add(MessageFlagsBitField.Flags.SuppressEmbeds)
-    await channel.send({ content: truncate(text), flags })
+    const { Routes } = require('discord-api-types/v10')
+    const { MessageFlags } = require('discord-api-types/v10')
+    await Client.client.rest.post(Routes.channelMessages(LOG_CHANNEL_ID), {
+      body: { content: truncate(text), flags: MessageFlags.SuppressEmbeds }
+    })
     return true
   } catch {
     return false
