@@ -274,7 +274,7 @@ const Client = module.exports = {
       } else if (interaction.isAutocomplete()) {
         // special case for /help
         if (interaction.commandName === 'help') {
-          const focusedValue = interaction.options.getFocused()
+          const focusedValue = interaction.options.getFocused().toLowerCase()
           const helpPath = path.join('help')
           const helpFiles = fs.readdirSync(helpPath).filter(file => file.endsWith('.md'))
           const choices = []
@@ -284,7 +284,15 @@ const Client = module.exports = {
               choices.push(file)
             }
           }
+          // Add modifier topics
+          const modifierDescriptions = require('./modifierDescriptions')
+          const { MODIFIER_TOPIC_PREFIX, ALL_MODIFIERS_TOPIC } = require('../commandHandlers/help')
+          choices.push(ALL_MODIFIERS_TOPIC)
+          for (const abbr of Object.keys(modifierDescriptions)) {
+            choices.push(MODIFIER_TOPIC_PREFIX + abbr)
+          }
           const filtered = choices.filter(choice => choice.startsWith(focusedValue))
+            .slice(0, 25) // Discord autocomplete limit
           await retryable(
             () => interaction.respond(
               filtered.map(choice => ({ name: choice, value: choice }))
