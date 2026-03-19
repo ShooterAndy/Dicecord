@@ -1207,7 +1207,30 @@ const processDiceModifier = (args) => {
   const { diceMod, dice } = args
 
   const modName = diceMod.match(/^[a-z]+/gi)[0].toLowerCase()
-  const modValue = Number(diceMod.match(/\d+$/g)[0])
+  const digitMatch = diceMod.match(/\d+$/g)
+
+  // Defaults for modifiers that can omit the numerical parameter
+  const modifierDefaults = {
+    [DICE_MODIFIERS.keepHighest]: 1,
+    [DICE_MODIFIERS.keepLowest]: 1,
+    [DICE_MODIFIERS.explode]: dice.sides,
+    [DICE_MODIFIERS.explodeTimes]: 1,
+    [DICE_MODIFIERS.reRollTimes]: 1,
+    [DICE_MODIFIERS.critical]: dice.sides,
+    [DICE_MODIFIERS.botch]: 1,
+    [DICE_MODIFIERS.brutal]: 1
+  }
+
+  let modValue
+  if (digitMatch) {
+    modValue = Number(digitMatch[0])
+  } else if (modifierDefaults.hasOwnProperty(modName)) {
+    modValue = modifierDefaults[modName]
+  } else {
+    throw w(nws`\`${modName}\` in \`${dice.formula}\` requires a numerical value and cannot be \
+              used without one, so it will be ignored. ${getTypoOrCommentHint()}`)
+  }
+
   if (isNaN(modValue)) {
     throw w(nws`\`${modValue}\` is not a valid number for a \`${modName}\` roll modifier in \
               \`${dice.formula}\`, so it will be ignored. ${getTypoOrCommentHint()}`)
@@ -2322,8 +2345,10 @@ const getFalloutCombatDiceRegex = () => {
 }
 
 const getDiceModifierRegex = () => {
-  const regexString = `[a-z]+\\s?\\d+`
-  return new RegExp(regexString, 'gi')
+  const modNames = Object.values(DICE_MODIFIERS)
+    .sort((a, b) => b.length - a.length) // longest first so e.g. 'ceo' is tried before 'ce'
+    .join('|')
+  return new RegExp(`(?:${modNames})(?:\\s?\\d+)?`, 'gi')
 }
 
 const getTypoOrCommentHint = () => {

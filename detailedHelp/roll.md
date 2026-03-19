@@ -84,7 +84,9 @@ You can combine dice, bonuses and penalties in any way you want (see the "Formul
 
 ### Dice modifiers
 You can apply various modifiers to a die roll. Each dice modifier consists of a short abbreviation 
-and a numerical parameter, such as `e5`. These are the currently available dice modifiers: 
+and a numerical parameter, such as `e5`. Some modifiers have default values and can be used without
+specifying the number (see each modifier's description for details). These are the currently 
+available dice modifiers: 
 
 * `e` — **explode** — makes any single die "explode" if its result is equal to or over the value
 of the parameter, meaning that this die will be rolled again, and the result of that roll will be
@@ -92,10 +94,11 @@ added to the previous one. The new roll can also result in an explosion, and so 
 maximum number of explosions is reached (10 by default). Note that in a roll of multiple dice, 
 such as `4d6e6`, the explosion will occur if _any_ of the four six-sided dice will roll a 6,
 not if _all_ four do, and it will only add one more roll of a six-sided die, not four of them.
+If no value is specified, the number of die sides is used (e.g. `4d6e` is the same as `4d6e6`).
 * `t` — (explode) **times** — meaningless on its own, but, combined with the `e` dice modifier, 
 will set the maximum number of times a single die roll can "explode" in a row. For example, 
 `4d6e6t1` will mean that even if the first explosion die will again roll a 6, it will not explode
-the second time.  
+the second time. Defaults to **1** if no value is specified.  
 * `co` — **count over** — counts how many rolls in a dice throw will have a result that is over the
 value of the parameter. For example, if the dice in a throw of `4d6co3` have the results 
 [1, 3, 4, 6], the final result of this throw will equal **2** (one for the die roll result of 4 and 
@@ -115,9 +118,10 @@ _equal_ the value of the parameter. For the die roll results above, a throw of `
 with the highest roll result) that equals the parameter value. For example, a throw of `4d6kh2` 
 will roll four six-sided dice, but will only count the results of two of them with the highest
 die roll result, so out of the die roll results of [1, 3, 4, 6] only 4 and 6 will be counted, with 
-the total being 10.
+the total being 10. Defaults to **1** if no value is specified (e.g. `4d6kh` keeps only the highest).
 * `kl` — **keep lowest** — see above, except only the lowest results will be counted, so, from the 
 example above, for a throw of `4d6kl2`, only 1 and 3 will be counted, with the total being 4.
+Defaults to **1** if no value is specified.
 * `ro` — **re-roll** (if) **over** — will re-roll any die in a throw that rolls over the parameter 
 value. For example, a throw of `4d6ro4` will re-roll any of the four six-sided dice in it if their
 die roll result will be 5 or 6. The maximum number of times this can happen is 10 by default (see 
@@ -141,16 +145,20 @@ parameter value for the throw to be re-rolled.
 parameter value for the throw to be re-rolled.
 * `rt` — **re-roll times** — will set the maximum number of times a die or a dice throw can be
 re-rolled via the `rt`, `ru`, `re`, `rto`, `rtu`, or `rte` dice modifiers. The maximum number is 10.
+Defaults to **1** if no value is specified.
 * `cr` — **critical** (on) — if any die in a dice throw has its result equal to or higher than the 
 parameter value, the entire throw is considered to be a critical success, automatically passing the
 versus check (see the "Versus-checks" section below). Example: `1d20cr20` will "crit" on a 
-natural 20. 
+natural 20. Defaults to the number of die sides if no value is specified (e.g. `1d20cr` is the same
+as `1d20cr20`).
 * `bo` — **botch** (on) — the opposite of the above `cr`, this dice modifier will make the entire
 throw be considered a critical failure, automatically failing the versus check as well, if any die
-in a dice throw has its result equal to or lower than the parameter value.
+in a dice throw has its result equal to or lower than the parameter value. Defaults to **1** if no 
+value is specified.
 * `br` — **brutal** — an almost-equivalent dice modifier to `ru`, the only difference being that 
 the die is re-rolled if the die roll result is less than _or equal to_ the parameter value. Used 
-as a short-hand for fourth edition Dungeons and Dragons. 
+as a short-hand for fourth edition Dungeons and Dragons. Defaults to **1** if no value is specified
+(i.e. `4d6br` will re-roll any die that lands on a 1).
 
 ### Special dice
 #### FUDGE dice
