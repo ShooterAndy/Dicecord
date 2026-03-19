@@ -349,6 +349,9 @@ const getDiceResultsText = (throwResults, throwType, format) => {
       switch (throwResult.type) {
         case RESULT_TYPES.final: {
           text += getDiceResultText(throwResult, throwType)
+          if (throwResult.isExplosion) {
+            text += format.codeStart + format.explosion + format.codeEnd
+          }
           break
         }
         case RESULT_TYPES.ignored: {
@@ -356,6 +359,7 @@ const getDiceResultsText = (throwResults, throwType, format) => {
             text += format.strikethroughStart
           }
           text += getDiceResultText(throwResult, throwType) +
+            (throwResult.isExplosion ? format.explosion : '') +
             format.strikethroughEnd
           break
         }
@@ -366,12 +370,16 @@ const getDiceResultsText = (throwResults, throwType, format) => {
         }
         case RESULT_TYPES.critical: {
           text += getDiceResultText(throwResult, throwType) +
-            format.codeStart + format.critical + format.codeEnd
+            format.codeStart + format.critical +
+            (throwResult.isExplosion ? format.explosion : '') +
+            format.codeEnd
           break
         }
         case RESULT_TYPES.botch: {
           text += getDiceResultText(throwResult, throwType) +
-            format.codeStart + format.botch + format.codeEnd
+            format.codeStart + format.botch +
+            (throwResult.isExplosion ? format.explosion : '') +
+            format.codeEnd
         }
       }
     }

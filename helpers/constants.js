@@ -133,6 +133,7 @@ module.exports.MAX_EXPLOSIONS = 10
 module.exports.MAX_RE_ROLLS = 10
 module.exports.DICE_MODIFIERS = {
   explode: 'e',
+  explodeSeparately: 'es',
   explodeTimes: 't',
   countOver: 'co',
   countUnder: 'cu',

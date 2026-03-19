@@ -1214,6 +1214,7 @@ const processDiceModifier = (args) => {
     [DICE_MODIFIERS.keepHighest]: 1,
     [DICE_MODIFIERS.keepLowest]: 1,
     [DICE_MODIFIERS.explode]: dice.sides,
+    [DICE_MODIFIERS.explodeSeparately]: dice.sides,
     [DICE_MODIFIERS.explodeTimes]: 1,
     [DICE_MODIFIERS.reRollTimes]: 1,
     [DICE_MODIFIERS.critical]: dice.sides,
@@ -1314,15 +1315,21 @@ const processDiceModifier = (args) => {
         throw w(nws`can't keep ${modValue} dice roll results, the minimum amount is 1, \
                   this check will be ignored`)
       }
-      if (modValue > dice.number) {
-        throw w(nws`can't keep ${modValue} dice roll results of a ${dice.number}\
-                  ${NORMAL_DICE_SYMBOL}${dice.sides} throw, the number is too high, this check \
-                  will be ignored`)
-      }
-      if (modValue === dice.number) {
-        throw w(nws`all dice will be kept if you would try to keep ${modValue} dice roll \ 
-                  results of a ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides} throw, this check \
-                  will be ignored`)
+      // With es (explode separately), the pool can grow beyond dice.number, so skip upper bound checks
+      const hasExplodeSeparately = dice.diceMods.some(dm =>
+        dm.type === DICE_MODIFIERS.explodeSeparately
+      ) || dice.formula.includes(DICE_MODIFIERS.explodeSeparately)
+      if (!hasExplodeSeparately) {
+        if (modValue > dice.number) {
+          throw w(nws`can't keep ${modValue} dice roll results of a ${dice.number}\
+                    ${NORMAL_DICE_SYMBOL}${dice.sides} throw, the number is too high, this check \
+                    will be ignored`)
+        }
+        if (modValue === dice.number) {
+          throw w(nws`all dice will be kept if you would try to keep ${modValue} dice roll \ 
+                    results of a ${dice.number}${NORMAL_DICE_SYMBOL}${dice.sides} throw, this check \
+                    will be ignored`)
+        }
       }
       return { type: modName, value: modValue }
     }
@@ -1330,6 +1337,14 @@ const processDiceModifier = (args) => {
       const otherExplodeMods = dice.diceMods.filter(mod =>
         mod.type === DICE_MODIFIERS.explode
       )
+      const existingEsMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.explodeSeparately
+      )
+      if (existingEsMods && existingEsMods.length) {
+        throw w(nws`can't use both \`${DICE_MODIFIERS.explode}\` and \
+                  \`${DICE_MODIFIERS.explodeSeparately}\` modifiers on the same throw \
+                  \`${dice.formula}\`, so the \`${DICE_MODIFIERS.explode}\` will be ignored`)
+      }
       let replaceDefault = false
       if (otherExplodeMods && otherExplodeMods.length) {
         if (otherExplodeMods.length === 1 && otherExplodeMods[0].default) {
@@ -1360,6 +1375,38 @@ const processDiceModifier = (args) => {
         return null
       }
 
+      return { type: modName, value: modValue }
+    }
+    case DICE_MODIFIERS.explodeSeparately: {
+      const otherEsMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.explodeSeparately
+      )
+      if (otherEsMods && otherEsMods.length) {
+        throw w(nws`there appear to be several separate-explode modifiers in \
+                  \`${dice.formula}\`, so only the first one will be applied to it`)
+      }
+      if (modValue < 2) {
+        throw w(nws`can't explode separately on a ${modValue}, the minimum explosion value is 2, \
+                  this modifier will be ignored`)
+      }
+      if (modValue > dice.sides) {
+        throw w(nws`can't explode separately on a ${modValue} for a roll of a \
+                  ${dice.sides}-sided die, this modifier will be ignored`)
+      }
+      // es is mutually exclusive with e — if a default e exists (e.g. from rnk dice), remove it
+      const existingExplodeMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.explode
+      )
+      if (existingExplodeMods && existingExplodeMods.length) {
+        if (existingExplodeMods.length === 1 && existingExplodeMods[0].default) {
+          dice.diceMods = dice.diceMods.filter(dm => dm.type !== DICE_MODIFIERS.explode)
+        } else {
+          throw w(nws`can't use both \`${DICE_MODIFIERS.explode}\` and \
+                    \`${DICE_MODIFIERS.explodeSeparately}\` modifiers on the same throw \
+                    \`${dice.formula}\`, so the \`${DICE_MODIFIERS.explodeSeparately}\` will be \
+                    ignored`)
+        }
+      }
       return { type: modName, value: modValue }
     }
     case DICE_MODIFIERS.reRollTimes:
@@ -1844,6 +1891,17 @@ const calculateNormalDice = (dice) => {
   const criticalOn = setMod(DICE_MODIFIERS.critical, -1)
   const botchOn = setMod(DICE_MODIFIERS.botch, -1)
 
+  const explodeSeparatelyOn = setMod(DICE_MODIFIERS.explodeSeparately, -1)
+  // Determine whether es comes before or after kh/kl in modifier order
+  let esBeforeKeep = true
+  if (explodeSeparatelyOn !== -1 && (keepHighest !== -1 || keepLowest !== -1)) {
+    const esIdx = dice.diceMods.findIndex(dm => dm.type === DICE_MODIFIERS.explodeSeparately)
+    const khIdx = dice.diceMods.findIndex(dm => dm.type === DICE_MODIFIERS.keepHighest)
+    const klIdx = dice.diceMods.findIndex(dm => dm.type === DICE_MODIFIERS.keepLowest)
+    const keepIdx = Math.max(khIdx, klIdx)
+    esBeforeKeep = esIdx < keepIdx
+  }
+
   const mod = (dice.type === FORMULA_PART_TYPES.operands.fudgeDice ? -2 : 0)
 
   const diceResults = []
@@ -1857,6 +1915,7 @@ const calculateNormalDice = (dice) => {
 
   while (continueReRollingTotal) {
     const thisDiceResults = []
+    let esNextIndex = numberOfRolls
     finalResult = 0
     valueResult = 0
     for (let i = 0; i < numberOfRolls; i++) {
@@ -1922,11 +1981,64 @@ const calculateNormalDice = (dice) => {
       }
     }
 
+    // Expand pool with separate explosions (es before keep, or no keep modifier)
+    if (explodeSeparatelyOn !== -1 && esBeforeKeep) {
+      const expandedResults = []
+      thisDiceResults.forEach(result => {
+        expandedResults.push(result)
+        if (result.type !== RESULT_TYPES.ignored && result.result >= explodeSeparatelyOn) {
+          let explosionsNumber = 0
+          let continueExploding = true
+           while (continueExploding) {
+            const explosionRoll = roll(numberOfSides) + mod
+            expandedResults.push({
+              index: esNextIndex++,
+              result: explosionRoll,
+              type: RESULT_TYPES.final,
+              isExplosion: true
+            })
+            explosionsNumber++
+            continueExploding =
+              (explosionRoll >= explodeSeparatelyOn && explosionsNumber < explodeTimesMax)
+          }
+        }
+      })
+      thisDiceResults.splice(0, thisDiceResults.length, ...expandedResults)
+    }
+
     let sortedResults = [...thisDiceResults].sort((a, b) => a.result - b.result)
     if (keepLowest !== -1) {
       sortedResults = sortedResults.slice(0, keepLowest)
     } else if (keepHighest !== -1) {
       sortedResults = sortedResults.slice((keepHighest * -1))
+    }
+
+    // Expand pool with separate explosions for kept dice only (keep before es)
+    if (explodeSeparatelyOn !== -1 && !esBeforeKeep) {
+      const keptToCheck = [...sortedResults]
+      keptToCheck.forEach(keptResult => {
+        if (keptResult.type !== RESULT_TYPES.ignored && keptResult.result >= explodeSeparatelyOn) {
+          const posInResults = thisDiceResults.indexOf(keptResult)
+          const explosionResults = []
+          let explosionsNumber = 0
+          let continueExploding = true
+          while (continueExploding) {
+            const explosionRoll = roll(numberOfSides) + mod
+            const explosionResult = {
+              index: esNextIndex++,
+              result: explosionRoll,
+              type: RESULT_TYPES.final,
+              isExplosion: true
+            }
+            explosionResults.push(explosionResult)
+            sortedResults.push(explosionResult)
+            explosionsNumber++
+            continueExploding =
+              (explosionRoll >= explodeSeparatelyOn && explosionsNumber < explodeTimesMax)
+          }
+          thisDiceResults.splice(posInResults + 1, 0, ...explosionResults)
+        }
+      })
     }
 
     thisDiceResults.forEach(result => {
@@ -1962,11 +2074,13 @@ const calculateNormalDice = (dice) => {
           dice.specialResults.push(specialResults)
         }
         diceResults.push({
-          type: result.type, result: result.result, explosions: result.explosions
+          type: result.type, result: result.result, explosions: result.explosions,
+          ...(result.isExplosion && { isExplosion: true })
         })
       } else {
         diceResults.push({
-          type: RESULT_TYPES.ignored, result: result.result, explosions: result.explosions
+          type: RESULT_TYPES.ignored, result: result.result, explosions: result.explosions,
+          ...(result.isExplosion && { isExplosion: true })
         })
       }
     })

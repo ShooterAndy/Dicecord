@@ -95,7 +95,17 @@ maximum number of explosions is reached (10 by default). Note that in a roll of 
 such as `4d6e6`, the explosion will occur if _any_ of the four six-sided dice will roll a 6,
 not if _all_ four do, and it will only add one more roll of a six-sided die, not four of them.
 If no value is specified, the number of die sides is used (e.g. `4d6e` is the same as `4d6e6`).
-* `t` — (explode) **times** — meaningless on its own, but, combined with the `e` dice modifier, 
+* `es` — **explode separately** — works like `e`, but instead of adding the explosion roll result
+to the original die, each explosion roll is added to the dice pool as a **separate die result**. 
+This is useful when combined with counting modifiers like `co` or `hv`, where each explosion 
+should count as an individual die. For example, `4d6es6hv5` will roll four six-sided dice, and any 
+die that rolls a 6 will generate additional separate dice; each die in the pool (originals and 
+explosions) that rolled 5 or higher is counted as a hit. Explosion-generated dice are displayed 
+with a 💥 marker. Mutually exclusive with `e`. If no value is specified, the number of die sides 
+is used (e.g. `4d6es` is the same as `4d6es6`). The order of `es` relative to `kh`/`kl` matters:
+`4d6es6kh3` will expand the pool first, then keep the highest 3 from the expanded pool; 
+`4d6kh3es5` will keep the highest 3 from the original pool, and only those can trigger explosions.
+* `t` — (explode) **times** — combined with the `e` or `es` dice modifier, 
 will set the maximum number of times a single die roll can "explode" in a row. For example, 
 `4d6e6t1` will mean that even if the first explosion die will again roll a 6, it will not explode
 the second time. Defaults to **1** if no value is specified.  
