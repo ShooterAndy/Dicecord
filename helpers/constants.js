@@ -131,6 +131,7 @@ module.exports.MAX_DICE_NUMBER = 100
 module.exports.MAX_DIE_SIDES = 10000
 module.exports.MAX_EXPLOSIONS = 10
 module.exports.MAX_RE_ROLLS = 10
+module.exports.MAX_TOTAL_DICE = 10000
 module.exports.DICE_MODIFIERS = {
   explode: 'e',
   explodeSeparately: 'es',

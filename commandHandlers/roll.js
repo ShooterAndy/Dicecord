@@ -24,6 +24,7 @@ const {
   MAX_DIE_SIDES,
   MAX_EXPLOSIONS,
   MAX_RE_ROLLS,
+  MAX_TOTAL_DICE,
   DICE_MODIFIERS,
 
   RNK_DICE_SYMBOL,
@@ -108,6 +109,7 @@ const rollContext = new AsyncLocalStorage()
 const createContext = (interaction, rollCommand) => ({
   warnings: [],
   throws: [],
+  totalDiceRolled: 0,
   interaction,
   originalCommandText: rollCommand || 'EMPTY'
 })
@@ -2138,6 +2140,14 @@ const calculateNormalDice = (dice) => {
 const roll = (dieSides) => {
   if(dieSides === 0) {
     return 0;
+  }
+  const ctx = getCtx()
+  if (ctx) {
+    ctx.totalDiceRolled++
+    if (ctx.totalDiceRolled > MAX_TOTAL_DICE) {
+      throw e(nws`the total number of dice rolls in this command has exceeded the maximum \
+        of ${MAX_TOTAL_DICE}. Please simplify your command.`)
+    }
   }
   return random.integer(1, dieSides)
 }
