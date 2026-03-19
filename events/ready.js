@@ -66,7 +66,7 @@ const deleteExpiredDecks = async () => {
 module.exports = async (client) => {
   logger.log(`Successfully logged in as ${client.user.tag}`)
 
-  if(client.cluster) {
+  if (client.cluster) {
     logger.log(`Launched a new cluster id: "${client.cluster.id}"; total cluster count: "${client.cluster.count}"`)
   }
   else {

@@ -3,7 +3,8 @@ const { Routes } = require('discord-api-types/v10')
 // Errors that mean the message/channel is gone — nothing left to edit
 const IGNORABLE_CODES = [
   10003, // Unknown Channel (channel deleted or bot kicked)
-  10008  // Unknown Message (message deleted)
+  10008, // Unknown Message (message deleted)
+  50083  // Thread is archived (can't edit messages in archived threads)
 ]
 
 /**
@@ -24,4 +25,5 @@ module.exports = async (client, channelId, messageId, body) => {
     throw error
   }
 }
+
 
