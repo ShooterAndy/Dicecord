@@ -333,6 +333,19 @@ If you want your throw in the versus check re-rolled each time, you can use `...
 The result of the versus-checks can affect the next command part. See the "Conditional command 
 parts" section for more information about that.
 
+### Versus total
+If you want a total success count to be displayed at the end of a repeated versus-check, use `vst`
+(versus, total) instead of `vs`:
+
+```/roll roll_command: 1d20+5 | 5 vst 10, 15...```
+> 1d20 + 5 (5 rolls):
+> * Roll 1: 19 + _5_ = **24** vst 10, **success**;
+> * Roll 2: 3 + _5_ = **8** vst 15, _failure_;
+> * Roll 3: 18 + _5_ = **23** vst 15, **success**;
+> * Roll 4: 1 + _5_ = **6** vst 15, _failure_;
+> * Roll 5: 12 + _5_ = **17** vst 15, **success**.
+> Total: **3** / 5 successes.
+
 ## Comments
 A command part can have a comment that will be displayed in the results. To add a comment to a 
 command part, add a `?` symbol and follow it with your comment's text. For example:

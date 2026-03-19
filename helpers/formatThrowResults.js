@@ -126,6 +126,31 @@ const getFormattedTextFromThrow = (t, format, nextThrow) => {
       }
     }
     text += format.listEnd
+
+    // Show total success count for vst (versus with total)
+    if (t.showVsTotal && t.vsResults && t.vsValues) {
+      const successResults = [
+        VS_CHECK_RESULTS.success,
+        VS_CHECK_RESULTS.criticalDnD4,
+        VS_CHECK_RESULTS.criticalDh,
+        VS_CHECK_RESULTS.successWithHopeDh,
+        VS_CHECK_RESULTS.successWithFearDh
+      ]
+      let totalChecked = 0
+      let successCount = 0
+      for (let i = 0; i < t.vsResults.length; i++) {
+        if (t.vsValues[i]) {
+          totalChecked++
+          if (successResults.includes(t.vsResults[i])) {
+            successCount++
+          }
+        }
+      }
+      if (totalChecked > 1) {
+        text += '\nTotal: ' + format.boldStart + successCount + format.boldEnd +
+          ' / ' + totalChecked + ' successes.'
+      }
+    }
   } else {
     let commentText = ''
     if (t.comment && !t.shouldAppendComment) {
@@ -574,7 +599,7 @@ const getFinalResultText = (t, format, index) => {
   }
 
   if (t.vsValues && t.vsValues[index]) {
-    text += format.space + format.vs + format.space
+    text += format.space + (t.showVsTotal ? format.vs + 't' : format.vs) + format.space
     const intermediateVsResult = getIntermediateResultsText(t.vsValues[index], format, 0)
     if (intermediateVsResult) {
       text += intermediateVsResult + format.space + '=' + format.space

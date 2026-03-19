@@ -54,6 +54,7 @@ const {
   APPEND_COMMENT_SEPARATOR,
 
   VERSUS_SEPARATOR,
+  VERSUS_SEPARATOR_TOTAL,
   VERSUS_PARTS_SEPARATOR,
   VERSUS_REPEATER,
   VERSUS_REROLLER,
@@ -551,12 +552,21 @@ const separateCommentFromThrow = unprocessedCommand => {
 // -----------------------------------------------------------------------------------------------
 
 const processVsPart = thisThrow => {
-  const splitParts = thisThrow.formula.split(VERSUS_SEPARATOR)
+  // Try 'vst' (versus with total) before 'vs' since 'vst' contains 'vs'
+  let vsSeparatorUsed = VERSUS_SEPARATOR
+  let splitParts = thisThrow.formula.split(VERSUS_SEPARATOR_TOTAL)
+  if (splitParts.length >= 2) {
+    vsSeparatorUsed = VERSUS_SEPARATOR_TOTAL
+    thisThrow.showVsTotal = true
+  } else {
+    splitParts = thisThrow.formula.split(VERSUS_SEPARATOR)
+  }
+
   if (splitParts.length === 1) { // we don't have a versus separator
     return
   } else if (splitParts.length !== 2) { // Something wrong's going on here
     addWarning(nws`your throw command \`${thisThrow.originalFormula}\` seemed to have more \
-          than one \`${VERSUS_SEPARATOR}\` in it, so they will all be ignored`)
+          than one \`${vsSeparatorUsed}\` in it, so they will all be ignored`)
     thisThrow.formula = splitParts[0].trim()
     return
   }
@@ -565,11 +575,11 @@ const processVsPart = thisThrow => {
   const formula = splitParts[0].trim()
   const vsPart = splitParts[1].trim()
   if (!formula) {
-    throw w(nws`there is no throw command before the \`${VERSUS_SEPARATOR}\` in \
+    throw w(nws`there is no throw command before the \`${vsSeparatorUsed}\` in \
           \`${thisThrow.originalFormula}\`, so this throw will be ignored`)
   }
   if (!vsPart) {
-    addWarning(nws`there is no versus value specified after the \`${VERSUS_SEPARATOR}\` in \
+    addWarning(nws`there is no versus value specified after the \`${vsSeparatorUsed}\` in \
           \`${thisThrow.originalFormula}\`, so this check will be ignored`)
     thisThrow.formula = splitParts[0].trim()
     return
@@ -587,7 +597,7 @@ const processVsPart = thisThrow => {
   vsValues.forEach(vsValue => {
     let trimmedVsValue = vsValue.trim()
     if (!trimmedVsValue) {
-      addWarning(nws`one of the versus values after the \`${VERSUS_SEPARATOR} in \
+      addWarning(nws`one of the versus values after the \`${vsSeparatorUsed} in \
               \`${thisThrow.originalFormula}\` was empty, so it will be ignored`)
     } else {
       let shouldRepeat = false
@@ -2288,7 +2298,7 @@ const getThrowFormulaText = t => {
   }
 
   if (t.vsValues && t.vsValues.length) {
-    text += ' ' + VERSUS_SEPARATOR + ' '
+    text += ' ' + (t.showVsTotal ? VERSUS_SEPARATOR_TOTAL : VERSUS_SEPARATOR) + ' '
     t.vsValues.forEach((vsThrow, index) => {
       text += getThrowFormulaText(vsThrow)
       if (index < t.vsValues.length - 1) {
