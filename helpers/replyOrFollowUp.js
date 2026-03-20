@@ -2,6 +2,7 @@ const logger = require('./logger')
 const nws = require('./nws')
 const retryable = require('./retryableDiscordRequest')
 const truncate = require('./truncate')
+const embedToPlainText = require('./embedToPlainText')
 
 const _serializeForLog = (content) => {
   try {
@@ -11,10 +12,26 @@ const _serializeForLog = (content) => {
   }
 }
 
+const _maybeConvertToPlainText = async (interaction, content) => {
+  if (!content || !content.embeds || !content.embeds.length) return content
+  if (!interaction || !interaction.guildId) return content
+  try {
+    const Client = require('./client')
+    const plainText = await Client.getPlainTextMode(interaction.guildId)
+    if (plainText) {
+      return embedToPlainText(content)
+    }
+  } catch {
+    // On failure, fall through to embed mode
+  }
+  return content
+}
+
 module.exports = async (interaction, content) => {
   if (!content) {
     logger.error(`No content in replyOrFollowUp`)
   }
+  content = await _maybeConvertToPlainText(interaction, content)
   if (interaction) {
     if (interaction.isRepliable()) {
       if (!interaction.replied) {

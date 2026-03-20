@@ -30,15 +30,22 @@ All the commands this bot will respond to should be prefixed with the ```/``` sy
 The currently available commands are:
 
 * ```/help``` &mdash; provides information about this bot. Add a topic, such as a name of a 
-command, to learn more about it, like ```/help topic:roll```.
+command, to learn more about it, like ```/help topic:roll```. You can also browse all available 
+topics with ```/help topic:topics```, or look up specific roll modifiers, dice types, and syntax 
+features directly (e.g. ```/help topic:roll modifier: kh```).
 * [/roll](https://github.com/ShooterAndy/Dicecord/blob/master/detailedHelp/roll.md) — 
-rolls dice, supports multiple types of dice rolls, multiple rolls, etc.
+rolls dice, supports multiple types of dice rolls, multiple rolls, etc. Includes special dice 
+such as [FUDGE](https://en.wikipedia.org/wiki/Fudge_(role-playing_game_system)#Fudge_dice), 
+[Fallout 2d20 combat dice](https://www.modiphius.net/pages/falloutrpg), and 
+[Daggerheart Duality Dice](https://www.daggerheart.com/).
 * [/order](https://github.com/ShooterAndy/Dicecord/blob/master/help/order.md) — 
 randomly re-orders a comma-separated list.
 * [/pick](https://github.com/ShooterAndy/Dicecord/blob/master/help/pick.md) — 
-picks a random item from a comma-separated list.
+picks a random item (or several) from a comma-separated list.
 * [/slots](https://github.com/ShooterAndy/Dicecord/blob/master/help/slots.md) —
 pulls the lever on a customizable slot machine.
+* [/settings](https://github.com/ShooterAndy/Dicecord/blob/master/help/settings.md) —
+configures per-server bot settings (admin only), such as plain text mode.
 * **Card-related commands:**
   * [/listDeckTypes](https://github.com/ShooterAndy/Dicecord/blob/master/help/listdecktypes.md) — 
 lists all existing deck types.
@@ -52,6 +59,8 @@ draws the requested amount of cards from the saved deck.
 deals the requested amount of cards from the saved deck (can deal into DMs).
   * [/drawShuffled](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawshuffled.md) — 
 draws the requested amount of cards from a fresh deck without saving it.
+  * /drawPrivate — draws the requested amount of cards from the saved deck and sends the results 
+to your Direct Messages.
   * [/insert](https://github.com/ShooterAndy/Dicecord/blob/master/help/insert.md) — 
 inserts specified card(s) into the saved deck at random positions.
 * **Saving commands** 

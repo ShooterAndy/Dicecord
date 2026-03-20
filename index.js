@@ -50,10 +50,9 @@ manager.extend(
 
 // --- Adaptive memory monitoring (console-only unless thresholds are breached) ---
 const DYNO_QUOTA_MB = 1024
-const MEMORY_WARN_RATIO = 0.70   // 70% → start logging every tick
-const MEMORY_CRIT_RATIO = 0.90   // 90% → also alert to Discord log channel
+const MEMORY_WARN_RATIO = 0.90   // 90% → start logging to console every tick
+const MEMORY_CRIT_RATIO = 1.00   // 100% → also alert to Discord log channel
 const MEMORY_POLL_MS = 60_000    // check every 60 seconds
-const MEMORY_QUIET_INTERVAL = 10 // in quiet mode, only log to console every Nth tick
 const MEMORY_HOURLY_INTERVAL = 60 // send stats to Discord log channel every Nth tick (60 × 60s = 1h)
 
 const _formatMB = (bytes) => (bytes / 1024 / 1024).toFixed(1)
@@ -88,7 +87,6 @@ const collectMemoryStats = async () => {
   const ratio = totalRssMB / DYNO_QUOTA_MB
   const isWarning = ratio >= MEMORY_WARN_RATIO
   const isCritical = ratio >= MEMORY_CRIT_RATIO
-  const isQuietTick = _memoryTickCount % MEMORY_QUIET_INTERVAL !== 0
   const isHourlyTick = _memoryTickCount % MEMORY_HOURLY_INTERVAL === 0
 
   // Build summary lines (needed for both console and Discord)
@@ -108,9 +106,8 @@ const collectMemoryStats = async () => {
   const totalLine = `[MEMORY] total rss=${totalRssMB.toFixed(1)}MB / ${DYNO_QUOTA_MB}MB `
     + `(${(ratio * 100).toFixed(0)}%)`
 
-  // Console logging: every tick when warning+, every MEMORY_QUIET_INTERVAL ticks otherwise
-  const shouldLogToConsole = isWarning || !isQuietTick
-  if (shouldLogToConsole) {
+  // Console logging: only when warning threshold is crossed
+  if (isWarning) {
     console.log(managerLine)
     clusterLines.forEach(line => console.log(line))
     console.log(totalLine)

@@ -21,9 +21,19 @@ module.exports = {
         embed.setFooter({ text: footer })
       }
     } catch (error) {
-      logger.error(`Failed to create a common reply embed with name "${name}" and text "${text}"`,
-        error)
-      return null
+      const nestedInfo = error.errors
+        ? `\nValidation errors: ${JSON.stringify(error.errors, null, 2)}`
+        : ''
+      logger.error(`Failed to create a common reply embed with name "${name}" and text "${text}"` +
+        nestedInfo, error)
+      // Fallback to plain text so callers don't crash
+      const fallbackParts = []
+      if (name) fallbackParts.push(`**${name}**`)
+      if (text) fallbackParts.push(text)
+      if (footer) fallbackParts.push(`_${footer}_`)
+      return {
+        content: truncate(fallbackParts.join('\n'))
+      }
     }
 
     return {

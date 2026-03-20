@@ -5,7 +5,10 @@ const {
   DECK_TYPES_DB_NAME,
   CUSTOM_DECK_TYPE,
   SAVED_COMMANDS_COLUMNS,
-  SAVED_COMMANDS_DB_NAME
+  SAVED_COMMANDS_DB_NAME,
+  GUILD_SETTINGS_DB_NAME,
+  GUILD_SETTINGS_COLUMNS,
+  GUILD_SETTINGS_DEFAULTS
 } = require('./constants')
 const nws = require('./nws')
 const logger = require('./logger')
@@ -93,6 +96,26 @@ const _sweepSavedCmdCache = () => {
 
 setInterval(_sweepSavedCmdCache, SAVED_CMD_CACHE_SWEEP_INTERVAL_MS)
 
+// --- Guild-settings cache (plain_text flag, per guild, long TTL) ---
+const GUILD_SETTINGS_CACHE_MAX_SIZE = 500
+const GUILD_SETTINGS_CACHE_TTL_MS = 10 * 60 * 1000 // 10 minutes
+const GUILD_SETTINGS_CACHE_SWEEP_INTERVAL_MS = 5 * 60 * 1000
+
+const _guildSettingsCache = new Map()    // guildId -> { plainText: boolean }
+const _guildSettingsCacheTs = new Map()  // guildId -> timestamp
+
+const _sweepGuildSettingsCache = () => {
+  const now = Date.now()
+  for (const [id, ts] of _guildSettingsCacheTs) {
+    if (now - ts > GUILD_SETTINGS_CACHE_TTL_MS) {
+      _guildSettingsCache.delete(id)
+      _guildSettingsCacheTs.delete(id)
+    }
+  }
+}
+
+setInterval(_sweepGuildSettingsCache, GUILD_SETTINGS_CACHE_SWEEP_INTERVAL_MS)
+
 const Client = module.exports = {
 
   client: null,
@@ -144,6 +167,89 @@ const Client = module.exports = {
   invalidateSavedCmdNamesCache (userId) {
     _savedCmdCache.delete(userId)
     _savedCmdCacheTs.delete(userId)
+  },
+
+  // --- Guild-settings helpers ---
+  async getPlainTextMode (guildId) {
+    if (!guildId) return false
+    // Check cache first
+    if (_guildSettingsCache.has(guildId)) {
+      const ts = _guildSettingsCacheTs.get(guildId)
+      if (Date.now() - ts <= GUILD_SETTINGS_CACHE_TTL_MS) {
+        return _guildSettingsCache.get(guildId).plainText
+      }
+      _guildSettingsCache.delete(guildId)
+      _guildSettingsCacheTs.delete(guildId)
+    }
+    // Fetch from DB
+    try {
+      const row = await pg.db.oneOrNone(
+        'SELECT ${plainText~} FROM ${db#} WHERE ${guildId~} = ${guildIdValue}',
+        {
+          plainText: GUILD_SETTINGS_COLUMNS.plain_text,
+          db: pg.addPrefix(GUILD_SETTINGS_DB_NAME),
+          guildId: GUILD_SETTINGS_COLUMNS.guild_id,
+          guildIdValue: guildId
+        }
+      )
+      const value = !!(row && row[GUILD_SETTINGS_COLUMNS.plain_text])
+      this._cacheGuildSetting(guildId, value)
+      return value
+    } catch (err) {
+      logger.error(`Failed to fetch guild settings for guild "${guildId}"`, err)
+      return false
+    }
+  },
+
+  async setPlainTextMode (guildId, enabled) {
+    try {
+      if (this._areAllSettingsDefault({ [GUILD_SETTINGS_COLUMNS.plain_text]: enabled })) {
+        // All settings are defaults — remove the row to save space
+        await pg.db.none(
+          'DELETE FROM ${db#} WHERE ${guildId~} = ${guildIdValue}',
+          {
+            db: pg.addPrefix(GUILD_SETTINGS_DB_NAME),
+            guildId: GUILD_SETTINGS_COLUMNS.guild_id,
+            guildIdValue: guildId
+          }
+        )
+      } else {
+        await pg.db.none(
+          `INSERT INTO \${db#} (\${guildId~}, \${plainText~})
+           VALUES (\${guildIdValue}, \${enabledValue})
+           ON CONFLICT (\${guildId~})
+           DO UPDATE SET \${plainText~} = \${enabledValue}`,
+          {
+            db: pg.addPrefix(GUILD_SETTINGS_DB_NAME),
+            guildId: GUILD_SETTINGS_COLUMNS.guild_id,
+            plainText: GUILD_SETTINGS_COLUMNS.plain_text,
+            guildIdValue: guildId,
+            enabledValue: enabled
+          }
+        )
+      }
+      this._cacheGuildSetting(guildId, enabled)
+    } catch (err) {
+      logger.error(`Failed to set plain_text for guild "${guildId}"`, err)
+      throw err
+    }
+  },
+
+  // Returns true when every setting in the given object matches its default value.
+  _areAllSettingsDefault (settings) {
+    return Object.keys(GUILD_SETTINGS_DEFAULTS).every(key =>
+      settings[key] === GUILD_SETTINGS_DEFAULTS[key]
+    )
+  },
+
+  _cacheGuildSetting (guildId, plainText) {
+    if (_guildSettingsCache.size >= GUILD_SETTINGS_CACHE_MAX_SIZE) {
+      const oldestId = _guildSettingsCacheTs.keys().next().value
+      _guildSettingsCache.delete(oldestId)
+      _guildSettingsCacheTs.delete(oldestId)
+    }
+    _guildSettingsCache.set(guildId, { plainText })
+    _guildSettingsCacheTs.set(guildId, Date.now())
   },
 
   async tryToLogIn (errorsCount, previousError, currentError) {

@@ -20,6 +20,12 @@ module.exports.DB_PREFIX = 'public'
 module.exports.PREFIXES_DB_NAME = 'prefixes'
 module.exports.PREFIXES_COLUMNS = { guild_id: 'guild_id', prefix: 'prefix' }
 
+module.exports.GUILD_SETTINGS_DB_NAME = 'guild_settings'
+module.exports.GUILD_SETTINGS_COLUMNS = { guild_id: 'guild_id', plain_text: 'plain_text' }
+module.exports.GUILD_SETTINGS_DEFAULTS = {
+  [this.GUILD_SETTINGS_COLUMNS.plain_text]: false
+}
+
 module.exports.CUSTOM_DECK_TYPE = 'custom'
 module.exports.CARD_SEPARATOR = ','
 module.exports.MAX_DEAL_TARGETS = 10

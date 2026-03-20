@@ -31,7 +31,7 @@ const formatDescription = (key, desc) => {
 
 const ROLL_ALL_TOPICS = 'roll topics'
 const TOPICS_TOPIC = 'topics'
-const GENERAL_TOPICS = ['commands', 'permissions', 'saving']
+const GENERAL_TOPICS = ['commands', 'permissions', 'saving', 'settings']
 
 module.exports = async (interaction, args) => {
   const topic = (args.topic || '').trim().toLowerCase()

@@ -26,4 +26,8 @@ rest.put(route, { body: commands }).then(() => {
   const commandNames = commands.map(c => c.name)
   const suffix = process.env.IS_LOCAL ? ' (local)' : ''
   console.log(`Successfully registered application commands${suffix}: "${commandNames.join('", "')}".`)
-}).catch(console.error)
+  process.exit(0)
+}).catch(err => {
+  console.error(err)
+  process.exit(1)
+})
