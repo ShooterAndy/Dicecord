@@ -231,7 +231,6 @@ const Client = module.exports = {
       ThreadMemberManager: 0, // threadChannel.members
       UserManager: 0, // client.users
       VoiceStateManager: 0, // guild.voiceStates
-      ChannelManager: 0 // client.channels — fetched on demand
     })
     Client.client = new Discord.Client(options)
     Client.client.cluster = new ClusterClient(Client.client)

@@ -11,13 +11,22 @@ const nws = require('./nws')
 const send = require('./send')
 const truncate = require('./truncate')
 
+let _fallbackRest = null
+const _getFallbackRest = () => {
+  if (!_fallbackRest) {
+    const { REST } = require('@discordjs/rest')
+    _fallbackRest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN)
+  }
+  return _fallbackRest
+}
+
 const _trySendDirect = async (text) => {
   const Client = require('./client')
-  if (!Client.client || !Client.client.rest) return false
+  const rest = (Client.client && Client.client.rest) || _getFallbackRest()
   try {
     const { Routes } = require('discord-api-types/v10')
     const { MessageFlags } = require('discord-api-types/v10')
-    await Client.client.rest.post(Routes.channelMessages(LOG_CHANNEL_ID), {
+    await rest.post(Routes.channelMessages(LOG_CHANNEL_ID), {
       body: { content: truncate(text), flags: MessageFlags.SuppressEmbeds }
     })
     return true
@@ -51,10 +60,7 @@ module.exports = {
       return this.sendMessage(LOG_TYPES.error, nws`Forgot to include the log type for this \
         log message`, text)
     }
-    if (!Client.client || !Client.client.cluster) {
-      return this.sendConsoleMessage(type, text, additionalInfo)
-    }
-    if (IS_LOCAL) {
+    if (IS_LOCAL || !Client.client || !Client.client.cluster) {
       this.sendConsoleMessage(type, text, additionalInfo)
     }
     if (!LOG_CHANNEL_ID) {
@@ -85,7 +91,11 @@ module.exports = {
 
         messageText = truncate(messageText)
 
-        return await _trySendDirect(messageText) || send(messageText, LOG_CHANNEL_ID, true)
+        if (await _trySendDirect(messageText)) return
+        // send() requires a live Client — only attempt if available
+        if (Client.client && Client.client.cluster) {
+          return await send(messageText, LOG_CHANNEL_ID, true)
+        }
       } catch (error) {
         return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Failed to send a message to the \
           log channel:\n${error}\n\nOriginal log message:\n${text}`)
