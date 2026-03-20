@@ -232,6 +232,26 @@ const Client = module.exports = {
       UserManager: 0, // client.users
       VoiceStateManager: 0, // guild.voiceStates
     })
+
+    // Sweepers clean up stale entries that accumulate despite makeCache limits.
+    // ChannelManager can't be limited via makeCache, so the sweeper is essential.
+    options.sweepers = {
+      ...Discord.Options.DefaultSweeperSettings,
+      messages: {
+        interval: 600,   // every 10 minutes (seconds)
+        lifetime: 300    // older than 5 minutes
+      },
+      users: {
+        interval: 600,
+        filter: Discord.Sweepers.filterByLifetime({
+          lifetime: 600  // 10 minutes
+        })
+      },
+      threads: {
+        interval: 600,
+        lifetime: 600
+      }
+    }
     Client.client = new Discord.Client(options)
     Client.client.cluster = new ClusterClient(Client.client)
 
