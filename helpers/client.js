@@ -284,14 +284,23 @@ const Client = module.exports = {
               choices.push(file)
             }
           }
-          // Add modifier topics
-          const modifierDescriptions = require('./modifierDescriptions')
-          const { MODIFIER_TOPIC_PREFIX, ALL_MODIFIERS_TOPIC } = require('../commandHandlers/help')
-          choices.push(ALL_MODIFIERS_TOPIC)
-          for (const abbr of Object.keys(modifierDescriptions)) {
-            choices.push(MODIFIER_TOPIC_PREFIX + abbr)
+          // Add roll topic entries (modifiers, dice types, syntax)
+          // Priority choices (category overviews) come first so they aren't pushed
+          // past the 25-item Discord autocomplete limit by individual entries
+          const { ROLL_TOPICS, ROLL_ALL_TOPICS, TOPICS_TOPIC, GENERAL_TOPICS } = require('../commandHandlers/help')
+          const priorityChoices = [TOPICS_TOPIC, ...GENERAL_TOPICS, ROLL_ALL_TOPICS]
+          const detailChoices = []
+          for (const category of Object.values(ROLL_TOPICS)) {
+            priorityChoices.push(category.listTopic)
+            for (const key of Object.keys(category.descriptions)) {
+              detailChoices.push(category.prefix + key)
+            }
           }
-          const filtered = choices.filter(choice => choice.startsWith(focusedValue))
+          const filteredPriority = priorityChoices.filter(c => c.startsWith(focusedValue))
+          const filteredExact = choices.filter(c => c === focusedValue)
+          const filteredChoices = choices.filter(c => c.startsWith(focusedValue) && c !== focusedValue)
+          const filteredDetail = detailChoices.filter(c => c.startsWith(focusedValue))
+          const filtered = [...filteredExact, ...filteredPriority, ...filteredChoices, ...filteredDetail]
             .slice(0, 25) // Discord autocomplete limit
           await retryable(
             () => interaction.respond(
