@@ -3,8 +3,10 @@ const { transformMinutesToMs } = require('./utilities')
 const {
   SAVE_BUTTON_EXPIRE_AFTER_INT,
   GENERIC_SAVE_BUTTON_ID,
+  GENERIC_GUILD_SAVE_BUTTON_ID,
   MAX_SAVED_COMMAND_NAME_LENGTH,
   MAX_SAVED_COMMANDS_PER_USER,
+  MAX_GUILD_SAVED_COMMANDS_PER_USER,
   UPSERT_SAVED_COMMAND_RESULTS,
   SAVED_COMMANDS_EXPIRE_AFTER
 } = require('./constants')
@@ -21,7 +23,8 @@ const editMessage = require('./editMessage')
 module.exports = {
   async launch(interaction, response, parameters) {
     const filter = i => {
-      return (i.customId === GENERIC_SAVE_BUTTON_ID) &&
+      return (i.customId === GENERIC_SAVE_BUTTON_ID ||
+              i.customId === GENERIC_GUILD_SAVE_BUTTON_ID) &&
         (i.user.id === interaction.user.id)
     }
 
@@ -33,6 +36,9 @@ module.exports = {
     })
 
     collector.on('collect', async i => {
+      const isGuildSave = i.customId === GENERIC_GUILD_SAVE_BUTTON_ID
+      const guildId = isGuildSave ? interaction.guildId : null
+
       const nameInput = new TextInputBuilder()
         .setCustomId('name')
         .setLabel(`Name for your saved command`)
@@ -43,7 +49,7 @@ module.exports = {
       const nameRow = new ActionRowBuilder().addComponents(nameInput)
       const modal = new ModalBuilder()
         .setCustomId('genericSaveModal')
-        .setTitle('Save your command?')
+        .setTitle(isGuildSave ? 'Save command for server?' : 'Save command for you?')
         .addComponents(nameRow)
       await retryable(() => i.showModal(modal))
 
@@ -85,16 +91,19 @@ module.exports = {
             return null
           })
 
+        const limit = isGuildSave ? MAX_GUILD_SAVED_COMMANDS_PER_USER : MAX_SAVED_COMMANDS_PER_USER
+
         try {
           const result = await pg.db.one(
             'SELECT upsert_saved_command(${userId}, ${name}, ${command}, ${limit}, ' +
-              '${parameters})',
+              '${parameters}, ${guildId})',
             {
               userId: interaction.user.id,
               name,
               command: interaction.commandName.toLowerCase(),
-              limit: MAX_SAVED_COMMANDS_PER_USER,
-              parameters: JSON.stringify(parameters || interaction.options.data)
+              limit,
+              parameters: JSON.stringify(parameters || interaction.options.data),
+              guildId
             })
           if (!result || !result.upsert_saved_command) {
             logger.error(`The result of upsert_saved_command appears to be empty`)
@@ -105,18 +114,28 @@ module.exports = {
             case UPSERT_SAVED_COMMAND_RESULTS.inserted:
             case UPSERT_SAVED_COMMAND_RESULTS.updated: {
               Client.invalidateSavedCmdNamesCache(interaction.user.id)
+              if (isGuildSave && guildId) {
+                Client.invalidateGuildSavedCmdNamesCache(guildId)
+              }
               const isInsert = result.upsert_saved_command === UPSERT_SAVED_COMMAND_RESULTS.inserted
+              const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
               return await replyOrFollowUp(submitted, commonReplyEmbed.get(
                 isInsert ? 'Save successful!' : 'Update successful!',
-                nws`Your command \`${name}\` was ${isInsert ? 'saved' : 'successfully updated'}! \
-                You can use it via \`/executeSaved\` or examine it via \`/examineSaved\`.\nBe \
+                nws`Your ${scopeLabel} command \`${name}\` was \
+                ${isInsert ? 'saved' : 'successfully updated'}! \
+                You can use it via:\n\`\`\`/executeSaved name:${name}\`\`\`\nor examine it \
+                via:\n\`\`\`/examineSaved name:${name}\`\`\`\nBe \
                 aware that your saved commands will expire and be automatically **deleted** after \
                 ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
             }
             case UPSERT_SAVED_COMMAND_RESULTS.limit: {
+              const limitNum = isGuildSave
+                ? MAX_GUILD_SAVED_COMMANDS_PER_USER
+                : MAX_SAVED_COMMANDS_PER_USER
+              const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
               return await replyOrFollowUp(submitted, errorEmbed.get(nws`Unfortunately, you \
-              already have ${MAX_SAVED_COMMANDS_PER_USER} saved commands. You can delete one via \
-              \`deleteSaved\``))
+              already have ${limitNum} ${scopeLabel} saved commands. You can delete one via \
+              \`/deleteSaved\``))
             }
             default: {
               logger.error(`Unknown upsert_saved_command type result`)

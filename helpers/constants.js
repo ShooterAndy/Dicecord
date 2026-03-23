@@ -42,19 +42,6 @@ module.exports.DECKS_COLUMNS = {
 }
 module.exports.DECKS_EXPIRE_AFTER = '30 days'
 
-module.exports.SAVED_ROLL_COMMANDS_DB_NAME = 'saved_roll_commands'
-module.exports.SAVED_ROLL_COMMANDS_COLUMNS = {
-  user_id: 'user_id', name: 'name', command: 'command', timestamp: 'timestamp'
-}
-module.exports.SAVED_ROLL_COMMANDS_EXPIRE_AFTER = '30 days'
-module.exports.MAX_SAVED_ROLL_COMMANDS_PER_USER = 10
-module.exports.UPSERT_SAVED_ROLL_COMMAND_RESULTS = {
-  inserted: 'inserted',
-  updated: 'updated',
-  limit: 'limit'
-}
-module.exports.MAX_SAVED_ROLL_COMMAND_NAME_LENGTH = 16
-
 module.exports.MESSAGES_DB_NAME = 'messages'
 module.exports.MESSAGES_COLUMNS = {
   message_id: 'message_id',
@@ -392,10 +379,12 @@ module.exports.MINIMUM_SLOTS_SYMBOLS = 2
 module.exports.MAXIMUM_SLOTS_SYMBOLS = 32
 // -------------------------------------------------------------------------------------------------
 module.exports.GENERIC_SAVE_BUTTON_ID = 'generic_save'
+module.exports.GENERIC_GUILD_SAVE_BUTTON_ID = 'generic_guild_save'
 
 module.exports.SAVED_COMMANDS_DB_NAME = 'saved_commands'
 module.exports.SAVED_COMMANDS_COLUMNS = {
   user_id: 'user_id',
+  guild_id: 'guild_id',
   name: 'name',
   command: 'command',
   timestamp: 'timestamp',
@@ -403,9 +392,14 @@ module.exports.SAVED_COMMANDS_COLUMNS = {
 }
 module.exports.SAVED_COMMANDS_EXPIRE_AFTER = '30 days'
 module.exports.MAX_SAVED_COMMANDS_PER_USER = 10
+module.exports.MAX_GUILD_SAVED_COMMANDS_PER_USER = 10
 module.exports.UPSERT_SAVED_COMMAND_RESULTS = {
   inserted: 'inserted',
   updated: 'updated',
   limit: 'limit'
 }
 module.exports.MAX_SAVED_COMMAND_NAME_LENGTH = 16
+
+module.exports.SAVED_CMD_SCOPE_PERSONAL = 'p:'
+module.exports.SAVED_CMD_SCOPE_GUILD = 'g:'
+

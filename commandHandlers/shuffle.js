@@ -31,7 +31,8 @@ module.exports = async (interaction, args) => {
       deck = await getAndProcessDeckFromDb(deckId)
     }
     const replyText = await saveShuffledDeck(interaction, deckId, deck)
-    const reply = saveableReplyEmbed.get('Shuffled!', replyText)
+    const reply = saveableReplyEmbed.get('Shuffled!', replyText,
+      null, { guildId: interaction.guildId })
     reply.fetchReply = true
 
     const r = await replyOrFollowUp(interaction, reply)

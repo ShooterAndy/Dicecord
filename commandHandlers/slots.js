@@ -60,7 +60,8 @@ module.exports = async (interaction, args) => {
     const position = random.integer(0, slots.length - 1)
     slotResults.push(slots.slice(position, position + 1))
   }
-  const reply = saveableReplyEmbed.get('Your pull results:', `|${slotResults.join('|')}|`)
+  const reply = saveableReplyEmbed.get('Your pull results:', `|${slotResults.join('|')}|`,
+    null, { guildId: interaction.guildId })
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)

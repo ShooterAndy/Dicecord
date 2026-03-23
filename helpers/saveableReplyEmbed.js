@@ -1,20 +1,32 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
 const logger = require('./logger')
-const { SAVE_EMOJI, GENERIC_SAVE_BUTTON_ID } = require('./constants')
+const { SAVE_EMOJI, GENERIC_SAVE_BUTTON_ID, GENERIC_GUILD_SAVE_BUTTON_ID } = require('./constants')
 const commonReplyEmbed = require('./commonReplyEmbed')
 const truncate = require('./truncate')
 
-const _buildSaveButton = () => new ActionRowBuilder()
-  .addComponents(
-    new ButtonBuilder()
-      .setCustomId(GENERIC_SAVE_BUTTON_ID)
-      .setLabel('Save command')
-      .setEmoji(SAVE_EMOJI)
-      .setStyle(ButtonStyle.Primary)
-  )
+const _buildSaveButtons = (showGuildSave) => {
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(GENERIC_SAVE_BUTTON_ID)
+        .setLabel(showGuildSave ? 'Save for me' : 'Save command')
+        .setEmoji(SAVE_EMOJI)
+        .setStyle(ButtonStyle.Primary)
+    )
+  if (showGuildSave) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(GENERIC_GUILD_SAVE_BUTTON_ID)
+        .setLabel('Save for server')
+        .setEmoji(SAVE_EMOJI)
+        .setStyle(ButtonStyle.Primary)
+    )
+  }
+  return row
+}
 
 module.exports = {
-  get(name, text, footer) {
+  get(name, text, footer, { guildId } = {}) {
     let content
     try {
       content = commonReplyEmbed.get(name, text, footer)
@@ -34,7 +46,7 @@ module.exports = {
       }
     }
 
-    content.components = [_buildSaveButton()]
+    content.components = [_buildSaveButtons(!!guildId)]
 
     return content
   }

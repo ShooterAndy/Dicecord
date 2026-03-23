@@ -8,25 +8,61 @@ const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
 const errorEmbed = require('../helpers/errorEmbed')
 const replyOrFollowUp = require('../helpers/replyOrFollowUp')
+const parseSavedCommandScope = require('../helpers/parseSavedCommandScope')
 
 module.exports = async (interaction, args) => {
-  const name = args.name ? args.name.trim().toLowerCase() : null
-  if (name) {
+  const raw = args.name ? args.name.trim().toLowerCase() : null
+  if (raw) {
+    const { scope, name } = parseSavedCommandScope(raw)
     let result
-    try {
-      result = await pg.db.oneOrNone(
+
+    const lookupPersonal = async () => pg.db.oneOrNone(
+      'SELECT ${name~},${command~},${parameters~} FROM ${db#} ' +
+      'WHERE ${userId~}=${userIdValue} AND ${name~}=${nameValue} AND ${guildId~} IS NULL',
+      {
+        name: SAVED_COMMANDS_COLUMNS.name,
+        command: SAVED_COMMANDS_COLUMNS.command,
+        parameters: SAVED_COMMANDS_COLUMNS.parameters,
+        db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+        userId: SAVED_COMMANDS_COLUMNS.user_id,
+        userIdValue: interaction.user.id,
+        guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+        nameValue: name
+      }
+    )
+
+    const lookupGuild = async () => {
+      if (!interaction.guildId) return null
+      return pg.db.oneOrNone(
         'SELECT ${name~},${command~},${parameters~} FROM ${db#} ' +
-        'WHERE ${userId~}=${userIdValue} AND ${name~}=${nameValue}',
+        'WHERE ${guildId~}=${guildIdValue} AND ${name~}=${nameValue}',
         {
           name: SAVED_COMMANDS_COLUMNS.name,
           command: SAVED_COMMANDS_COLUMNS.command,
           parameters: SAVED_COMMANDS_COLUMNS.parameters,
           db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
-          userId: SAVED_COMMANDS_COLUMNS.user_id,
-          userIdValue: interaction.user.id,
+          guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+          guildIdValue: interaction.guildId,
           nameValue: name
         }
       )
+    }
+
+    let isGuild = false
+    try {
+      if (scope === 'personal') {
+        result = await lookupPersonal()
+      } else if (scope === 'guild') {
+        result = await lookupGuild()
+        isGuild = true
+      } else {
+        // No scope prefix (manual input) — try personal first, then guild
+        result = await lookupPersonal()
+        if (!result) {
+          result = await lookupGuild()
+          if (result) isGuild = true
+        }
+      }
     } catch (error) {
       logger.error(`Failed to get saved command for execution of "${name}"`, error)
       return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to load the command. \
@@ -40,18 +76,34 @@ module.exports = async (interaction, args) => {
     }
 
     try {
-      await pg.db.none(
-        'UPDATE ${db#} SET ${timestamp~} = NOW() ' +
-        'WHERE ${userId~} = ${userIdValue} AND ${name~} = ${nameValue}',
-        {
-          db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
-          timestamp: SAVED_COMMANDS_COLUMNS.timestamp,
-          userId: SAVED_COMMANDS_COLUMNS.user_id,
-          userIdValue: interaction.user.id,
-          name: SAVED_COMMANDS_COLUMNS.name,
-          nameValue: name
-        }
-      )
+      if (isGuild) {
+        await pg.db.none(
+          'UPDATE ${db#} SET ${timestamp~} = NOW() ' +
+          'WHERE ${guildId~} = ${guildIdValue} AND ${name~} = ${nameValue}',
+          {
+            db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+            timestamp: SAVED_COMMANDS_COLUMNS.timestamp,
+            guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+            guildIdValue: interaction.guildId,
+            name: SAVED_COMMANDS_COLUMNS.name,
+            nameValue: name
+          }
+        )
+      } else {
+        await pg.db.none(
+          'UPDATE ${db#} SET ${timestamp~} = NOW() ' +
+          'WHERE ${userId~} = ${userIdValue} AND ${name~} = ${nameValue} AND ${guildId~} IS NULL',
+          {
+            db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+            timestamp: SAVED_COMMANDS_COLUMNS.timestamp,
+            userId: SAVED_COMMANDS_COLUMNS.user_id,
+            userIdValue: interaction.user.id,
+            guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+            name: SAVED_COMMANDS_COLUMNS.name,
+            nameValue: name
+          }
+        )
+      }
     } catch (error) {
       logger.error(`Failed to update timestamp for executing "${name}" saved command`, error)
       return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to update the command. \

@@ -20,7 +20,8 @@ module.exports = async (interaction, args) => {
     const cards = await processCards(args.cards)
     deck = insertCardsIntoDeck(deck, cards)
     const text = await saveDeck(interaction, deck, cards)
-    const reply = saveableReplyEmbed.get('Inserted!', text)
+    const reply = saveableReplyEmbed.get('Inserted!', text,
+      null, { guildId: interaction.guildId })
     reply.fetchReply = true
 
     const r = await replyOrFollowUp(interaction, reply)

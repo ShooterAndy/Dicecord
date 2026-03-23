@@ -118,7 +118,8 @@ const processDrawCommand = async (interaction, numberOfCardsToDraw, comment, ver
       }
     }
   }
-  const reply = saveableReplyEmbed.get('Your cards:', text)
+  const reply = saveableReplyEmbed.get('Your cards:', text,
+    null, { guildId: interaction.guildId })
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply).catch(() => { return null })

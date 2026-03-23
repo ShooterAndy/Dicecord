@@ -73,7 +73,8 @@ module.exports = async (interaction, args) => {
     }
   })
 
-  const reply = saveableReplyEmbed.get('Ordered items in your list:', choicesString)
+  const reply = saveableReplyEmbed.get('Ordered items in your list:', choicesString,
+    null, { guildId: (originalInteraction || interaction).guildId })
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)

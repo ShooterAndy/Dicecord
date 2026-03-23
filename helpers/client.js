@@ -6,6 +6,8 @@ const {
   CUSTOM_DECK_TYPE,
   SAVED_COMMANDS_COLUMNS,
   SAVED_COMMANDS_DB_NAME,
+  SAVED_CMD_SCOPE_PERSONAL,
+  SAVED_CMD_SCOPE_GUILD,
   GUILD_SETTINGS_DB_NAME,
   GUILD_SETTINGS_COLUMNS,
   GUILD_SETTINGS_DEFAULTS
@@ -96,6 +98,26 @@ const _sweepSavedCmdCache = () => {
 
 setInterval(_sweepSavedCmdCache, SAVED_CMD_CACHE_SWEEP_INTERVAL_MS)
 
+// --- Guild-saved-command-names autocomplete cache (per guild, short TTL) ---
+const GUILD_SAVED_CMD_CACHE_MAX_SIZE = 500
+const GUILD_SAVED_CMD_CACHE_TTL_MS = 60 * 1000
+const GUILD_SAVED_CMD_CACHE_SWEEP_INTERVAL_MS = 30 * 1000
+
+const _guildSavedCmdCache = new Map()   // guildId -> { name, userId }[]
+const _guildSavedCmdCacheTs = new Map() // guildId -> timestamp
+
+const _sweepGuildSavedCmdCache = () => {
+  const now = Date.now()
+  for (const [id, ts] of _guildSavedCmdCacheTs) {
+    if (now - ts > GUILD_SAVED_CMD_CACHE_TTL_MS) {
+      _guildSavedCmdCache.delete(id)
+      _guildSavedCmdCacheTs.delete(id)
+    }
+  }
+}
+
+setInterval(_sweepGuildSavedCmdCache, GUILD_SAVED_CMD_CACHE_SWEEP_INTERVAL_MS)
+
 // --- Guild-settings cache (plain_text flag, per guild, long TTL) ---
 const GUILD_SETTINGS_CACHE_MAX_SIZE = 500
 const GUILD_SETTINGS_CACHE_TTL_MS = 10 * 60 * 1000 // 10 minutes
@@ -167,6 +189,31 @@ const Client = module.exports = {
   invalidateSavedCmdNamesCache (userId) {
     _savedCmdCache.delete(userId)
     _savedCmdCacheTs.delete(userId)
+  },
+
+  // --- Guild-saved-command-names cache helpers ---
+  getGuildSavedCmdNamesCache (guildId) {
+    if (!_guildSavedCmdCache.has(guildId)) return null
+    const ts = _guildSavedCmdCacheTs.get(guildId)
+    if (Date.now() - ts > GUILD_SAVED_CMD_CACHE_TTL_MS) {
+      _guildSavedCmdCache.delete(guildId)
+      _guildSavedCmdCacheTs.delete(guildId)
+      return null
+    }
+    return _guildSavedCmdCache.get(guildId)
+  },
+  setGuildSavedCmdNamesCache (guildId, entries) {
+    if (_guildSavedCmdCache.size >= GUILD_SAVED_CMD_CACHE_MAX_SIZE) {
+      const oldestId = _guildSavedCmdCacheTs.keys().next().value
+      _guildSavedCmdCache.delete(oldestId)
+      _guildSavedCmdCacheTs.delete(oldestId)
+    }
+    _guildSavedCmdCache.set(guildId, entries)
+    _guildSavedCmdCacheTs.set(guildId, Date.now())
+  },
+  invalidateGuildSavedCmdNamesCache (guildId) {
+    _guildSavedCmdCache.delete(guildId)
+    _guildSavedCmdCacheTs.delete(guildId)
   },
 
   // --- Guild-settings helpers ---
@@ -460,34 +507,83 @@ const Client = module.exports = {
           (interaction.commandName === 'deletesaved') ||
           (interaction.commandName === 'executesaved')) {
           const focusedValue = interaction.options.getFocused()
-          let choices = safeThis.getSavedCmdNamesCache(interaction.user.id)
-          if (!choices) {
-            choices = []
+          const guildId = interaction.guildId
+
+          // --- Personal commands ---
+          let personalNames = safeThis.getSavedCmdNamesCache(interaction.user.id)
+          if (!personalNames) {
+            personalNames = []
             try {
               const result = await pg.db.any(
-                'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue}',
+                'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue} AND ${guildId~} IS NULL',
                 {
                   name: SAVED_COMMANDS_COLUMNS.name,
                   db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
                   userId: SAVED_COMMANDS_COLUMNS.user_id,
-                  userIdValue: interaction.user.id
+                  userIdValue: interaction.user.id,
+                  guildId: SAVED_COMMANDS_COLUMNS.guild_id
                 })
-
               if (result && result.length) {
                 result.forEach(command => {
-                  choices.push(command.name)
+                  personalNames.push(command.name)
                 })
               }
-              safeThis.setSavedCmdNamesCache(interaction.user.id, choices)
+              safeThis.setSavedCmdNamesCache(interaction.user.id, personalNames)
             } catch(error) {
-              logger.log(`Failed to get the list of saved commands for autocomplete`, error)
+              logger.log(`Failed to get the list of personal saved commands for autocomplete`, error)
             }
           }
-          const filtered = choices.filter(choice => choice.startsWith(focusedValue))
+
+          // --- Guild commands ---
+          let guildEntries = [] // { name, userId }[]
+          if (guildId) {
+            guildEntries = safeThis.getGuildSavedCmdNamesCache(guildId)
+            if (!guildEntries) {
+              guildEntries = []
+              try {
+                const result = await pg.db.any(
+                  'SELECT ${name~}, ${userId~} FROM ${db#} WHERE ${guildId~} = ${guildIdValue}',
+                  {
+                    name: SAVED_COMMANDS_COLUMNS.name,
+                    userId: SAVED_COMMANDS_COLUMNS.user_id,
+                    db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+                    guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+                    guildIdValue: guildId
+                  })
+                if (result && result.length) {
+                  result.forEach(command => {
+                    guildEntries.push({ name: command.name, userId: command.user_id })
+                  })
+                }
+                safeThis.setGuildSavedCmdNamesCache(guildId, guildEntries)
+              } catch(error) {
+                logger.log(`Failed to get the list of guild saved commands for autocomplete`, error)
+              }
+            }
+          }
+
+          // Build choices with scope prefix in value and label suffix
+          const choices = []
+          personalNames.forEach(name => {
+            choices.push({
+              name: guildId ? `${name} (yours)` : name,
+              value: SAVED_CMD_SCOPE_PERSONAL + name
+            })
+          })
+          guildEntries.forEach(entry => {
+            choices.push({
+              name: `${entry.name} (server-wide)`,
+              value: SAVED_CMD_SCOPE_GUILD + entry.name
+            })
+          })
+
+          const filtered = choices
+            .filter(c => c.name.startsWith(focusedValue) ||
+              c.value.endsWith(focusedValue) ||
+              c.name.split(' (')[0].startsWith(focusedValue))
+            .slice(0, 25)
           await retryable(
-            () => interaction.respond(
-              filtered.map(choice => ({ name: choice, value: choice }))
-            )
+            () => interaction.respond(filtered)
           ).catch(error => {
             logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
           })

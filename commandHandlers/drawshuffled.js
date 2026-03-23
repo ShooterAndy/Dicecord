@@ -99,7 +99,8 @@ const processDrawShuffledCommand =
       }
 
       text += drawnCards.join(', ')
-      const reply = saveableReplyEmbed.get('Your cards:', text)
+      const reply = saveableReplyEmbed.get('Your cards:', text,
+        null, { guildId: interaction.guildId })
       reply.fetchReply = true
 
       const r = await replyOrFollowUp(interaction, reply)

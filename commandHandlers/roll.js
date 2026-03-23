@@ -2400,7 +2400,7 @@ const showResults = async (_interaction, additionalText) => {
         .setStyle(ButtonStyle.Secondary),
     )
   const content = saveableReplyEmbed.get(`Your${additionalText || ''} results:`,
-    formattedThrowResults)
+    formattedThrowResults, null, { guildId: _interaction.guildId })
   content.components.push(buttonsRow)
 
   const r = await replyOrFollowUp(_interaction, content).catch(() => { return null })

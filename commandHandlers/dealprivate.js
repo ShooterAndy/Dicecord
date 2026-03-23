@@ -28,7 +28,8 @@ module.exports = async (interaction, args) => {
     const text = await processDealCommand(interaction, deck, mentionsList, numberOfCardsToDraw,
       comment)
     if (text) {
-      const reply = saveableReplyEmbed.get('Deal results:', text)
+      const reply = saveableReplyEmbed.get('Deal results:', text,
+        null, { guildId: interaction.guildId })
       reply.fetchReply = true
 
       const r = await replyOrFollowUp(interaction, reply)

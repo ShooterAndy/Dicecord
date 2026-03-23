@@ -11,25 +11,58 @@ const replyOrFollowUp = require('../helpers/replyOrFollowUp')
 
 module.exports = async (interaction, args) => {
   try {
-    const result = await pg.db.any(
-      'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue}',
+    // Personal commands
+    const personalResult = await pg.db.any(
+      'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue} AND ${guildId~} IS NULL',
       {
         name: SAVED_COMMANDS_COLUMNS.name,
         db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
         userId: SAVED_COMMANDS_COLUMNS.user_id,
-        userIdValue: interaction.user.id
+        userIdValue: interaction.user.id,
+        guildId: SAVED_COMMANDS_COLUMNS.guild_id
       })
 
-    if (!result || !result.length) {
-      return await replyOrFollowUp(interaction, commonReplyEmbed.get('Info',
-        nws`You didn't save any commands yet. Try saving some with the \`/saveRoll\` command!`))
+    // Guild commands
+    let guildResult = []
+    if (interaction.guildId) {
+      guildResult = await pg.db.any(
+        'SELECT ${name~} FROM ${db#} WHERE ${guildId~} = ${guildIdValue}',
+        {
+          name: SAVED_COMMANDS_COLUMNS.name,
+          db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+          guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+          guildIdValue: interaction.guildId
+        })
     }
+
+    const hasPersonal = personalResult && personalResult.length
+    const hasGuild = guildResult && guildResult.length
+
+    if (!hasPersonal && !hasGuild) {
+      return await replyOrFollowUp(interaction, commonReplyEmbed.get('Info',
+        nws`You didn't save any commands yet. Try saving some with the 💾 button after executing \
+        a command!`))
+    }
+
     let text = ''
-    result.forEach(command => {
-      text += `\`${command.name}\`\n`
-    })
-    return await replyOrFollowUp(interaction, commonReplyEmbed.get('Your saved commands:',
-      text))
+    if (hasPersonal) {
+      if (hasGuild || interaction.guildId) {
+        text += '**Your personal commands:**\n'
+      }
+      personalResult.forEach(command => {
+        text += `\`${command.name}\`\n`
+      })
+    }
+    if (hasGuild) {
+      if (hasPersonal) text += '\n'
+      text += '**Server-wide commands:**\n'
+      guildResult.forEach(command => {
+        text += `\`${command.name}\`\n`
+      })
+    }
+
+    return await replyOrFollowUp(interaction, commonReplyEmbed.get(
+      'Saved commands:', text))
   } catch(error) {
     logger.log(`Failed to get the list of saved commands`, error)
     return await replyOrFollowUp(interaction, errorEmbed.get(nws`Failed to list the saved \

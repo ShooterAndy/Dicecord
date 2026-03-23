@@ -69,7 +69,8 @@ module.exports = async (interaction, args) => {
     pickedChoices.join(', '),
     showRemaining ? (choices.length ?
         `Remaining items: ${choices.join(', ')}` : 'No items left in the list.') :
-      null)
+      null,
+    { guildId: (originalInteraction || interaction).guildId })
   reply.fetchReply = true
 
   const r = await replyOrFollowUp(interaction, reply)
