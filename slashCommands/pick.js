@@ -49,8 +49,8 @@ module.exports = {
       const uniqueModal = new ModalBuilder(modal.toJSON()).setCustomId(uniqueId)
       await retryable(() => interaction.showModal(uniqueModal))
       const submitted = await interaction.awaitModalSubmit({
-        // Timeout after a minute of not receiving any valid Modals
-        time: transformMinutesToMs(1),
+        // Timeout after ten minutes
+        time: transformMinutesToMs(10),
         // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
         filter: mi => mi.customId === uniqueId && mi.user.id === interaction.user.id,
       }).catch(error => {

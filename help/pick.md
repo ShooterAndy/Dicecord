@@ -1,6 +1,6 @@
 **pick** allows you to randomly pick a value from a list of comma-separated values.
 
-If left with no parameters, will open a pop-window instead.
+If left with no parameters, will open a pop-up window instead. You will have up to 10 minutes to fill it in and submit.
 
 Examples:
 * `/pick items:Alice, Bob, Candy, Dennis, ...` — will pick one of the names from this list.

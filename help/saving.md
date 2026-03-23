@@ -11,13 +11,13 @@ Currently, these commands allow this:
 * `/shuffle`
 * `/slots`
 
-After you send a command from this list, the response from **Dicecord** will include one or two save buttons. If you're in a server, you'll see **"Save for me"** and **"Save for server"**. In DMs, only "Save command" (personal) is shown.
+After you send a command from this list, the response from **Dicecord** will include one or two save buttons. These buttons will expire after 10 minutes. If you're in a server, you'll see **"Save for me"** and **"Save for server"**. In DMs, only "Save command" (personal) is shown.
 
 **"Save for me"** saves the command for your personal use. You can use it on any server where **Dicecord** is present.
 
 **"Save for server"** saves the command for the entire server. Any member of that server can execute it.
 
-When you click either button, **Dicecord** will ask you for the name you wish to use for this command. Please note that only Latin symbols, numbers, underscore, and the minus sign can be used for this, and the names would all be converted to lowercase. Additionally, the name can not be longer than 16 characters.
+When you click either button, **Dicecord** will ask you for the name you wish to use for this command. You will have up to 5 minutes to fill in the name and submit. Please note that only Latin symbols, numbers, underscore, and the minus sign can be used for this, and the names would all be converted to lowercase. Additionally, the name can not be longer than 16 characters.
 
 If you input the name, the command is then saved. You can use it via the `/executeSaved` command. You can also examine it via the `/examineSaved` command, that way you can copy its text to modify it. Lastly, you can see the names of all your saved commands (both personal and server) via the `/listSaved` command.
 

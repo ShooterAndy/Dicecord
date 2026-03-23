@@ -131,17 +131,18 @@ module.exports = {
         .setRequired(true)
         .setStyle(TextInputStyle.Short)
       const nameRow = new ActionRowBuilder().addComponents(nameInput)
+      const modalId = `genericSaveModal_${i.id}`
       const modal = new ModalBuilder()
-        .setCustomId('genericSaveModal')
+        .setCustomId(modalId)
         .setTitle(isGuildSave ? 'Save command for server?' : 'Save command for you?')
         .addComponents(nameRow)
       await retryable(() => i.showModal(modal))
 
       const submitted = await interaction.awaitModalSubmit({
-        // Timeout after a minute of not receiving any valid Modals
-        time: transformMinutesToMs(1),
-        // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
-        filter: mi => mi.user.id === interaction.user.id,
+        // Timeout after 5 minutes of not receiving any valid Modals
+        time: transformMinutesToMs(5),
+        // Match BOTH the exact modal instance and the user
+        filter: mi => mi.customId === modalId && mi.user.id === interaction.user.id,
       }).catch(error => {
         // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
         if (!error ||
