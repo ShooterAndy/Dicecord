@@ -2379,13 +2379,10 @@ const showResults = async (_interaction, additionalText) => {
       case 'repeat': {
         if (repeatCollected) return
         repeatCollected = true
+        await i.deferUpdate().catch(() => null)
         await module.exports.repeatRollCommand(_interaction, r.id)
-        await collector.stop('Re-roll command triggered')
-        //clearCaches(r.id)
-        return i.update({ components: [] }).catch(error => {
-          logger.error(`Failed to remove roll buttons on "Repeat"`, error)
-          return null
-        })
+        collector.stop('Re-roll command triggered')
+        return
       }
       case 'bb-code': {
         const text = formatThrowResults({
