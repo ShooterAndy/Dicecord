@@ -165,6 +165,16 @@ as `1d20cr20`).
 throw be considered a critical failure, automatically failing the versus check as well, if any die
 in a dice throw has its result equal to or lower than the parameter value. Defaults to **1** if no 
 value is specified.
+* `icr` — **inverted critical** (on) — the opposite of `cr`: if any die in a dice throw has its 
+result equal to or _lower_ than the parameter value, the entire throw is considered a critical 
+success, automatically passing the versus check. Useful for roll-under systems where low results 
+are desirable. Example: `1d20icr1` will "crit" on a natural 1. Defaults to **1** if no value is 
+specified.
+* `ibo` — **inverted botch** (on) — the opposite of `bo`: if any die in a dice throw has its 
+result equal to or _higher_ than the parameter value, the entire throw is considered a critical 
+failure, automatically failing the versus check. Useful for roll-under systems where high results 
+are undesirable. Example: `1d20ibo20` will botch on a natural 20. Defaults to the number of die 
+sides if no value is specified (e.g. `1d20ibo` is the same as `1d20ibo20`).
 * `br` — **brutal** — an almost-equivalent dice modifier to `ru`, the only difference being that 
 the die is re-rolled if the die roll result is less than _or equal to_ the parameter value. Used 
 as a short-hand for fourth edition Dungeons and Dragons. Defaults to **1** if no value is specified

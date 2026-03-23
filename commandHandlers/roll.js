@@ -1231,6 +1231,8 @@ const processDiceModifier = (args) => {
     [DICE_MODIFIERS.reRollTimes]: 1,
     [DICE_MODIFIERS.critical]: dice.sides,
     [DICE_MODIFIERS.botch]: 1,
+    [DICE_MODIFIERS.invertedCritical]: 1,
+    [DICE_MODIFIERS.invertedBotch]: dice.sides,
     [DICE_MODIFIERS.brutal]: 1
   }
 
@@ -1614,6 +1616,42 @@ const processDiceModifier = (args) => {
       }
       return { type: modName, value: modValue }
     }
+    case DICE_MODIFIERS.invertedCritical: {
+      const otherMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.invertedCritical
+      )
+      if (otherMods && otherMods.length) {
+        throw w(nws`there appear to be several "inverted critical" roll modifiers in \
+                \`${dice.formula}\`, so only the first one will be applied to it`)
+      }
+      if (modValue >= dice.sides) {
+        throw w(nws`can't set an inverted critical value to ${modValue} in a \`${dice.formula}\` \
+                roll, so this roll modifier will be ignored`)
+      }
+      if (modValue < 1) {
+        throw w(nws`can't set an inverted critical value to ${modValue}, the minimum value is \
+                1, this roll modifier will be ignored`)
+      }
+      return { type: modName, value: modValue }
+    }
+    case DICE_MODIFIERS.invertedBotch: {
+      const otherMods = dice.diceMods.filter(mod =>
+        mod.type === DICE_MODIFIERS.invertedBotch
+      )
+      if (otherMods && otherMods.length) {
+        throw w(nws`there appear to be several "inverted botch" roll modifiers in \
+                \`${dice.formula}\`, so only the first one will be applied to it`)
+      }
+      if (modValue <= 1) {
+        throw w(nws`can't set an inverted botch value to ${modValue}, the minimum value is \
+                2, this roll modifier will be ignored`)
+      }
+      if (modValue > dice.sides) {
+        throw w(nws`can't set an inverted botch value to ${modValue} in a \`${dice.formula}\` \
+                roll, so this roll modifier will be ignored`)
+      }
+      return { type: modName, value: modValue }
+    }
     default: {
       throw w(nws`\`${modName}\` in \`${dice.formula}\` is not a recognized roll modifier, \
               so it will be ignored. ${getTypoOrCommentHint()}`)
@@ -1902,6 +1940,8 @@ const calculateNormalDice = (dice) => {
   const reRollTimesMax = setMod(DICE_MODIFIERS.reRollTimes, MAX_RE_ROLLS)
   const criticalOn = setMod(DICE_MODIFIERS.critical, -1)
   const botchOn = setMod(DICE_MODIFIERS.botch, -1)
+  const invertedCriticalOn = setMod(DICE_MODIFIERS.invertedCritical, -1)
+  const invertedBotchOn = setMod(DICE_MODIFIERS.invertedBotch, -1)
 
   const explodeSeparatelyOn = setMod(DICE_MODIFIERS.explodeSeparately, -1)
   // Determine whether es comes before or after kh/kl in modifier order
@@ -2074,12 +2114,24 @@ const calculateNormalDice = (dice) => {
               specialResults.push(SPECIAL_THROW_RESULTS.criticalSuccess)
             }
           }
+          else if (invertedCriticalOn !== -1 && result.result <= invertedCriticalOn) {
+            result.type = RESULT_TYPES.critical
+            if (numberOfRolls === 1) {
+              specialResults.push(SPECIAL_THROW_RESULTS.criticalSuccess)
+            }
+          }
           else if (botchOn !== -1 && result.result <= botchOn) {
             result.type = RESULT_TYPES.botch
             if (numberOfRolls === 1) {
               if (dice.type === FORMULA_PART_TYPES.operands.dnd4Dice) {
                 specialResults.push(SPECIAL_THROW_RESULTS.criticalFailureDnD4)
               }
+              specialResults.push(SPECIAL_THROW_RESULTS.criticalFailure)
+            }
+          }
+          else if (invertedBotchOn !== -1 && result.result >= invertedBotchOn) {
+            result.type = RESULT_TYPES.botch
+            if (numberOfRolls === 1) {
               specialResults.push(SPECIAL_THROW_RESULTS.criticalFailure)
             }
           }

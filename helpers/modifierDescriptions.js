@@ -192,6 +192,26 @@ const descriptions = {
       'If any die rolls equal to or lower than the value, the throw is a **critical failure**, ' +
       'automatically failing any versus check.'
   },
+  [DICE_MODIFIERS.invertedCritical]: {
+    name: 'Inverted critical on',
+    syntax: '[N]d[S]icr[VALUE]',
+    default: '1',
+    example: '`1d20icr1` — crit on a natural 1 (low is good)',
+    description:
+      'The opposite of `cr`. If any die rolls equal to or **lower** than the value, the throw ' +
+      'is a **critical success**, automatically passing any versus check. ' +
+      'Useful for roll-under systems where low results are desirable.'
+  },
+  [DICE_MODIFIERS.invertedBotch]: {
+    name: 'Inverted botch on',
+    syntax: '[N]d[S]ibo[VALUE]',
+    default: 'Number of die sides',
+    example: '`1d20ibo20` — botch on a natural 20 (high is bad)',
+    description:
+      'The opposite of `bo`. If any die rolls equal to or **higher** than the value, the throw ' +
+      'is a **critical failure**, automatically failing any versus check. ' +
+      'Useful for roll-under systems where high results are undesirable.'
+  },
   [DICE_MODIFIERS.brutal]: {
     name: 'Brutal',
     syntax: '[N]d[S]br[VALUE]',

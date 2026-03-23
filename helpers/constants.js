@@ -160,6 +160,8 @@ module.exports.DICE_MODIFIERS = {
   reRollTimes: 'rt',
   critical: 'cr',
   botch: 'bo',
+  invertedCritical: 'icr',
+  invertedBotch: 'ibo',
   // synonyms
   brutal: 'br'
 }
