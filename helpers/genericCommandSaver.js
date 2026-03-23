@@ -8,7 +8,9 @@ const {
   MAX_SAVED_COMMANDS_PER_USER,
   MAX_GUILD_SAVED_COMMANDS_PER_USER,
   UPSERT_SAVED_COMMAND_RESULTS,
-  SAVED_COMMANDS_EXPIRE_AFTER
+  SAVED_COMMANDS_EXPIRE_AFTER,
+  SAVED_COMMANDS_DB_NAME,
+  SAVED_COMMANDS_COLUMNS
 } = require('./constants')
 const { TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder, InteractionCollector, ComponentType } = require('discord.js')
 const nws = require('./nws')
@@ -19,6 +21,88 @@ const replyOrFollowUp = require('./replyOrFollowUp')
 const Client = require('./client')
 const retryable = require('./retryableDiscordRequest')
 const editMessage = require('./editMessage')
+
+const upsertSavedCommand = async (userId, name, commandName, limit, parametersJson, guildId) => {
+  return pg.db.tx(async t => {
+    // Advisory lock keyed on the user id to serialize concurrent saves for the same user.
+    // This prevents race conditions between the SELECT check and the INSERT.
+    // hashtext() returns a stable int4 from any text value.
+    await t.any('SELECT pg_advisory_xact_lock(hashtext(${userId}))', { userId })
+
+    const baseParams = {
+      db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
+      userId: SAVED_COMMANDS_COLUMNS.user_id,
+      userIdValue: userId,
+      guildId: SAVED_COMMANDS_COLUMNS.guild_id,
+      guildIdValue: guildId,
+      name: SAVED_COMMANDS_COLUMNS.name,
+      nameValue: name,
+      command: SAVED_COMMANDS_COLUMNS.command,
+      commandValue: commandName,
+      parameters: SAVED_COMMANDS_COLUMNS.parameters,
+      parametersValue: parametersJson,
+      timestamp: SAVED_COMMANDS_COLUMNS.timestamp
+    }
+
+    // 1. Check if a command with this name already exists for this scope
+    const existing = guildId
+      ? await t.oneOrNone(
+          'SELECT 1 FROM ${db#} WHERE ${guildId~} = ${guildIdValue} AND ${name~} = ${nameValue} ' +
+          'FOR UPDATE',
+          baseParams)
+      : await t.oneOrNone(
+          'SELECT 1 FROM ${db#} WHERE ${userId~} = ${userIdValue} AND ${name~} = ${nameValue} ' +
+          'AND ${guildId~} IS NULL FOR UPDATE',
+          baseParams)
+
+    if (existing) {
+      // 2. Update the existing command
+      if (guildId) {
+        await t.none(
+          'UPDATE ${db#} SET ${command~} = ${commandValue}, ${parameters~} = ${parametersValue}, ' +
+          '${timestamp~} = NOW() WHERE ${guildId~} = ${guildIdValue} AND ${name~} = ${nameValue}',
+          baseParams)
+      } else {
+        await t.none(
+          'UPDATE ${db#} SET ${command~} = ${commandValue}, ${parameters~} = ${parametersValue}, ' +
+          '${timestamp~} = NOW() WHERE ${userId~} = ${userIdValue} AND ${name~} = ${nameValue} ' +
+          'AND ${guildId~} IS NULL',
+          baseParams)
+      }
+      return UPSERT_SAVED_COMMAND_RESULTS.updated
+    }
+
+    // 3. Check the count against the limit
+    const countResult = guildId
+      ? await t.one(
+          'SELECT COUNT(*)::INTEGER as count FROM ${db#} ' +
+          'WHERE ${userId~} = ${userIdValue} AND ${guildId~} = ${guildIdValue}',
+          baseParams)
+      : await t.one(
+          'SELECT COUNT(*)::INTEGER as count FROM ${db#} ' +
+          'WHERE ${userId~} = ${userIdValue} AND ${guildId~} IS NULL',
+          baseParams)
+
+    if (countResult.count >= limit) {
+      return UPSERT_SAVED_COMMAND_RESULTS.limit
+    }
+
+    // 4. Insert the new command
+    if (guildId) {
+      await t.none(
+        'INSERT INTO ${db#} (${userId~}, ${guildId~}, ${name~}, ${command~}, ${parameters~}, ${timestamp~}) ' +
+        'VALUES (${userIdValue}, ${guildIdValue}, ${nameValue}, ${commandValue}, ${parametersValue}, NOW())',
+        baseParams)
+    } else {
+      await t.none(
+        'INSERT INTO ${db#} (${userId~}, ${name~}, ${command~}, ${parameters~}, ${timestamp~}) ' +
+        'VALUES (${userIdValue}, ${nameValue}, ${commandValue}, ${parametersValue}, NOW())',
+        baseParams)
+    }
+
+    return UPSERT_SAVED_COMMAND_RESULTS.inserted
+  })
+}
 
 module.exports = {
   async launch(interaction, response, parameters) {
@@ -94,30 +178,27 @@ module.exports = {
         const limit = isGuildSave ? MAX_GUILD_SAVED_COMMANDS_PER_USER : MAX_SAVED_COMMANDS_PER_USER
 
         try {
-          const result = await pg.db.one(
-            'SELECT upsert_saved_command(${userId}, ${name}, ${command}, ${limit}, ' +
-              '${parameters}, ${guildId})',
-            {
-              userId: interaction.user.id,
-              name,
-              command: interaction.commandName.toLowerCase(),
-              limit,
-              parameters: JSON.stringify(parameters || interaction.options.data),
-              guildId
-            })
-          if (!result || !result.upsert_saved_command) {
-            logger.error(`The result of upsert_saved_command appears to be empty`)
+          const upsertResult = await upsertSavedCommand(
+            interaction.user.id,
+            name,
+            interaction.commandName.toLowerCase(),
+            limit,
+            JSON.stringify(parameters || interaction.options.data),
+            guildId
+          )
+          if (!upsertResult) {
+            logger.error(`The result of upsertSavedCommand appears to be empty`)
             return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
               command. Please contact the author of this bot.`))
           }
-          switch (result.upsert_saved_command) {
+          switch (upsertResult) {
             case UPSERT_SAVED_COMMAND_RESULTS.inserted:
             case UPSERT_SAVED_COMMAND_RESULTS.updated: {
               Client.invalidateSavedCmdNamesCache(interaction.user.id)
               if (isGuildSave && guildId) {
                 Client.invalidateGuildSavedCmdNamesCache(guildId)
               }
-              const isInsert = result.upsert_saved_command === UPSERT_SAVED_COMMAND_RESULTS.inserted
+              const isInsert = upsertResult === UPSERT_SAVED_COMMAND_RESULTS.inserted
               const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
               return await replyOrFollowUp(submitted, commonReplyEmbed.get(
                 isInsert ? 'Save successful!' : 'Update successful!',
