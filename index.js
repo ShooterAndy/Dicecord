@@ -85,7 +85,6 @@ const _logCgroupPaths = () => {
   const paths = [
     '/sys/fs/cgroup/memory.current',
     '/sys/fs/cgroup/memory/memory.usage_in_bytes',
-    '/sys/fs/cgroup/memory.max',
     '/sys/fs/cgroup/memory/memory.limit_in_bytes'
   ]
   for (const p of paths) {
@@ -95,23 +94,6 @@ const _logCgroupPaths = () => {
     } catch {
       console.log(`[MEMORY] Not available: ${p}`)
     }
-  }
-  // Discover what files actually exist under /sys/fs/cgroup/memory/
-  try {
-    const files = fs.readdirSync('/sys/fs/cgroup/memory/')
-    console.log(`[MEMORY] /sys/fs/cgroup/memory/ contents: ${files.join(', ')}`)
-    // Try to read usage-related files
-    for (const f of files) {
-      if (f.includes('usage') || f.includes('stat') || f.includes('current')) {
-        try {
-          const val = fs.readFileSync(`/sys/fs/cgroup/memory/${f}`, 'utf8').trim()
-          // Only log first 200 chars to avoid flooding
-          console.log(`[MEMORY] /sys/fs/cgroup/memory/${f} = ${val.substring(0, 200)}`)
-        } catch {}
-      }
-    }
-  } catch {
-    console.log(`[MEMORY] /sys/fs/cgroup/memory/ not listable`)
   }
 }
 
@@ -175,7 +157,13 @@ const collectMemoryStats = async () => {
   // Try to read actual container memory (more accurate than summing RSS)
   const cgroupBytes = _readCgroupMemoryBytes()
   const cgroupMB = cgroupBytes ? cgroupBytes / 1024 / 1024 : null
-  const effectiveMB = cgroupMB ?? totalRssMB
+  // If cgroup isn't available, apply a correction factor to summed RSS.
+  // Forked Node processes share read-only pages (V8 binary, shared libs),
+  // so summing RSS overcounts by ~10-15%. Factor derived empirically from
+  // Heroku metrics vs summed RSS observations.
+  const RSS_SHARED_PAGE_FACTOR = 0.88
+  const correctedRssMB = totalRssMB * RSS_SHARED_PAGE_FACTOR
+  const effectiveMB = cgroupMB ?? correctedRssMB
   const ratio = effectiveMB / DYNO_QUOTA_MB
   const isWarning = ratio >= MEMORY_WARN_RATIO
   const isCritical = ratio >= MEMORY_CRIT_RATIO
@@ -197,7 +185,7 @@ const collectMemoryStats = async () => {
 
   const cgroupNote = cgroupMB
     ? ` (cgroup=${cgroupMB.toFixed(1)}MB, sumRSS=${totalRssMB.toFixed(1)}MB)`
-    : ''
+    : ` (est. from sumRSS=${totalRssMB.toFixed(1)}MB × ${RSS_SHARED_PAGE_FACTOR})`
   const totalLine = `[MEMORY] total=${effectiveMB.toFixed(1)}MB / ${DYNO_QUOTA_MB}MB `
     + `(${(ratio * 100).toFixed(0)}%)${cgroupNote}`
 
