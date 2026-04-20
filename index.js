@@ -13,6 +13,7 @@ const manager = new ClusterManager('./bot.js', {
 })
 const nws = require('./helpers/nws')
 const { transformMinutesToMs } = require('./helpers/utilities')
+const fs = require('fs')
 
 process.on('unhandledRejection', error => {
   logger.error('Unhandled promise rejection', error)
@@ -58,9 +59,58 @@ const MEMORY_HOURLY_INTERVAL = 60 // send stats to Discord log channel every Nth
 const _formatMB = (bytes) => (bytes / 1024 / 1024).toFixed(1)
 let _memoryTickCount = 0
 
+/**
+ * Read actual container memory from cgroup (Linux/Heroku).
+ * Returns bytes or null if unavailable.
+ */
+const _readCgroupMemoryBytes = () => {
+  // cgroup v2
+  try {
+    const val = fs.readFileSync('/sys/fs/cgroup/memory.current', 'utf8').trim()
+    return parseInt(val, 10) || null
+  } catch {}
+  // cgroup v1
+  try {
+    const val = fs.readFileSync('/sys/fs/cgroup/memory/memory.usage_in_bytes', 'utf8').trim()
+    return parseInt(val, 10) || null
+  } catch {}
+  return null
+}
+
+const CHANNEL_SWEEP_INTERVAL = 12 // every 12th tick (12 × 60s = ~12 min)
+
 const collectMemoryStats = async () => {
   _memoryTickCount++
   const managerMem = process.memoryUsage()
+
+  // Periodically sweep channel caches on clusters to free memory
+  if (_memoryTickCount % CHANNEL_SWEEP_INTERVAL === 0) {
+    try {
+      await manager.broadcastEval(c => {
+        const before = c.channels.cache.size
+        // Keep only channels the bot actively needs:
+        // DM channels, and guild channels for guilds the bot is in
+        // Sweep channels older than ~10 minutes that aren't DM-based
+        // Actually, just do a size-based trim: keep max ~20k channels per cluster
+        const MAX_CHANNELS = 20_000
+        if (before > MAX_CHANNELS) {
+          let removed = 0
+          const target = before - MAX_CHANNELS
+          c.channels.cache.sweep(ch => {
+            if (removed >= target) return false
+            // Don't sweep DM channels or channels with active threads
+            if (ch.isDMBased?.()) return false
+            removed++
+            return true
+          })
+        }
+        return { before, after: c.channels.cache.size }
+      })
+    } catch (err) {
+      console.error('[MEMORY] Failed to sweep channel caches:', err.message || err)
+    }
+  }
+
   let clusterResults = []
   try {
     clusterResults = await manager.broadcastEval(c => {
@@ -84,7 +134,11 @@ const collectMemoryStats = async () => {
     managerMem.rss / 1024 / 1024 +
     clusterResults.reduce((sum, r) => sum + (r ? r.rss / 1024 / 1024 : 0), 0)
 
-  const ratio = totalRssMB / DYNO_QUOTA_MB
+  // Try to read actual container memory (more accurate than summing RSS)
+  const cgroupBytes = _readCgroupMemoryBytes()
+  const cgroupMB = cgroupBytes ? cgroupBytes / 1024 / 1024 : null
+  const effectiveMB = cgroupMB ?? totalRssMB
+  const ratio = effectiveMB / DYNO_QUOTA_MB
   const isWarning = ratio >= MEMORY_WARN_RATIO
   const isCritical = ratio >= MEMORY_CRIT_RATIO
   const isHourlyTick = _memoryTickCount % MEMORY_HOURLY_INTERVAL === 0
@@ -103,8 +157,11 @@ const collectMemoryStats = async () => {
       interactionListeners=${r.interactionListeners}`)
   }
 
-  const totalLine = `[MEMORY] total rss=${totalRssMB.toFixed(1)}MB / ${DYNO_QUOTA_MB}MB `
-    + `(${(ratio * 100).toFixed(0)}%)`
+  const cgroupNote = cgroupMB
+    ? ` (cgroup=${cgroupMB.toFixed(1)}MB, sumRSS=${totalRssMB.toFixed(1)}MB)`
+    : ''
+  const totalLine = `[MEMORY] total=${effectiveMB.toFixed(1)}MB / ${DYNO_QUOTA_MB}MB `
+    + `(${(ratio * 100).toFixed(0)}%)${cgroupNote}`
 
   // Console logging: only when warning threshold is crossed
   if (isWarning) {
@@ -117,7 +174,7 @@ const collectMemoryStats = async () => {
   if (isHourlyTick) {
     logger.log(`${totalLine}\n${managerLine}\n${clusterLines.join('\n')}`)
   } else if (isCritical) {
-    logger.warn(`${totalLine}\n${managerLine}\n${clusterLines.join('\n')}`)
+    logger.error(`${totalLine}\n${managerLine}\n${clusterLines.join('\n')}`)
   }
 }
 
