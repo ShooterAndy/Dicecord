@@ -2,12 +2,12 @@ require('dotenv').config()
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding')
 const logger = require('./helpers/logger')
 
-const CLUSTER_MAX_OLD_SPACE_MB = 256
+const CLUSTER_MAX_OLD_SPACE_MB = 384
 
 const manager = new ClusterManager('./bot.js', {
   totalShards: 'auto',
   totalClusters: 'auto',
-  shardsPerClusters: 2,
+  shardsPerClusters: 3,
   token: process.env.BOT_TOKEN,
   execArgv: [`--max_old_space_size=${CLUSTER_MAX_OLD_SPACE_MB}`]
 })
@@ -67,17 +67,52 @@ const _readCgroupMemoryBytes = () => {
   // cgroup v2
   try {
     const val = fs.readFileSync('/sys/fs/cgroup/memory.current', 'utf8').trim()
-    return parseInt(val, 10) || null
+    const parsed = parseInt(val, 10)
+    if (parsed > 0) return parsed
   } catch {}
   // cgroup v1
   try {
     const val = fs.readFileSync('/sys/fs/cgroup/memory/memory.usage_in_bytes', 'utf8').trim()
-    return parseInt(val, 10) || null
+    const parsed = parseInt(val, 10)
+    if (parsed > 0) return parsed
+  } catch {}
+  // Fallback: /proc/meminfo (MemTotal - MemAvailable)
+  try {
+    const meminfo = fs.readFileSync('/proc/meminfo', 'utf8')
+    const total = parseInt(meminfo.match(/MemTotal:\s+(\d+)/)?.[1], 10) * 1024
+    const available = parseInt(meminfo.match(/MemAvailable:\s+(\d+)/)?.[1], 10) * 1024
+    if (total > 0 && available >= 0) return total - available
   } catch {}
   return null
 }
 
-const CHANNEL_SWEEP_INTERVAL = 12 // every 12th tick (12 × 60s = ~12 min)
+// Log available cgroup paths once at startup for debugging
+const _logCgroupPaths = () => {
+  const paths = [
+    '/sys/fs/cgroup/memory.current',
+    '/sys/fs/cgroup/memory/memory.usage_in_bytes',
+    '/sys/fs/cgroup/memory.max',
+    '/sys/fs/cgroup/memory/memory.limit_in_bytes'
+  ]
+  for (const p of paths) {
+    try {
+      const val = fs.readFileSync(p, 'utf8').trim()
+      console.log(`[MEMORY] Found ${p} = ${val}`)
+    } catch {
+      console.log(`[MEMORY] Not available: ${p}`)
+    }
+  }
+  try {
+    const meminfo = fs.readFileSync('/proc/meminfo', 'utf8')
+    const total = meminfo.match(/MemTotal:\s+(\d+)/)?.[1]
+    const avail = meminfo.match(/MemAvailable:\s+(\d+)/)?.[1]
+    console.log(`[MEMORY] /proc/meminfo: MemTotal=${total}kB MemAvailable=${avail}kB`)
+  } catch {
+    console.log(`[MEMORY] /proc/meminfo not available`)
+  }
+}
+
+const CHANNEL_SWEEP_INTERVAL = 10 // every 10th tick (10 × 60s = ~12 min)
 
 const collectMemoryStats = async () => {
   _memoryTickCount++
@@ -181,6 +216,9 @@ const collectMemoryStats = async () => {
 manager.spawn().then(() => {
   logger.log(nws`Launched cluster manager. ${manager.totalClusters} \
   clusters, ${manager.totalShards} shards.`)
+
+  // Debug: log available cgroup paths once
+  _logCgroupPaths()
 
   // Memory monitoring — polls every 60s, only logs when thresholds are crossed
   // (or every ~10 minutes in quiet mode)

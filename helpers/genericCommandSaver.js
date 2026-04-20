@@ -120,6 +120,8 @@ module.exports = {
     })
 
     collector.on('collect', async i => {
+      // Stop collecting immediately so the listener is freed
+      collector.stop('collected')
       const isGuildSave = i.customId === GENERIC_GUILD_SAVE_BUTTON_ID
       const guildId = isGuildSave ? interaction.guildId : null
 
