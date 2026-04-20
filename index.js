@@ -76,13 +76,7 @@ const _readCgroupMemoryBytes = () => {
     const parsed = parseInt(val, 10)
     if (parsed > 0) return parsed
   } catch {}
-  // Fallback: /proc/meminfo (MemTotal - MemAvailable)
-  try {
-    const meminfo = fs.readFileSync('/proc/meminfo', 'utf8')
-    const total = parseInt(meminfo.match(/MemTotal:\s+(\d+)/)?.[1], 10) * 1024
-    const available = parseInt(meminfo.match(/MemAvailable:\s+(\d+)/)?.[1], 10) * 1024
-    if (total > 0 && available >= 0) return total - available
-  } catch {}
+  // Note: /proc/meminfo is NOT usable in containers — it shows host memory.
   return null
 }
 
