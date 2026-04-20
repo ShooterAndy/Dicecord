@@ -96,13 +96,22 @@ const _logCgroupPaths = () => {
       console.log(`[MEMORY] Not available: ${p}`)
     }
   }
+  // Discover what files actually exist under /sys/fs/cgroup/memory/
   try {
-    const meminfo = fs.readFileSync('/proc/meminfo', 'utf8')
-    const total = meminfo.match(/MemTotal:\s+(\d+)/)?.[1]
-    const avail = meminfo.match(/MemAvailable:\s+(\d+)/)?.[1]
-    console.log(`[MEMORY] /proc/meminfo: MemTotal=${total}kB MemAvailable=${avail}kB`)
+    const files = fs.readdirSync('/sys/fs/cgroup/memory/')
+    console.log(`[MEMORY] /sys/fs/cgroup/memory/ contents: ${files.join(', ')}`)
+    // Try to read usage-related files
+    for (const f of files) {
+      if (f.includes('usage') || f.includes('stat') || f.includes('current')) {
+        try {
+          const val = fs.readFileSync(`/sys/fs/cgroup/memory/${f}`, 'utf8').trim()
+          // Only log first 200 chars to avoid flooding
+          console.log(`[MEMORY] /sys/fs/cgroup/memory/${f} = ${val.substring(0, 200)}`)
+        } catch {}
+      }
+    }
   } catch {
-    console.log(`[MEMORY] /proc/meminfo not available`)
+    console.log(`[MEMORY] /sys/fs/cgroup/memory/ not listable`)
   }
 }
 
