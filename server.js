@@ -458,74 +458,6 @@ const updateBotDescription = async () => {
 }
 
 // ---------------------------------------------------------------------------
-// Minimal gateway sidecar — just for presence (online status + activity text)
-// ---------------------------------------------------------------------------
-const startPresenceGateway = async () => {
-  try {
-    const Discord = require('discord.js')
-    const { GatewayIntentBits, ActivityType } = Discord
-    const version = require('./package.json').version
-
-    // Fetch recommended shard count from Discord
-    const rest = getRest()
-    const gatewayInfo = await rest.get(Routes.gatewayBot())
-    const shardCount = gatewayInfo.shards || 1
-    const shards = Array.from({ length: shardCount }, (_, i) => i) // [0, 1, 2, ...]
-
-    logger.log(`Presence gateway: using ${shardCount} shard(s)`)
-
-    const presenceClient = new Discord.Client({
-      intents: [GatewayIntentBits.Guilds],
-      shards,
-      shardCount,
-      // Minimal caches — we don't need any data, just presence
-      makeCache: Discord.Options.cacheWithLimits({
-        MessageManager: 0,
-        PresenceManager: 0,
-        ThreadManager: 0,
-        GuildMemberManager: 0,
-        GuildBanManager: 0,
-        GuildInviteManager: 0,
-        GuildStickerManager: 0,
-        GuildScheduledEventManager: 0,
-        GuildEmojiManager: 0,
-        BaseGuildEmojiManager: 0,
-        ReactionManager: 0,
-        ReactionUserManager: 0,
-        StageInstanceManager: 0,
-        ThreadMemberManager: 0,
-        UserManager: 0,
-        VoiceStateManager: 0,
-        ApplicationCommandManager: 0
-      }),
-      presence: {
-        status: 'online',
-        activities: [{
-          name: `v${version}, type /help`,
-          type: ActivityType.Custom
-        }]
-      }
-    })
-
-    presenceClient.on('clientReady', () => {
-      logger.log(`Presence gateway connected as ${presenceClient.user.tag}`)
-    })
-
-    presenceClient.on('error', err => {
-      logger.error('Presence gateway error', err)
-    })
-
-    // Don't handle any interactions — those go through HTTP
-    // Just login to maintain presence
-    await presenceClient.login(process.env.BOT_TOKEN)
-    return presenceClient
-  } catch (err) {
-    logger.error('Failed to start presence gateway', err)
-    return null
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Startup
 // ---------------------------------------------------------------------------
 const start = async () => {
@@ -555,9 +487,6 @@ const start = async () => {
   app.listen(PORT, () => {
     logger.log(`HTTP interactions server started on port ${PORT}`)
   })
-
-  // Start minimal gateway for presence (non-blocking — failures don't prevent startup)
-  await startPresenceGateway()
 }
 
 start().catch(err => {
