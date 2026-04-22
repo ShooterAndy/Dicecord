@@ -14,9 +14,8 @@ module.exports = {
     .addStringOption(option => option
       .setName('setting')
       .setNameLocalization('ru', 'параметр')
-      .setDescription('The setting to change')
-      .setDescriptionLocalization('ru', 'Параметр для изменения')
-      .setRequired(true)
+      .setDescription('The setting to change (omit to list all settings)')
+      .setDescriptionLocalization('ru', 'Параметр для изменения (не указывайте, чтобы показать все)')
       .addChoices(
         { name: 'Plain text mode (no embeds)', value: 'plain_text' }
       )
@@ -26,7 +25,6 @@ module.exports = {
       .setNameLocalization('ru', 'включено')
       .setDescription('Enable or disable the setting')
       .setDescriptionLocalization('ru', 'Включить или выключить параметр')
-      .setRequired(true)
     )
   ,
   async execute(interaction) {

@@ -2,7 +2,8 @@ const random = require('random').default
 const _ = require('underscore')
 const formatThrowResults = require('../helpers/formatThrowResults')
 const Client = require('../helpers/client')
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionCollector, ComponentType } = require('discord.js')
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
+const pendingInteractions = require('../helpers/pendingInteractions')
 
 const nws = require('../helpers/nws')
 const logger = require('../helpers/logger')
@@ -212,7 +213,7 @@ const showWarnings = async () => {
     let channel = interaction.channel
     let canHaveButtons = true
     if (!channel) {
-      channel = await Client.client.channels.fetch(interaction.channelId).catch(err => {
+      channel = await Client.getChannelById(interaction.channelId).catch(err => {
         logger.error(nws`Failed to fetch channel ${interaction.channelId} in roll for warnings`,
           err)
         return null
@@ -280,43 +281,37 @@ const showWarnings = async () => {
       if (!r) return null
       Client.setRollCache(r.id, JSON.parse(JSON.stringify(ctx.throws)))
 
-      const collector = new InteractionCollector(interaction.client, {
-        message: r,
-        componentType: ComponentType.Button,
-        time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT)
-      })
-
       let warningCollected = false
-      collector.on('collect', async i => {
-        if (warningCollected) return
-        warningCollected = true
-        switch (i.customId) {
-          case 'roll_warning_yes': {
-            await module.exports.goOnFromWarning(interaction, r.id)
-            await collector.stop('Warning yes button clicked')
-            return await i.update({components: []}).catch(error => {
-              logger.error(`Failed to remove warning buttons on "yes"`, error)
+      pendingInteractions.collectButtons(r.id, {
+        time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT),
+        onCollect: async (i) => {
+          if (warningCollected) return
+          warningCollected = true
+          switch (i.customId) {
+            case 'roll_warning_yes': {
+              await module.exports.goOnFromWarning(interaction, r.id)
+              return await i.update({components: []}).catch(error => {
+                logger.error(`Failed to remove warning buttons on "yes"`, error)
+                return null
+              })
+            }
+            case 'roll_warning_no': {
+              await i.update({components: []})
+              return await interaction.deleteReply().catch(error => {
+                logger.error(`Failed to remove warning buttons on "no"`, error)
+                return null
+              })
+            }
+          }
+        },
+        onEnd: async () => {
+          clearCaches(r.id)
+          await retryable(() => editMessage(interaction.client, r.channelId, r.id, {components: []}))
+            .catch(error => {
+              logger.error(`Failed to remove warning buttons on timeout`, error)
               return null
             })
-          }
-          case 'roll_warning_no': {
-            await i.update({components: []})
-            await collector.stop('Warning no button clicked')
-            return await interaction.deleteReply().catch(error => {
-              logger.error(`Failed to remove warning buttons on "no"`, error)
-              return null
-            })
-          }
         }
-      })
-
-      collector.on('end', async () => {
-        clearCaches(r.id)
-        await retryable(() => editMessage(interaction.client, r.channelId, r.id, {components: []}))
-          .catch(error => {
-            logger.error(`Failed to remove warning buttons on timeout`, error)
-            return null
-          })
       })
     }
   }
@@ -2411,63 +2406,56 @@ const showResults = async (_interaction, additionalText) => {
   Client.setRollCache(r.id, JSON.parse(JSON.stringify(ctx.throws)))
   await genericCommandSaver.launch(_interaction, r)
 
-  const collector = new InteractionCollector(_interaction.client, {
-    message: r,
-    componentType: ComponentType.Button,
-    time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT)
-  })
-
   let repeatCollected = false
-  collector.on('collect', async i => {
-    const updatedButtonsRow =
-      i.message.components[1].components.filter(c => c.customId !== i.customId)
-    let updatedComponents = i.message.components
-    if (updatedButtonsRow.length) {
-      updatedComponents[1].components = updatedButtonsRow
-    } else {
-      updatedComponents[1].components = []
-    }
-    switch(i.customId) {
-      case 'repeat': {
-        if (repeatCollected) return
-        repeatCollected = true
-        await i.deferUpdate().catch(() => null)
-        await module.exports.repeatRollCommand(_interaction, r.id)
-        collector.stop('Re-roll command triggered')
-        return
+  pendingInteractions.collectButtons(r.id, {
+    time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT),
+    onCollect: async (i) => {
+      const updatedButtonsRow =
+        i.message?.components?.[1]?.components?.filter(c => c.customId !== i.customId) || []
+      let updatedComponents = i.message?.components || []
+      if (updatedComponents[1]) {
+        updatedComponents[1].components = updatedButtonsRow
       }
-      case 'bb-code': {
-        const text = formatThrowResults({
-          throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.bbcode.name
-        })
-        const updatedEmbeds = content.embeds
-        updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
-        return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
-          logger.error(`Failed to update roll buttons on "BB-code"`, error)
+      switch(i.customId) {
+        case 'repeat': {
+          if (repeatCollected) return
+          repeatCollected = true
+          await i.deferUpdate().catch(() => null)
+          await module.exports.repeatRollCommand(_interaction, r.id)
+          return
+        }
+        case 'bb-code': {
+          const text = formatThrowResults({
+            throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.bbcode.name
+          })
+          const updatedEmbeds = content.embeds
+          updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
+          return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
+            logger.error(`Failed to update roll buttons on "BB-code"`, error)
+            return null
+          })
+        }
+        case 'markdown': {
+          const text = formatThrowResults({
+            throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.markdown.name
+          })
+          const updatedEmbeds = content.embeds
+          updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
+          return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
+            logger.error(`Failed to update roll buttons on "Markdown"`, error)
+            return null
+          })
+        }
+      }
+    },
+    onEnd: async () => {
+      clearCaches(r.id)
+      await retryable(() => editMessage(_interaction.client, r.channelId, r.id, { components: [] }))
+        .catch(error => {
+          logger.error(`Failed to remove roll result buttons on timeout`, error)
           return null
         })
-      }
-      case 'markdown': {
-        const text = formatThrowResults({
-          throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.markdown.name
-        })
-        const updatedEmbeds = content.embeds
-        updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
-        return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
-          logger.error(`Failed to update roll buttons on "Markdown"`, error)
-          return null
-        })
-      }
     }
-  })
-
-  collector.on('end', async () => {
-    clearCaches(r.id)
-    await retryable(() => editMessage(_interaction.client, r.channelId, r.id, { components: [] }))
-      .catch(error => {
-        logger.error(`Failed to remove roll result buttons on timeout`, error)
-        return null
-      })
   })
 }
 

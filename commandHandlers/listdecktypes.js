@@ -17,13 +17,11 @@ module.exports = async (interaction, args) => {
         decks. Please contact the author of this bot.`))
     }
 
-    let decksText = '`'
+    let decksText = ''
     result.forEach((deck, index) => {
-      decksText += deck.id
+      decksText += '`' + deck.id + '`'
       if (index < result.length - 1) {
-        decksText += '`\n`'
-      } else {
-        decksText += '`'
+        decksText += '\n'
       }
     })
     const text = nws`Here's the list of all available deck types:\n${decksText}\n\nYou can learn \

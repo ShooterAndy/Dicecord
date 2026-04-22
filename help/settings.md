@@ -6,5 +6,10 @@
   * To enable: `/settings setting:Plain text mode (no embeds) enabled:True`
   * To disable: `/settings setting:Plain text mode (no embeds) enabled:False`
 
+**Viewing current settings:**
+
+* `/settings` — lists all settings and their current values.
+* `/settings setting:Plain text mode (no embeds)` — shows the current value of that specific setting.
+
 _Note: settings apply to the entire server. DMs always use embeds._
 

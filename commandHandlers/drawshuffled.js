@@ -93,7 +93,7 @@ const processDrawShuffledCommand =
       } else {
         text += 'the'
       }
-      text += ' `' + deckId + '` deck: '
+      text += '\n`' + deckId + '` deck: '
       if (comment) {
         text += '\n`' + (comment.endsWith(':') ? comment : (comment + ':')) + '` '
       }

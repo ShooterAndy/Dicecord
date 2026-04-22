@@ -59,8 +59,6 @@ draws the requested amount of cards from the saved deck.
 deals the requested amount of cards from the saved deck (can deal into DMs).
   * [/drawShuffled](https://github.com/ShooterAndy/Dicecord/blob/master/help/drawshuffled.md) — 
 draws the requested amount of cards from a fresh deck without saving it.
-  * /drawPrivate — draws the requested amount of cards from the saved deck and sends the results 
-to your Direct Messages.
   * [/insert](https://github.com/ShooterAndy/Dicecord/blob/master/help/insert.md) — 
 inserts specified card(s) into the saved deck at random positions.
 * **Saving commands** 

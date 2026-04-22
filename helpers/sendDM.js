@@ -1,59 +1,49 @@
 const logger = require('./logger')
-const { Message, User, BaseInteraction, GuildMember} = require('discord.js')
+const { Routes } = require('discord-api-types/v10')
+const getRest = require('./rest')
 
 module.exports = async (text, context) => {
   if (!context) {
-    logger.error(`No context in sendDM`)
+    logger.error('No context in sendDM')
     return null
   }
   if (!text) {
-    logger.error(`No text in sendDM`)
-    return null
-  }
-  let dmChannel
-  if (context instanceof Message) {
-    if (!context.author) {
-      logger.error(`Original message has no author in sendDM`)
-      return null
-    }
-    context = context.author
-  } else if (context instanceof BaseInteraction) {
-    if (!context.user) {
-      logger.error(`Original interaction has no user in sendDM`)
-      return null
-    }
-    context = context.user
-  } else if (context instanceof User || context instanceof GuildMember) {
-    // Everything's fine
-  } else {
-    logger.error(`Unknown context in sendDM: ${JSON.stringify(context)}`)
+    logger.error('No text in sendDM')
     return null
   }
 
-  if (context.dmChannel) {
-    dmChannel = context.dmChannel
-  } else {
-    try {
-      dmChannel = await context.createDM()
-    } catch (error) {
-      logger.error(`Failed to create a new DM channel in sendDM`, error)
-      return null
-    }
-    if (!dmChannel) {
-      logger.error(`Failed to create a new DM channel with no error in sendDM`)
-      return null
-    }
+  // Extract user ID from various context types
+  let userId = null
+  if (context.user && context.user.id) {
+    userId = context.user.id
+  } else if (context.id && typeof context.id === 'string') {
+    userId = context.id
+  } else if (context.author && context.author.id) {
+    userId = context.author.id
   }
+
+  if (!userId) {
+    logger.error(`Could not determine user ID in sendDM: ${JSON.stringify(context)}`)
+    return null
+  }
+
+  const rest = getRest()
 
   try {
-    return await dmChannel.send(text)
+    // Create DM channel via REST
+    const dm = await rest.post(Routes.userChannels(), {
+      body: { recipient_id: userId }
+    })
+
+    // Send message
+    const body = typeof text === 'string' ? { content: text } : text
+    return await rest.post(Routes.channelMessages(dm.id), { body })
   } catch (error) {
-    if (error && error.name && error.name.startsWith('DiscordAPIError')
-        && error.message === 'Cannot send messages to this user') {
-      return null // Common and expected error, no need to log it
+    if (error && error.code === 50007) {
+      // "Cannot send messages to this user" — common and expected
+      return null
     }
-    logger.error(`Failed to send a DM message with text ${text} to ${context.id} in sendDM`,
-      error)
+    logger.error(`Failed to send a DM to ${userId} in sendDM`, error)
     return null
   }
 }

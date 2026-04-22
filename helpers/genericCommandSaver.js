@@ -12,7 +12,7 @@ const {
   SAVED_COMMANDS_DB_NAME,
   SAVED_COMMANDS_COLUMNS
 } = require('./constants')
-const { TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder, InteractionCollector, ComponentType } = require('discord.js')
+const { TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder } = require('discord.js')
 const nws = require('./nws')
 const errorEmbed = require('./errorEmbed')
 const commonReplyEmbed = require('./commonReplyEmbed')
@@ -21,6 +21,7 @@ const replyOrFollowUp = require('./replyOrFollowUp')
 const Client = require('./client')
 const retryable = require('./retryableDiscordRequest')
 const editMessage = require('./editMessage')
+const pendingInteractions = require('./pendingInteractions')
 
 const upsertSavedCommand = async (userId, name, commandName, limit, parametersJson, guildId) => {
   return pg.db.tx(async t => {
@@ -106,145 +107,132 @@ const upsertSavedCommand = async (userId, name, commandName, limit, parametersJs
 
 module.exports = {
   async launch(interaction, response, parameters) {
+    const messageId = response?.id
+    if (!messageId) return
+
     const filter = i => {
       return (i.customId === GENERIC_SAVE_BUTTON_ID ||
               i.customId === GENERIC_GUILD_SAVE_BUTTON_ID) &&
         (i.user.id === interaction.user.id)
     }
 
-    const collector = new InteractionCollector(interaction.client, {
+    pendingInteractions.collectButtons(messageId, {
       filter,
-      message: response,
-      componentType: ComponentType.Button,
-      time: transformMinutesToMs(SAVE_BUTTON_EXPIRE_AFTER_INT)
-    })
+      time: transformMinutesToMs(SAVE_BUTTON_EXPIRE_AFTER_INT),
+      onCollect: async (i) => {
+        const isGuildSave = i.customId === GENERIC_GUILD_SAVE_BUTTON_ID
+        const guildId = isGuildSave ? interaction.guildId : null
 
-    collector.on('collect', async i => {
-      // Stop collecting immediately so the listener is freed
-      collector.stop('collected')
-      const isGuildSave = i.customId === GENERIC_GUILD_SAVE_BUTTON_ID
-      const guildId = isGuildSave ? interaction.guildId : null
+        const nameInput = new TextInputBuilder()
+          .setCustomId('name')
+          .setLabel(`Name for your saved command`)
+          .setPlaceholder(nws`${MAX_SAVED_COMMAND_NAME_LENGTH} characters max, only lowercase latin \
+            letters, numbers, underscore, and minus symbols allowed.` )
+          .setRequired(true)
+          .setStyle(TextInputStyle.Short)
+        const nameRow = new ActionRowBuilder().addComponents(nameInput)
+        const modalId = `genericSaveModal_${i.id}`
+        const modal = new ModalBuilder()
+          .setCustomId(modalId)
+          .setTitle(isGuildSave ? 'Save command for server?' : 'Save command for you?')
+          .addComponents(nameRow)
+        await i.showModal(modal)
 
-      const nameInput = new TextInputBuilder()
-        .setCustomId('name')
-        .setLabel(`Name for your saved command`)
-        .setPlaceholder(nws`${MAX_SAVED_COMMAND_NAME_LENGTH} characters max, only lowercase latin \
-          letters, numbers, underscore, and minus symbols allowed.` )
-        .setRequired(true)
-        .setStyle(TextInputStyle.Short)
-      const nameRow = new ActionRowBuilder().addComponents(nameInput)
-      const modalId = `genericSaveModal_${i.id}`
-      const modal = new ModalBuilder()
-        .setCustomId(modalId)
-        .setTitle(isGuildSave ? 'Save command for server?' : 'Save command for you?')
-        .addComponents(nameRow)
-      await retryable(() => i.showModal(modal))
-
-      const submitted = await interaction.awaitModalSubmit({
-        // Timeout after 5 minutes of not receiving any valid Modals
-        time: transformMinutesToMs(5),
-        // Match BOTH the exact modal instance and the user
-        filter: mi => mi.customId === modalId && mi.user.id === interaction.user.id,
-      }).catch(error => {
-        // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
-        if (!error ||
-          error.message !== 'Collector received no interactions before ending with reason: time') {
-          logger.error('Failed to create save modal', error)
-        }
-        return null
-      })
-
-      if (submitted) {
-        await retryable(() => submitted.deferReply()).catch(error => {
-          logger.error(`Failed to deferReply for modal submission in genericCommandSaver`, error)
+        const submitted = await pendingInteractions.wait(modalId, {
+          time: transformMinutesToMs(5),
+          filter: mi => mi.customId === modalId && mi.user.id === interaction.user.id,
+          type: 'modal'
         })
-        let name = submitted.fields.getTextInputValue('name').trim().toLowerCase()
-        if (!name) {
-          return await replyOrFollowUp(submitted,
-            errorEmbed.get(nws`The saved command name cannot be empty.`))
-        }
-        if (!name.match(/^[a-z0-9\-_]+$/)) {
-          return await replyOrFollowUp(submitted, errorEmbed.get(nws`Please use only latin \
-            characters, numbers, as well as the \`-\` and \`_\`\ characters in command name.`))
-        }
-        if (name.length > MAX_SAVED_COMMAND_NAME_LENGTH) {
-          return await replyOrFollowUp(submitted, errorEmbed.get(nws`Please pick a name with fewer \
-            than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
-        }
 
+        if (submitted) {
+          await submitted.deferReply()
+          let name = submitted.fields.getTextInputValue('name').trim().toLowerCase()
+          if (!name) {
+            return await replyOrFollowUp(submitted,
+              errorEmbed.get(nws`The saved command name cannot be empty.`))
+          }
+          if (!name.match(/^[a-z0-9\-_]+$/)) {
+            return await replyOrFollowUp(submitted, errorEmbed.get(nws`Please use only latin \
+              characters, numbers, as well as the \`-\` and \`_\`\ characters in command name.`))
+          }
+          if (name.length > MAX_SAVED_COMMAND_NAME_LENGTH) {
+            return await replyOrFollowUp(submitted, errorEmbed.get(nws`Please pick a name with fewer \
+              than ${MAX_SAVED_COMMAND_NAME_LENGTH} characters in it.`))
+          }
+
+          await retryable(() => editMessage(interaction.client, response.channelId, response.id, { components: [] }))
+            .catch(error => {
+              logger.error(`Failed to remove buttons on save button click`, error)
+              return null
+            })
+
+          const limit = isGuildSave ? MAX_GUILD_SAVED_COMMANDS_PER_USER : MAX_SAVED_COMMANDS_PER_USER
+
+          try {
+            const upsertResult = await upsertSavedCommand(
+              interaction.user.id,
+              name,
+              interaction.commandName.toLowerCase(),
+              limit,
+              JSON.stringify(parameters || interaction.options.data),
+              guildId
+            )
+            if (!upsertResult) {
+              logger.error(`The result of upsertSavedCommand appears to be empty`)
+              return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
+                command. Please contact the author of this bot.`))
+            }
+            switch (upsertResult) {
+              case UPSERT_SAVED_COMMAND_RESULTS.inserted:
+              case UPSERT_SAVED_COMMAND_RESULTS.updated: {
+                Client.invalidateSavedCmdNamesCache(interaction.user.id)
+                if (isGuildSave && guildId) {
+                  Client.invalidateGuildSavedCmdNamesCache(guildId)
+                }
+                const isInsert = upsertResult === UPSERT_SAVED_COMMAND_RESULTS.inserted
+                const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
+                return await replyOrFollowUp(submitted, commonReplyEmbed.get(
+                  isInsert ? 'Save successful!' : 'Update successful!',
+                  nws`Your ${scopeLabel} command \`${name}\` was \
+                  ${isInsert ? 'saved' : 'successfully updated'}! \
+                  You can use it via:\n\`\`\`/executeSaved name:${name}\`\`\`\nor examine it \
+                  via:\n\`\`\`/examineSaved name:${name}\`\`\`\nBe \
+                  aware that your saved commands will expire and be automatically **deleted** after \
+                  ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
+              }
+              case UPSERT_SAVED_COMMAND_RESULTS.limit: {
+                const limitNum = isGuildSave
+                  ? MAX_GUILD_SAVED_COMMANDS_PER_USER
+                  : MAX_SAVED_COMMANDS_PER_USER
+                const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
+                return await replyOrFollowUp(submitted, errorEmbed.get(nws`Unfortunately, you \
+                already have ${limitNum} ${scopeLabel} saved commands. You can delete one via \
+                \`/deleteSaved\``))
+              }
+              default: {
+                logger.error(`Unknown upsert_saved_command type result`)
+                return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
+                command. Please contact the author of this bot.`))
+              }
+            }
+
+          } catch (error) {
+            logger.error(`Failed to save a command`, error)
+            return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your command. \
+                Please contact the author of this bot.`)).catch(error => {
+              logger.error(`Failed to send an error message about failing to save a command`, error)
+              return null
+            })
+          }
+        }
+      },
+      onEnd: async () => {
         await retryable(() => editMessage(interaction.client, response.channelId, response.id, { components: [] }))
           .catch(error => {
-            logger.error(`Failed to remove buttons on save button click`, error)
+            logger.error(`Failed to remove buttons on save button timeout`, error)
             return null
           })
-
-        const limit = isGuildSave ? MAX_GUILD_SAVED_COMMANDS_PER_USER : MAX_SAVED_COMMANDS_PER_USER
-
-        try {
-          const upsertResult = await upsertSavedCommand(
-            interaction.user.id,
-            name,
-            interaction.commandName.toLowerCase(),
-            limit,
-            JSON.stringify(parameters || interaction.options.data),
-            guildId
-          )
-          if (!upsertResult) {
-            logger.error(`The result of upsertSavedCommand appears to be empty`)
-            return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
-              command. Please contact the author of this bot.`))
-          }
-          switch (upsertResult) {
-            case UPSERT_SAVED_COMMAND_RESULTS.inserted:
-            case UPSERT_SAVED_COMMAND_RESULTS.updated: {
-              Client.invalidateSavedCmdNamesCache(interaction.user.id)
-              if (isGuildSave && guildId) {
-                Client.invalidateGuildSavedCmdNamesCache(guildId)
-              }
-              const isInsert = upsertResult === UPSERT_SAVED_COMMAND_RESULTS.inserted
-              const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
-              return await replyOrFollowUp(submitted, commonReplyEmbed.get(
-                isInsert ? 'Save successful!' : 'Update successful!',
-                nws`Your ${scopeLabel} command \`${name}\` was \
-                ${isInsert ? 'saved' : 'successfully updated'}! \
-                You can use it via:\n\`\`\`/executeSaved name:${name}\`\`\`\nor examine it \
-                via:\n\`\`\`/examineSaved name:${name}\`\`\`\nBe \
-                aware that your saved commands will expire and be automatically **deleted** after \
-                ${SAVED_COMMANDS_EXPIRE_AFTER} of being executed or examined last.`))
-            }
-            case UPSERT_SAVED_COMMAND_RESULTS.limit: {
-              const limitNum = isGuildSave
-                ? MAX_GUILD_SAVED_COMMANDS_PER_USER
-                : MAX_SAVED_COMMANDS_PER_USER
-              const scopeLabel = isGuildSave ? 'server-wide' : 'personal'
-              return await replyOrFollowUp(submitted, errorEmbed.get(nws`Unfortunately, you \
-              already have ${limitNum} ${scopeLabel} saved commands. You can delete one via \
-              \`/deleteSaved\``))
-            }
-            default: {
-              logger.error(`Unknown upsert_saved_command type result`)
-              return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your \
-              command. Please contact the author of this bot.`))
-            }
-          }
-
-        } catch (error) {
-          logger.error(`Failed to save a command`, error)
-          return await replyOrFollowUp(submitted, errorEmbed.get(nws`Failed to save your command. \
-              Please contact the author of this bot.`)).catch(error => {
-            logger.error(`Failed to send an error message about failing to save a command`, error)
-            return null
-          })
-        }
       }
-    })
-
-    collector.on('end', async () => {
-      await retryable(() => editMessage(interaction.client, response.channelId, response.id, { components: [] }))
-        .catch(error => {
-          logger.error(`Failed to remove buttons on save button timeout`, error)
-          return null
-        })
     })
   }
 }

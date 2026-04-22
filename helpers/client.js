@@ -17,46 +17,22 @@ const logger = require('./logger')
 const {
   GatewayIntentBits,
 } = require('discord.js')
+const { REST } = require('@discordjs/rest')
+const { Routes } = require('discord-api-types/v10')
 const fs = require('fs')
 const path = require('path')
 const pg = require('./pgHandler')
 const replyOrFollowUp = require('./replyOrFollowUp')
 const retryable = require('./retryableDiscordRequest')
-const { ClusterClient, getInfo } = require('discord-hybrid-sharding')
+const getRest = require('./rest')
 
-const _getEntityFromBroadcastResponse = (response) => {
-  if (!response) {
-    logger.error(`Empty response from broadcastEval`)
-    return null
+// REST-only client stub for editMessage.js and logger.js compatibility
+let _restClient = null
+const _getRestClient = () => {
+  if (!_restClient) {
+    _restClient = { rest: getRest() }
   }
-  if (!response.length) {
-    logger.warn(`Have not found an entity in a broadcastEval lookup`)
-    return null
-  }
-  let entity = null
-  let count = 0
-  while (entity === null && count < response.length) {
-    if (response[count]) {
-      entity = response[count]
-    }
-    count++
-  }
-  return entity
-}
-
-const _getChannelById = async (clientOrShard, { id }) => {
-  if (!clientOrShard || !clientOrShard.channels) {
-    throw `Missing client channels data in _getChannelById for channel ${id}`
-  }
-  try {
-    return clientOrShard.channels.fetch(id).catch(err => {
-      logger.error(nws`Failed to fetch channel ${id} in _getChannelById`,
-        err)
-      return null
-    })
-  } catch (err) {
-    throw err
-  }
+  return _restClient
 }
 
 const ROLL_CACHE_MAX_SIZE = 1000
@@ -140,9 +116,16 @@ setInterval(_sweepGuildSettingsCache, GUILD_SETTINGS_CACHE_SWEEP_INTERVAL_MS)
 
 const Client = module.exports = {
 
-  client: null,
+  // Provide a REST-only client stub (no gateway)
+  get client () {
+    return _getRestClient()
+  },
+  set client (val) {
+    // Allow setting for backward compatibility, but prefer REST stub
+    _restClient = val
+  },
   deckTypesCache: {},
-  isReady: false,
+  isReady: true, // Always ready in HTTP mode
 
   // --- rollThrowsCache helpers (bounded Map with TTL) ---
   getRollCache (id) {
@@ -326,20 +309,13 @@ const Client = module.exports = {
   },
 
   async getChannelById (id) {
+    // In HTTP mode, fetch via REST API
     try {
-      // Try local fetch first — avoids expensive cross-cluster IPC
-      const localChannel = await _getChannelById(this.client, { id })
-      if (localChannel) return localChannel
-
-      // Fall back to broadcast only if this cluster doesn't have the channel
-      if (this.client.cluster) {
-        const response =
-            await this.client.cluster.broadcastEval(_getChannelById, { context: { id } })
-        return _getEntityFromBroadcastResponse(response)
-      }
-      return null
+      const rest = _getRestClient().rest
+      return await rest.get(Routes.channel(id))
     } catch (err) {
-      throw err
+      logger.error(`Failed to fetch channel ${id} via REST`, err)
+      return null
     }
   },
 
@@ -358,262 +334,8 @@ const Client = module.exports = {
     })
   },
 
+  // readyBasics is no longer needed in HTTP mode — kept as no-op for compatibility
   async readyBasics (slashCommands) {
-    let options = { }
-    options.shards = getInfo().SHARD_LIST // An array of shards that will get spawned
-    options.shardCount = getInfo().TOTAL_SHARDS // Total number of shards
-
-    options.intents = [
-      GatewayIntentBits.Guilds
-    ]
-    options.makeCache = Discord.Options.cacheWithLimits({
-      MessageManager: 0,
-      PresenceManager: 0,
-      ThreadManager: 0,
-      ApplicationCommandManager: 0, // guild.commands
-      BaseGuildEmojiManager: 0, // guild.emojis
-      GuildBanManager: 0, // guild.bans
-      GuildInviteManager: 0, // guild.invites
-      GuildManager: Infinity, // client.guilds
-      GuildMemberManager: 0, // guild.members
-      GuildStickerManager: 0, // guild.stickers
-      GuildScheduledEventManager: 0, // guild.scheduledEvents
-      ReactionManager: 0, // message.reactions
-      ReactionUserManager: 0, // reaction.users
-      StageInstanceManager: 0, // guild.stageInstances
-      ThreadMemberManager: 0, // threadChannel.members
-      UserManager: 0, // client.users
-      VoiceStateManager: 0, // guild.voiceStates
-    })
-
-    // Sweepers clean up stale entries that accumulate despite makeCache limits.
-    // ChannelManager can't be limited via makeCache, so the sweeper is essential.
-    options.sweepers = {
-      ...Discord.Options.DefaultSweeperSettings,
-      messages: {
-        interval: 600,   // every 10 minutes (seconds)
-        lifetime: 300    // older than 5 minutes
-      },
-      users: {
-        interval: 600,
-        filter: Discord.Sweepers.filterByLifetime({
-          lifetime: 600  // 10 minutes
-        })
-      },
-      threads: {
-        interval: 600,
-        lifetime: 600
-      }
-    }
-    Client.client = new Discord.Client(options)
-    Client.client.cluster = new ClusterClient(Client.client)
-
-    //This is quite a hack, but I couldn't find a better way
-    Client.client.functions = {
-      getChannelById: _getChannelById
-    }
-
-    await this.cacheDeckTypes()
-
-    Client.client.on('error', async error =>
-        await require(`../events/error`)(Client.client, error))
-    Client.client.on('clientReady', async () =>
-        await require(`../events/ready`)(Client.client))
-
-    const safeThis = this
-
-    Client.client.on('interactionCreate', async interaction => {
-      if (!safeThis.isReady) {
-        return
-      }
-      if (interaction.isCommand()) {
-        if (!interaction.commandName) return
-        const command = slashCommands.get(interaction.commandName)
-        if (!command) return
-        try {
-          await command.execute(interaction)
-        } catch (error) {
-          if (error?.code === 10062) {
-            logger.warn(`Interaction expired before ${interaction.commandName} could be processed`)
-            return
-          }
-          logger.error(`Failed while trying to execute a ${interaction.commandName} command`, error)
-          await replyOrFollowUp(interaction, {
-            content: `Failed to execute the \`${interaction.commandName}\` command. Please contact the bot creator.`,
-            ephemeral: true
-          })
-        }
-      } else if (interaction.isAutocomplete()) {
-        // special case for /help
-        if (interaction.commandName === 'help') {
-          const focusedValue = interaction.options.getFocused().toLowerCase()
-          const helpPath = path.join('help')
-          const helpFiles = fs.readdirSync(helpPath).filter(file => file.endsWith('.md'))
-          const choices = []
-          for (let file of helpFiles) {
-            file = file.toLowerCase().replace('.md', '')
-            if (file !== '!') {
-              choices.push(file)
-            }
-          }
-          // Add roll topic entries (modifiers, dice types, syntax)
-          // Priority choices (category overviews) come first so they aren't pushed
-          // past the 25-item Discord autocomplete limit by individual entries
-          const { ROLL_TOPICS, ROLL_ALL_TOPICS, TOPICS_TOPIC, GENERAL_TOPICS } = require('../commandHandlers/help')
-          const priorityChoices = [TOPICS_TOPIC, ...GENERAL_TOPICS, ROLL_ALL_TOPICS]
-          const detailChoices = []
-          for (const category of Object.values(ROLL_TOPICS)) {
-            priorityChoices.push(category.listTopic)
-            for (const key of Object.keys(category.descriptions)) {
-              detailChoices.push(category.prefix + key)
-            }
-          }
-          const filteredPriority = priorityChoices.filter(c => c.startsWith(focusedValue))
-          const filteredExact = choices.filter(c => c === focusedValue)
-          const filteredChoices = choices.filter(c => c.startsWith(focusedValue) && c !== focusedValue)
-          const filteredDetail = detailChoices.filter(c => c.startsWith(focusedValue))
-          const filtered = [...filteredExact, ...filteredPriority, ...filteredChoices, ...filteredDetail]
-            .slice(0, 25) // Discord autocomplete limit
-          await retryable(
-            () => interaction.respond(
-              filtered.map(choice => ({ name: choice, value: choice }))
-            )
-          ).catch(error => {
-            logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
-          })
-        } else if ((interaction.commandName === 'examinedeck') ||
-          (interaction.commandName === 'shuffle') ||
-          (interaction.commandName === 'drawshuffled')) {
-          const focusedOption = interaction.options.getFocused(true)
-          const focusedValue = focusedOption.value
-          const choices = []
-          if (focusedOption.name === 'deck') {
-            for (let deckType in this.deckTypesCache) {
-              choices.push(deckType)
-            }
-            if (interaction.commandName !== 'examinedeck') {
-              choices.push(CUSTOM_DECK_TYPE)
-            }
-          }
-          const filtered = choices.filter(choice => choice.startsWith(focusedValue))
-          await retryable(
-            () => interaction.respond(
-              filtered.map(choice => ({ name: choice, value: choice }))
-            )
-          ).catch(error => {
-            logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
-          })
-        } else if ((interaction.commandName === 'examinesaved') ||
-          (interaction.commandName === 'deletesaved') ||
-          (interaction.commandName === 'executesaved')) {
-          const focusedValue = interaction.options.getFocused()
-          const guildId = interaction.guildId
-
-          // --- Personal commands ---
-          let personalNames = safeThis.getSavedCmdNamesCache(interaction.user.id)
-          if (!personalNames) {
-            personalNames = []
-            try {
-              const result = await pg.db.any(
-                'SELECT ${name~} FROM ${db#} WHERE ${userId~} = ${userIdValue} AND ${guildId~} IS NULL',
-                {
-                  name: SAVED_COMMANDS_COLUMNS.name,
-                  db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
-                  userId: SAVED_COMMANDS_COLUMNS.user_id,
-                  userIdValue: interaction.user.id,
-                  guildId: SAVED_COMMANDS_COLUMNS.guild_id
-                })
-              if (result && result.length) {
-                result.forEach(command => {
-                  personalNames.push(command.name)
-                })
-              }
-              safeThis.setSavedCmdNamesCache(interaction.user.id, personalNames)
-            } catch(error) {
-              logger.log(`Failed to get the list of personal saved commands for autocomplete`, error)
-            }
-          }
-
-          // --- Guild commands ---
-          let guildEntries = [] // { name, userId }[]
-          if (guildId) {
-            guildEntries = safeThis.getGuildSavedCmdNamesCache(guildId)
-            if (!guildEntries) {
-              guildEntries = []
-              try {
-                const result = await pg.db.any(
-                  'SELECT ${name~}, ${userId~} FROM ${db#} WHERE ${guildId~} = ${guildIdValue}',
-                  {
-                    name: SAVED_COMMANDS_COLUMNS.name,
-                    userId: SAVED_COMMANDS_COLUMNS.user_id,
-                    db: pg.addPrefix(SAVED_COMMANDS_DB_NAME),
-                    guildId: SAVED_COMMANDS_COLUMNS.guild_id,
-                    guildIdValue: guildId
-                  })
-                if (result && result.length) {
-                  result.forEach(command => {
-                    guildEntries.push({ name: command.name, userId: command.user_id })
-                  })
-                }
-                safeThis.setGuildSavedCmdNamesCache(guildId, guildEntries)
-              } catch(error) {
-                logger.log(`Failed to get the list of guild saved commands for autocomplete`, error)
-              }
-            }
-          }
-
-          // Build choices with scope prefix in value and label suffix
-          const choices = []
-          personalNames.forEach(name => {
-            choices.push({
-              name: guildId ? `${name} (yours)` : name,
-              value: SAVED_CMD_SCOPE_PERSONAL + name
-            })
-          })
-          guildEntries.forEach(entry => {
-            choices.push({
-              name: `${entry.name} (server-wide)`,
-              value: SAVED_CMD_SCOPE_GUILD + entry.name
-            })
-          })
-
-          const filtered = choices
-            .filter(c => c.name.startsWith(focusedValue) ||
-              c.value.endsWith(focusedValue) ||
-              c.name.split(' (')[0].startsWith(focusedValue))
-            .slice(0, 25)
-          await retryable(
-            () => interaction.respond(filtered)
-          ).catch(error => {
-            logger.log(`Failed to send autocomplete options for ${interaction.commandName}`, error)
-          })
-        }
-
-        // TODO: write a generic handler with a nested object in constants
-        /*if (interaction.commandName === 'help') {
-          const focusedOption = interaction.options.getFocused(true)
-          let choices
-
-          if (focusedOption.name === 'name') {
-            choices = ['faq', 'install', 'collection', 'promise', 'debug'];
-          }
-
-          if (focusedOption.name === 'theme') {
-            choices = ['halloween', 'christmas', 'summer'];
-          }
-
-          const filtered = choices.filter(choice => choice.startsWith(focusedOption.value));
-          await interaction.respond(
-            filtered.map(choice => ({ name: choice, value: choice })),
-          );
-        }*/
-      } else if (interaction.isButton()) {
-        //interaction.message.id
-      }
-    })
-
-    logger.log('Trying to log in...')
-    await Client.tryToLogIn(0, null, null)
-    this.isReady = true
+    logger.log('readyBasics called — HTTP mode, no gateway connection needed')
   }
 }

@@ -20,7 +20,7 @@ module.exports = {
     .addBooleanOption(option => option
       .setName('should_show_cards')
       .setNameLocalization('ru', 'показать_карты')
-      .setDescription('Show the full ist of cards in that deck type?')
+      .setDescription('Show the full list of cards in that deck type?')
       .setDescriptionLocalization('ru', 'Показать полный список карт в этом типе колоды?')
     )
   ,

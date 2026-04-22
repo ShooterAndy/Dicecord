@@ -57,7 +57,7 @@ module.exports = async (interaction, args) => {
       }
     } else {
       text +=
-        'You can see the full deck by using the `list_cards` optional parameter for this command.'
+        'You can see the full deck by using the `should_show_cards` optional parameter for this command.'
     }
     try {
       return await replyOrFollowUp(interaction,

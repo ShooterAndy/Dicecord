@@ -1,56 +1,38 @@
-const Discord = require('discord.js')
+const { Routes } = require('discord-api-types/v10')
 const { MessageFlagsBitField } = require('discord.js')
 const splitMessage = require('./splitMessage')
-const sendToChannel = require('./sendToChannel')
-const handleBroadcastEval = require('./handleBroadcastEval')
 const logger = require('./logger')
-const nws = require('./nws')
+const getRest = require('./rest')
 
 module.exports = async (text, messageOrChannelId, shouldSuppressEmbeds) => {
-  const Client = require('./client')
   if (!text) {
     throw `No text in send function call`
   }
   if (!messageOrChannelId) {
     throw `No messageOrChannelId in send function call for text "${text}"`
   }
-  let message = { }
   let channelId = null
   if (typeof messageOrChannelId === 'string') {
     channelId = messageOrChannelId
   } else {
-    message = messageOrChannelId
+    channelId = messageOrChannelId.channelId
   }
-  if (!channelId && !message.channelId) {
+  if (!channelId) {
     throw `No channel id in send function call for text "${text}"`
   }
   const parts = splitMessage(text)
   const messages = []
+  const rest = getRest()
   for (const part of parts) {
-    const flags = new MessageFlagsBitField()
+    const body = { content: part }
     if (shouldSuppressEmbeds) {
-      flags.add(MessageFlagsBitField.Flags.SuppressEmbeds)
+      body.flags = MessageFlagsBitField.Flags.SuppressEmbeds
     }
-    if (channelId || message.guildId) {
-      if (!channelId) {
-        channelId = message.channelId
-      }
-      const pushToMessages = (response) => { if (response) messages.push(response) }
-      await handleBroadcastEval(Client.client.cluster, sendToChannel, {
-        context: { channelId, messageText: part, flags },
-        callback: pushToMessages
-      })
-    } else { // It's a DM
-      let channel = message.channel
-      if (!channel) {
-        channel = await Client.client.channels.fetch(channelId).catch(err => {
-          logger.error(nws`Failed to fetch channel ${channelId} in send`,
-            err)
-          return null
-        })
-      }
-      const response = await channel.send({ content: part, flags }).catch(error => { throw error })
-      messages.push(response)
+    try {
+      const response = await rest.post(Routes.channelMessages(channelId), { body })
+      if (response) messages.push(response)
+    } catch (err) {
+      logger.error(`Failed to send message to channel ${channelId}`, err)
     }
   }
   return messages

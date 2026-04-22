@@ -5,6 +5,7 @@ const logger = require('../helpers/logger')
 const { modal } = require('../modals/orderModal')
 const {transformMinutesToMs} = require('../helpers/utilities')
 const retryable = require('../helpers/retryableDiscordRequest')
+const pendingInteractions = require('../helpers/pendingInteractions')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -41,18 +42,10 @@ module.exports = {
       const uniqueId = `orderModal-${interaction.id}`
       const uniqueModal = new ModalBuilder(modal.toJSON()).setCustomId(uniqueId)
       await retryable(() => interaction.showModal(uniqueModal))
-      const submitted = await interaction.awaitModalSubmit({
-        // Timeout after ten minutes
+      const submitted = await pendingInteractions.wait(uniqueId, {
         time: transformMinutesToMs(10),
-        // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
         filter: mi => mi.customId === uniqueId && mi.user.id === interaction.user.id,
-      }).catch(error => {
-        // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 60000 ms)
-        if (!error ||
-          error.message !== 'Collector received no interactions before ending with reason: time') {
-          logger.error('Failed to create order modal', error)
-        }
-        return null
+        type: 'modal'
       })
 
       if (submitted) {

@@ -5,4 +5,4 @@ See `/help topic:shuffle` or `/help command:drawShuffled` to learn more about ho
 
 Examples:
 * `/examineDeck deck:rider-waite` — will show you a short description of the `rider-waite` card deck type.
-* `/examineDeck deck:durak list_cards:True` — will show you a short description and the full list of cards used in the `durak` card deck type.
+* `/examineDeck deck:durak should_show_cards:True` — will show you a short description and the full list of cards used in the `durak` card deck type.

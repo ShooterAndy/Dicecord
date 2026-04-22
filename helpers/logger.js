@@ -14,8 +14,7 @@ const truncate = require('./truncate')
 let _fallbackRest = null
 const _getFallbackRest = () => {
   if (!_fallbackRest) {
-    const { REST } = require('@discordjs/rest')
-    _fallbackRest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN)
+    _fallbackRest = require('./rest')()
   }
   return _fallbackRest
 }
@@ -60,7 +59,7 @@ module.exports = {
       return this.sendMessage(LOG_TYPES.error, nws`Forgot to include the log type for this \
         log message`, text)
     }
-    if (IS_LOCAL || !Client.client || !Client.client.cluster) {
+    if (IS_LOCAL) {
       this.sendConsoleMessage(type, text, additionalInfo)
     }
     if (!LOG_CHANNEL_ID) {
@@ -92,10 +91,6 @@ module.exports = {
         messageText = truncate(messageText)
 
         if (await _trySendDirect(messageText)) return
-        // send() requires a live Client — only attempt if available
-        if (Client.client && Client.client.cluster) {
-          return await send(messageText, LOG_CHANNEL_ID, true)
-        }
       } catch (error) {
         return console.error(nws`${LOG_PREFIX}${LOG_TYPES.error}: Failed to send a message to the \
           log channel:\n${error}\n\nOriginal log message:\n${text}`)
