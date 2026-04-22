@@ -16,3 +16,4 @@
 * **/insert** — inserts the specified cards into the saved deck at random positions.
 * **/slots** — displays a random result from a customizable slot machine.
 * **/settings** — configures per-server bot settings (admin only). See `/help topic:settings` for details.
+* **/version** — shows the current bot version, a link to the changelog, and recent changes.

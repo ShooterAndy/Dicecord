@@ -46,6 +46,7 @@ picks a random item (or several) from a comma-separated list.
 pulls the lever on a customizable slot machine.
 * [/settings](https://github.com/ShooterAndy/Dicecord/blob/master/help/settings.md) —
 configures per-server bot settings (admin only), such as plain text mode.
+* [/version](https://github.com/ShooterAndy/Dicecord/blob/master/help/version.md) — shows the current bot version, a link to the changelog, and recent changes.
 * **Card-related commands:**
   * [/listDeckTypes](https://github.com/ShooterAndy/Dicecord/blob/master/help/listdecktypes.md) — 
 lists all existing deck types.
