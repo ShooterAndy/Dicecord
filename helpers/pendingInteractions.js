@@ -89,14 +89,15 @@ module.exports = {
    * @returns {boolean} true if handled
    */
   tryDispatchButton (messageId, adapter) {
+    let handled = false
     for (const [key, entry] of _pending.entries()) {
       if (entry.type !== 'button-collector') continue
       if (entry.messageId !== messageId) continue
       if (entry.filter && !entry.filter(adapter)) continue
       entry.onCollect(adapter)
-      return true
+      handled = true
     }
-    return false
+    return handled
   },
 
   /** Check if a pending entry exists */
