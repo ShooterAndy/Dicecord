@@ -466,8 +466,18 @@ const startPresenceGateway = async () => {
     const { GatewayIntentBits, ActivityType } = Discord
     const version = require('./package.json').version
 
+    // Fetch recommended shard count from Discord
+    const rest = getRest()
+    const gatewayInfo = await rest.get(Routes.gatewayBot())
+    const shardCount = gatewayInfo.shards || 1
+    const shards = Array.from({ length: shardCount }, (_, i) => i) // [0, 1, 2, ...]
+
+    logger.log(`Presence gateway: using ${shardCount} shard(s)`)
+
     const presenceClient = new Discord.Client({
       intents: [GatewayIntentBits.Guilds],
+      shards,
+      shardCount,
       // Minimal caches — we don't need any data, just presence
       makeCache: Discord.Options.cacheWithLimits({
         MessageManager: 0,
@@ -486,11 +496,8 @@ const startPresenceGateway = async () => {
         ThreadMemberManager: 0,
         UserManager: 0,
         VoiceStateManager: 0,
-        ApplicationCommandManager: 0,
-        // Keep a small guild cache so Discord doesn't disconnect us
-        GuildManager: Infinity
+        ApplicationCommandManager: 0
       }),
-      // No sweepers needed for this minimal client
       presence: {
         status: 'online',
         activities: [{
