@@ -65,17 +65,18 @@ module.exports = {
    */
   collectButtons (messageId, { onCollect, onEnd, filter, time }) {
     const key = `btn:${messageId}`
+    const id = `${key}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`
     const timer = setTimeout(() => {
-      _pending.delete(key)
+      _pending.delete(id)
       if (onEnd) onEnd()
     }, time || 600_000)
 
-    _pending.set(key, { onCollect, onEnd, filter, timer, type: 'button-collector' })
+    _pending.set(id, { messageId, onCollect, onEnd, filter, timer, type: 'button-collector' })
 
     return {
       stop: () => {
         clearTimeout(timer)
-        _pending.delete(key)
+        _pending.delete(id)
         if (onEnd) onEnd()
       }
     }
@@ -88,12 +89,14 @@ module.exports = {
    * @returns {boolean} true if handled
    */
   tryDispatchButton (messageId, adapter) {
-    const key = `btn:${messageId}`
-    const entry = _pending.get(key)
-    if (!entry) return false
-    if (entry.filter && !entry.filter(adapter)) return false
-    entry.onCollect(adapter)
-    return true
+    for (const [key, entry] of _pending.entries()) {
+      if (entry.type !== 'button-collector') continue
+      if (entry.messageId !== messageId) continue
+      if (entry.filter && !entry.filter(adapter)) continue
+      entry.onCollect(adapter)
+      return true
+    }
+    return false
   },
 
   /** Check if a pending entry exists */
