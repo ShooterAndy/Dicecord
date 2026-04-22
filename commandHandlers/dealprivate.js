@@ -67,7 +67,23 @@ const getMentionsList = async (interaction, usersList) => {
       }
       let user
       try {
-        user = await interaction.guild.members.fetch(id)
+        // Try gateway cache first, fall back to REST API
+        if (interaction.guild && interaction.guild.members) {
+          user = await interaction.guild.members.fetch(id)
+        } else {
+          const getRest = require('../helpers/rest')
+          const { Routes } = require('discord-api-types/v10')
+          const rest = getRest()
+          const memberData = await rest.get(
+            Routes.guildMember(interaction.guildId, id)
+          )
+          user = {
+            id: memberData.user.id,
+            user: memberData.user,
+            displayName: memberData.nick || memberData.user.global_name || memberData.user.username,
+            toString: () => `<@${memberData.user.id}>`
+          }
+        }
         if (user) {
           mentionsList.push(user)
         } else {
