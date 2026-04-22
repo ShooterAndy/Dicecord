@@ -240,19 +240,21 @@ class InteractionAdapter {
     this._replied = true
     const rest = getRest()
     const body = this._toAPIMessage(content)
-    return rest.patch(
+    const raw = await rest.patch(
       Routes.webhookMessage(_appId(), this.token, '@original'),
       { body }
     )
+    return this._normalizeMessage(raw)
   }
 
   async followUp (content) {
     const rest = getRest()
     const body = this._toAPIMessage(content)
-    return rest.post(
+    const raw = await rest.post(
       Routes.webhook(_appId(), this.token),
       { body }
     )
+    return this._normalizeMessage(raw)
   }
 
   async showModal (modal) {
@@ -310,6 +312,21 @@ class InteractionAdapter {
     if (content.ephemeral) body.flags = (body.flags || 0) | MessageFlags.Ephemeral
     if (content.allowed_mentions) body.allowed_mentions = content.allowed_mentions
     return body
+  }
+
+  /**
+   * Normalize a raw Discord API message response to look like a discord.js Message.
+   * Maps snake_case fields to camelCase so callers can use response.channelId, etc.
+   */
+  _normalizeMessage (raw) {
+    if (!raw || typeof raw !== 'object') return raw
+    if (!raw.channel_id && raw.channelId) return raw // already normalized
+    return {
+      ...raw,
+      channelId: raw.channel_id ?? raw.channelId,
+      guildId: raw.guild_id ?? raw.guildId,
+      components: raw.components || []
+    }
   }
 }
 
