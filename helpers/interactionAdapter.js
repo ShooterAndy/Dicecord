@@ -266,6 +266,28 @@ class InteractionAdapter {
   }
 
   /**
+   * Acknowledge a component interaction by updating the message.
+   * Equivalent to discord.js interaction.update().
+   */
+  async update (content) {
+    const body = typeof content === 'string' ? { content } : this._toAPIMessage(content)
+    this._sendInitialResponse({
+      type: 7, // InteractionResponseType.UpdateMessage
+      data: body
+    })
+  }
+
+  /**
+   * Acknowledge a component interaction without updating the message.
+   * Equivalent to discord.js interaction.deferUpdate().
+   */
+  async deferUpdate () {
+    this._sendInitialResponse({
+      type: 6 // InteractionResponseType.DeferredMessageUpdate
+    })
+  }
+
+  /**
    * Respond to autocomplete.
    * @param {Array<{name: string, value: string}>} choices
    */
