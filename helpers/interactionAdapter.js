@@ -247,6 +247,13 @@ class InteractionAdapter {
     return this._normalizeMessage(raw)
   }
 
+  async deleteReply () {
+    const rest = getRest()
+    await rest.delete(
+      Routes.webhookMessage(_appId(), this.token, '@original')
+    )
+  }
+
   async followUp (content) {
     const rest = getRest()
     const body = this._toAPIMessage(content)
