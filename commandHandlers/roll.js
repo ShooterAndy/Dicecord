@@ -2431,7 +2431,10 @@ const showResults = async (_interaction, additionalText) => {
           const text = formatThrowResults({
             throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.bbcode.name
           })
-          const updatedEmbeds = i.message?.embeds?.map(e => ({ ...e.toJSON() })) || []
+          const updatedEmbeds = i.message?.embeds?.map(e => {
+            const embed = typeof e.toJSON === 'function' ? e.toJSON() : e
+            return { ...embed }
+          }) || []
           if (updatedEmbeds[0]) {
             updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
           }
@@ -2444,9 +2447,12 @@ const showResults = async (_interaction, additionalText) => {
           const text = formatThrowResults({
             throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.markdown.name
           })
-          const updatedEmbeds = i.message?.embeds?.map(e => ({ ...e.toJSON() })) || []
+          const updatedEmbeds = i.message?.embeds?.map(e => {
+            const embed = typeof e.toJSON === 'function' ? e.toJSON() : e
+            return { ...embed }
+          }) || []
           if (updatedEmbeds[0]) {
-           updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
+            updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
           }
           return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
             logger.error(`Failed to update roll buttons on "Markdown"`, error)
