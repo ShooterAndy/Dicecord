@@ -2412,11 +2412,12 @@ const showResults = async (_interaction, additionalText) => {
     onCollect: async (i) => {
       let updatedComponents = []
 
-      // Determine which buttons should remain based on what was clicked
-      const remainingButtonIds = []
-      if (i.customId !== 'repeat') remainingButtonIds.push('repeat')
-      if (i.customId !== 'bb-code') remainingButtonIds.push('bb-code')
-      if (i.customId !== 'markdown') remainingButtonIds.push('markdown')
+      // Get currently visible buttons from the message
+      const currentButtons = i.message?.components?.[0]?.components || []
+      const currentButtonIds = currentButtons.map(btn => btn.customId || btn.custom_id).filter(Boolean)
+
+      // Remove the clicked button from the list
+      const remainingButtonIds = currentButtonIds.filter(id => id !== i.customId)
 
       // Rebuild the action row with remaining buttons
       if (remainingButtonIds.length > 0) {
@@ -2459,8 +2460,10 @@ const showResults = async (_interaction, additionalText) => {
         case 'repeat': {
           if (repeatCollected) return
           repeatCollected = true
+          // Defer the reply first to allow for the new roll message
+          await i.deferReply().catch(() => null)
           // Update the original message to remove the Repeat button
-          await i.update({ components: updatedComponents }).catch(() => null)
+          await retryable(() => editMessage(i.client, i.message.channelId, i.message.id, { components: updatedComponents })).catch(() => null)
           // Create a new follow-up message with the new roll
           await module.exports.repeatRollCommand(i, r.id)
           return
