@@ -2488,7 +2488,7 @@ const showResults = async (_interaction, additionalText) => {
           await i.deferReply().catch(() => null)
           // Manually edit the original message to remove the Repeat button
           await retryable(() =>
-            editMessage(i.client, i.message.channelId, i.message.id, {
+            editMessage(i.client, i.channelId, i.message.id, {
               components: updatedComponents
             })).catch(error => {
               logger.error(`Failed to remove Repeat button`, error)
