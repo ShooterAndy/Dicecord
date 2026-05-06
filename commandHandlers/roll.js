@@ -189,7 +189,8 @@ const prepareFromCache = (id) => {
     return false
   }
   ctx.throws = JSON.parse(JSON.stringify(Client.getRollCache(id)))
-  clearCaches(id)
+  // Don't clear the cache here - it should persist for other buttons on the original message
+  // The cache will be cleared by the onEnd callback when the collector expires
   ctx.warnings = []
   return true
 }
