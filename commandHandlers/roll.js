@@ -2410,15 +2410,21 @@ const showResults = async (_interaction, additionalText) => {
   pendingInteractions.collectButtons(r.id, {
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT),
     onCollect: async (i) => {
-      const updatedButtonsRow =
-        i.message?.components?.[1]?.components?.filter(c => c.customId !== i.customId) || []
-      let updatedComponents = i.message?.components?.map(comp => ({
-        type: comp.type,
-        components: comp.components ? [...comp.components] : []
-      })) || []
-      if (updatedComponents[1]) {
-        updatedComponents[1].components = updatedButtonsRow
+       const remainingButtons = i.message?.components?.[1]?.components?.filter(c => c.customId !== i.customId) || []
+       let updatedComponents = []
+
+       // Reconstruct the action row with remaining buttons
+       if (remainingButtons.length > 0) {
+         const buttonsRow = new ActionRowBuilder()
+         remainingButtons.forEach(button => {
+           const buttonData = typeof button.toJSON === 'function' ? button.toJSON() : button
+           buttonsRow.addComponents(
+             new ButtonBuilder(buttonData)
+           )
+         })
+         updatedComponents = [buttonsRow]
       }
+
       switch(i.customId) {
         case 'repeat': {
           if (repeatCollected) return
