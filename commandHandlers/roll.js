@@ -2410,50 +2410,74 @@ const showResults = async (_interaction, additionalText) => {
   pendingInteractions.collectButtons(r.id, {
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT),
     onCollect: async (i) => {
-      let updatedComponents = []
+      // Find which component row has our buttons
+      let buttonRowIndex = -1
+      let currentButtonIds = []
 
-      // Get currently visible buttons from the message
-      const currentButtons = i.message?.components?.[0]?.components || []
-      const currentButtonIds = currentButtons.map(btn => btn.customId || btn.custom_id).filter(Boolean)
+      if (i.message?.components) {
+        for (let idx = 0; idx < i.message.components.length; idx++) {
+          const row = i.message.components[idx]
+          if (row.components && row.components.length > 0) {
+            const firstButtonId = row.components[0].customId || row.components[0].custom_id
+            if (firstButtonId === 'repeat' || firstButtonId === 'bb-code' || firstButtonId === 'markdown') {
+              buttonRowIndex = idx
+              currentButtonIds = row.components.map(btn => btn.customId || btn.custom_id).filter(Boolean)
+              break
+            }
+          }
+        }
+      }
 
       // Remove the clicked button from the list
       const remainingButtonIds = currentButtonIds.filter(id => id !== i.customId)
 
-      // Rebuild the action row with remaining buttons
-      if (remainingButtonIds.length > 0) {
-        const buttonsRow = new ActionRowBuilder()
+      // Rebuild components array with all existing components
+      let updatedComponents = []
+      if (i.message?.components) {
+        for (let idx = 0; idx < i.message.components.length; idx++) {
+          if (idx === buttonRowIndex) {
+            // This is our button row - rebuild it
+            if (remainingButtonIds.length > 0) {
+              const buttonsRow = new ActionRowBuilder()
 
-        if (remainingButtonIds.includes('repeat')) {
-          buttonsRow.addComponents(
-            new ButtonBuilder()
-              .setCustomId('repeat')
-              .setLabel('Repeat')
-              .setEmoji(REPEAT_EMOJI)
-              .setStyle(ButtonStyle.Success)
-          )
+              if (remainingButtonIds.includes('repeat')) {
+                buttonsRow.addComponents(
+                  new ButtonBuilder()
+                    .setCustomId('repeat')
+                    .setLabel('Repeat')
+                    .setEmoji(REPEAT_EMOJI)
+                    .setStyle(ButtonStyle.Success)
+                )
+              }
+
+              if (remainingButtonIds.includes('bb-code')) {
+                buttonsRow.addComponents(
+                  new ButtonBuilder()
+                    .setCustomId('bb-code')
+                    .setLabel('BB-code')
+                    .setEmoji(B_EMOJI)
+                    .setStyle(ButtonStyle.Secondary)
+                )
+              }
+
+              if (remainingButtonIds.includes('markdown')) {
+                buttonsRow.addComponents(
+                  new ButtonBuilder()
+                    .setCustomId('markdown')
+                    .setLabel('Markdown')
+                    .setEmoji(M_EMOJI)
+                    .setStyle(ButtonStyle.Secondary)
+                )
+              }
+
+              updatedComponents.push(buttonsRow)
+            }
+            // If no buttons remain, don't add this row
+          } else {
+            // Keep other component rows as-is (Discord.js accepts plain objects)
+            updatedComponents.push(i.message.components[idx])
+          }
         }
-
-        if (remainingButtonIds.includes('bb-code')) {
-          buttonsRow.addComponents(
-            new ButtonBuilder()
-              .setCustomId('bb-code')
-              .setLabel('BB-code')
-              .setEmoji(B_EMOJI)
-              .setStyle(ButtonStyle.Secondary)
-          )
-        }
-
-        if (remainingButtonIds.includes('markdown')) {
-          buttonsRow.addComponents(
-            new ButtonBuilder()
-              .setCustomId('markdown')
-              .setLabel('Markdown')
-              .setEmoji(M_EMOJI)
-              .setStyle(ButtonStyle.Secondary)
-          )
-        }
-
-        updatedComponents = [buttonsRow]
       }
 
       switch(i.customId) {
