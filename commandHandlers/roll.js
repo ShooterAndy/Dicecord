@@ -2410,19 +2410,38 @@ const showResults = async (_interaction, additionalText) => {
   pendingInteractions.collectButtons(r.id, {
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT),
     onCollect: async (i) => {
-       const remainingButtons = i.message?.components?.[1]?.components?.filter(c => c.customId !== i.customId) || []
-       let updatedComponents = []
+      let updatedComponents = []
 
-       // Reconstruct the action row with remaining buttons
-       if (remainingButtons.length > 0) {
-         const buttonsRow = new ActionRowBuilder()
-         remainingButtons.forEach(button => {
-           const buttonData = typeof button.toJSON === 'function' ? button.toJSON() : button
-           buttonsRow.addComponents(
-             new ButtonBuilder(buttonData)
-           )
-         })
-         updatedComponents = [buttonsRow]
+      // Determine which buttons should remain based on what was clicked
+      const remainingButtonIds = []
+      if (i.customId !== 'bb-code') remainingButtonIds.push('bb-code')
+      if (i.customId !== 'markdown') remainingButtonIds.push('markdown')
+
+      // Rebuild the action row with remaining buttons
+      if (remainingButtonIds.length > 0) {
+        const buttonsRow = new ActionRowBuilder()
+
+        if (remainingButtonIds.includes('bb-code')) {
+          buttonsRow.addComponents(
+            new ButtonBuilder()
+              .setCustomId('bb-code')
+              .setLabel('BB-code')
+              .setEmoji(B_EMOJI)
+              .setStyle(ButtonStyle.Secondary)
+          )
+        }
+
+        if (remainingButtonIds.includes('markdown')) {
+          buttonsRow.addComponents(
+            new ButtonBuilder()
+              .setCustomId('markdown')
+              .setLabel('Markdown')
+              .setEmoji(M_EMOJI)
+              .setStyle(ButtonStyle.Secondary)
+          )
+        }
+
+        updatedComponents = [buttonsRow]
       }
 
       switch(i.customId) {
