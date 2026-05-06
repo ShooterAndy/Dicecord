@@ -2420,7 +2420,7 @@ const showResults = async (_interaction, additionalText) => {
         case 'repeat': {
           if (repeatCollected) return
           repeatCollected = true
-          await i.deferUpdate().catch(() => null)
+          await i.deferReply().catch(() => null)
           await module.exports.repeatRollCommand(i, r.id)
           return
         }
