@@ -2412,7 +2412,10 @@ const showResults = async (_interaction, additionalText) => {
     onCollect: async (i) => {
       const updatedButtonsRow =
         i.message?.components?.[1]?.components?.filter(c => c.customId !== i.customId) || []
-      let updatedComponents = i.message?.components || []
+      let updatedComponents = i.message?.components?.map(comp => ({
+        type: comp.type,
+        components: comp.components ? [...comp.components] : []
+      })) || []
       if (updatedComponents[1]) {
         updatedComponents[1].components = updatedButtonsRow
       }
@@ -2428,8 +2431,10 @@ const showResults = async (_interaction, additionalText) => {
           const text = formatThrowResults({
             throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.bbcode.name
           })
-          const updatedEmbeds = content.embeds
-          updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
+          const updatedEmbeds = i.message?.embeds?.map(e => ({ ...e.toJSON() })) || []
+          if (updatedEmbeds[0]) {
+            updatedEmbeds[0].description += '\n\n**BB-code:**\n```' + text + '```'
+          }
           return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
             logger.error(`Failed to update roll buttons on "BB-code"`, error)
             return null
@@ -2439,8 +2444,10 @@ const showResults = async (_interaction, additionalText) => {
           const text = formatThrowResults({
             throws: Client.getRollCache(r.id), formatName: THROW_RESULTS_FORMATS.markdown.name
           })
-          const updatedEmbeds = content.embeds
-          updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
+          const updatedEmbeds = i.message?.embeds?.map(e => ({ ...e.toJSON() })) || []
+          if (updatedEmbeds[0]) {
+           updatedEmbeds[0].description += '\n\n**Markdown:**\n```' + text + '```'
+          }
           return i.update({ embeds: updatedEmbeds, components: updatedComponents }).catch(error => {
             logger.error(`Failed to update roll buttons on "Markdown"`, error)
             return null
