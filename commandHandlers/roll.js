@@ -2414,12 +2414,23 @@ const showResults = async (_interaction, additionalText) => {
 
       // Determine which buttons should remain based on what was clicked
       const remainingButtonIds = []
+      if (i.customId !== 'repeat') remainingButtonIds.push('repeat')
       if (i.customId !== 'bb-code') remainingButtonIds.push('bb-code')
       if (i.customId !== 'markdown') remainingButtonIds.push('markdown')
 
       // Rebuild the action row with remaining buttons
       if (remainingButtonIds.length > 0) {
         const buttonsRow = new ActionRowBuilder()
+
+        if (remainingButtonIds.includes('repeat')) {
+          buttonsRow.addComponents(
+            new ButtonBuilder()
+              .setCustomId('repeat')
+              .setLabel('Repeat')
+              .setEmoji(REPEAT_EMOJI)
+              .setStyle(ButtonStyle.Success)
+          )
+        }
 
         if (remainingButtonIds.includes('bb-code')) {
           buttonsRow.addComponents(
@@ -2448,7 +2459,9 @@ const showResults = async (_interaction, additionalText) => {
         case 'repeat': {
           if (repeatCollected) return
           repeatCollected = true
-          await i.deferReply().catch(() => null)
+          // Update the original message to remove the Repeat button
+          await i.update({ components: updatedComponents }).catch(() => null)
+          // Create a new follow-up message with the new roll
           await module.exports.repeatRollCommand(i, r.id)
           return
         }
