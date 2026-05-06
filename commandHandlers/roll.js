@@ -2484,10 +2484,16 @@ const showResults = async (_interaction, additionalText) => {
         case 'repeat': {
           if (repeatCollected) return
           repeatCollected = true
-          // Update the original message to remove the Repeat button, then create a new roll
-          await i.update({ components: updatedComponents }).catch(error => {
-            logger.error(`Failed to remove Repeat button`, error)
-          })
+          // Defer the reply to allow for follow-up messages
+          await i.deferReply().catch(() => null)
+          // Manually edit the original message to remove the Repeat button
+          await retryable(() =>
+            editMessage(i.client, i.message.channelId, i.message.id, {
+              components: updatedComponents
+            })).catch(error => {
+              logger.error(`Failed to remove Repeat button`, error)
+            }
+          )
           // Now create a new follow-up message with the new roll
           await module.exports.repeatRollCommand(i, r.id)
           return
