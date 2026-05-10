@@ -218,7 +218,11 @@ class InteractionAdapter {
    */
   _sendInitialResponse (body) {
     if (this._responded) {
-      logger.warn(`[Adapter] Attempted double initial response for interaction ${this.id}`)
+      const callerStack = (new Error().stack || '').split('\n').slice(2, 5)
+        .map(s => s.trim()).join(' | ')
+      logger.warn(`[Adapter] Attempted double initial response for interaction ${this.id} ` +
+        `(type=${this.type}, customId=${this.customId}, secondType=${body?.type}). ` +
+        `Second caller: ${callerStack}`)
       return
     }
     this._responded = true

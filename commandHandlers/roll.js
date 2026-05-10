@@ -284,6 +284,7 @@ const showWarnings = async () => {
 
       let warningCollected = false
       pendingInteractions.collectButtons(r.id, {
+        filter: i => i.customId === 'roll_warning_yes' || i.customId === 'roll_warning_no',
         time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT),
         onCollect: async (i) => {
           if (warningCollected) return i.deferUpdate().catch(() => null)
@@ -2409,6 +2410,10 @@ const showResults = async (_interaction, additionalText) => {
 
   let repeatCollected = false
   pendingInteractions.collectButtons(r.id, {
+    // Only handle our own buttons. The save collector registered on the same
+    // message handles its own customIds; without this filter we'd fire on every
+    // click and double-respond when the save collector also matches.
+    filter: i => i.customId === 'repeat' || i.customId === 'bb-code' || i.customId === 'markdown',
     time: transformMinutesToMs(ROLL_RESULTS_MESSAGE_EXPIRE_AFTER_INT),
     onCollect: async (i) => {
       // Find which component row has our buttons
