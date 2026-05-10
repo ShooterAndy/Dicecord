@@ -1,8 +1,12 @@
 require('dotenv').config()
 const express = require('express')
 const { verifyKeyMiddleware } = require('discord-interactions')
-const { InteractionType } = require('discord-api-types/v10')
-const { Routes } = require('discord-api-types/v10')
+const {
+  InteractionType,
+  InteractionResponseType,
+  MessageFlags,
+  Routes
+} = require('discord-api-types/v10')
 const { Collection } = require('discord.js')
 const fs = require('fs')
 const path = require('path')
@@ -305,10 +309,22 @@ app.post('/interactions',
         if (messageId && pendingInteractions.tryDispatchButton(messageId, adapter)) {
           return // handled by collector
         }
-        // Unhandled button
-        logger.warn(`Received unhandled button click: ${adapter.customId}`)
+        // Unhandled button — derive message age from the snowflake for diagnostics
+        // (Discord epoch = 2015-01-01T00:00:00Z = 1420070400000 ms)
+        const ageMin = messageId
+          ? Math.round((Date.now() - Number((BigInt(messageId) >> 22n) + 1420070400000n)) / 60000)
+          : null
+        logger.warn(nws`Received unhandled button click: ${adapter.customId} \
+          (msgId=${messageId}, msgAgeMin=${ageMin}, pendingSize=${pendingInteractions.size}, \
+          userId=${adapter.user?.id})`)
         if (!res.headersSent) {
-          adapter.deferReply()
+          adapter._sendInitialResponse({
+            type: InteractionResponseType.ChannelMessageWithSource,
+            data: {
+              content: 'This button has expired (the bot was restarted, or the roll is more than 10 minutes old). Re-run the command to get a fresh one.',
+              flags: MessageFlags.Ephemeral
+            }
+          })
         }
         return
       }
@@ -497,8 +513,28 @@ start().catch(err => {
 // Graceful shutdown
 const shutdown = async (signal) => {
   logger.log(`Received ${signal}, shutting down gracefully...`)
+  // Strip buttons from messages whose collectors are still live, so users don't
+  // click ghost buttons after the process is gone. Race against a 4s budget so
+  // SIGTERM doesn't get killed by Heroku's 10s grace before the DB pool closes.
   try {
-    pg.db.$pool.end()
+    const ends = []
+    for (const [, entry] of pendingInteractions._getEntries()) {
+      if (entry.type === 'button-collector' && entry.onEnd) {
+        try { ends.push(Promise.resolve(entry.onEnd())) } catch {}
+      }
+    }
+    if (ends.length) {
+      logger.log(`Stripping buttons from ${ends.length} live collector(s) before shutdown...`)
+      await Promise.race([
+        Promise.allSettled(ends),
+        new Promise(resolve => setTimeout(resolve, 4000))
+      ])
+    }
+  } catch (err) {
+    logger.error('Error stripping buttons on shutdown', err)
+  }
+  try {
+    await pg.db.$pool.end()
   } catch (err) {
     logger.error('Error closing DB pool during shutdown', err)
   }
