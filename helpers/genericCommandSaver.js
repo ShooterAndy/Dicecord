@@ -110,11 +110,9 @@ module.exports = {
     const messageId = response?.id
     if (!messageId) return
 
-    const filter = i => {
-      return (i.customId === GENERIC_SAVE_BUTTON_ID ||
-              i.customId === GENERIC_GUILD_SAVE_BUTTON_ID) &&
-        (i.user.id === interaction.user.id)
-    }
+    const filter = i =>
+      i.customId === GENERIC_SAVE_BUTTON_ID ||
+      i.customId === GENERIC_GUILD_SAVE_BUTTON_ID
 
     pendingInteractions.collectButtons(messageId, {
       filter,
@@ -140,7 +138,7 @@ module.exports = {
 
         const submitted = await pendingInteractions.wait(modalId, {
           time: transformMinutesToMs(5),
-          filter: mi => mi.customId === modalId && mi.user.id === interaction.user.id,
+          filter: mi => mi.customId === modalId && mi.user.id === i.user.id,
           type: 'modal'
         })
 
@@ -170,7 +168,7 @@ module.exports = {
 
           try {
             const upsertResult = await upsertSavedCommand(
-              interaction.user.id,
+              submitted.user.id,
               name,
               interaction.commandName.toLowerCase(),
               limit,
@@ -185,7 +183,7 @@ module.exports = {
             switch (upsertResult) {
               case UPSERT_SAVED_COMMAND_RESULTS.inserted:
               case UPSERT_SAVED_COMMAND_RESULTS.updated: {
-                Client.invalidateSavedCmdNamesCache(interaction.user.id)
+                Client.invalidateSavedCmdNamesCache(submitted.user.id)
                 if (isGuildSave && guildId) {
                   Client.invalidateGuildSavedCmdNamesCache(guildId)
                 }

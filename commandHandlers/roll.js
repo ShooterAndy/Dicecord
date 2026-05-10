@@ -286,7 +286,7 @@ const showWarnings = async () => {
       pendingInteractions.collectButtons(r.id, {
         time: transformMinutesToMs(WARNING_MESSAGE_EXPIRE_AFTER_INT),
         onCollect: async (i) => {
-          if (warningCollected) return
+          if (warningCollected) return i.deferUpdate().catch(() => null)
           warningCollected = true
           switch (i.customId) {
             case 'roll_warning_yes': {
@@ -2483,7 +2483,7 @@ const showResults = async (_interaction, additionalText) => {
 
       switch(i.customId) {
         case 'repeat': {
-          if (repeatCollected) return
+          if (repeatCollected) return i.deferUpdate().catch(() => null)
           repeatCollected = true
           // Defer the reply to allow for follow-up messages
           await i.deferReply().catch(() => null)
@@ -2530,6 +2530,11 @@ const showResults = async (_interaction, additionalText) => {
             logger.error(`Failed to update roll buttons on "Markdown"`, error)
             return null
           })
+        }
+        default: {
+          // Another button on the same message (e.g. Save) was clicked. Its own
+          // collector handles the action; we just ack here so Heroku never times out.
+          return i.deferUpdate().catch(() => null)
         }
       }
     },
