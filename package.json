@@ -33,7 +33,7 @@
     "random": "^5.4.1",
     "set-value": "^4.0.1",
     "underscore": "^1.13.8",
-    "undici": "^7.24.4"
+    "undici": "^7.28.0"
   },
   "devDependencies": {
     "auto-changelog": "^2.5.0",
