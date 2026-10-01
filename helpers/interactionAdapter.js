@@ -121,6 +121,11 @@ class InteractionAdapter {
     // Core properties
     this.id = rawPayload.id
     this.token = rawPayload.token
+    // Same as discord.js Interaction.createdTimestamp (derived from the snowflake id;
+    // Discord epoch = 2015-01-01T00:00:00Z = 1420070400000 ms)
+    this.createdTimestamp = rawPayload.id
+      ? Number((BigInt(rawPayload.id) >> 22n) + 1420070400000n)
+      : Date.now()
     this.type = rawPayload.type
     this.guildId = rawPayload.guild_id ?? rawPayload.guild?.id ?? null
     this.channelId = rawPayload.channel_id ?? rawPayload.channel?.id ?? null
@@ -226,6 +231,8 @@ class InteractionAdapter {
       return
     }
     this._responded = true
+    // Interaction age at the moment the initial response went out — used in reply-failure diagnostics
+    this._ackAgeMs = Date.now() - this.createdTimestamp
     if (this._res && !this._res.headersSent) {
       this._res.json(body)
     }

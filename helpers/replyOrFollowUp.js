@@ -12,6 +12,19 @@ const _serializeForLog = (content) => {
   }
 }
 
+// Interaction age in ms (createdTimestamp exists on both discord.js interactions and the adapter)
+const _ageMs = (interaction) => interaction?.createdTimestamp
+  ? Date.now() - interaction.createdTimestamp
+  : null
+
+// Timing info appended to failure logs, to tell slow acks / slow sends / slow log posting apart
+const _timings = (interaction, plainTextLookupMs, sendStartAgeMs) => {
+  const ackAge = interaction?._ackAgeMs != null ? `${interaction._ackAgeMs}ms` : 'n/a'
+  return nws`[timings: interactionId=${interaction?.id}, ackAge=${ackAge}, \
+    plainTextLookup=${plainTextLookupMs}ms, sendStartAge=${sendStartAgeMs}ms, \
+    failedAtAge=${_ageMs(interaction)}ms]`
+}
+
 const _maybeConvertToPlainText = async (interaction, content) => {
   if (!content || !content.embeds || !content.embeds.length) return content
   if (!interaction || !interaction.guildId) return content
@@ -31,27 +44,31 @@ module.exports = async (interaction, content) => {
   if (!content) {
     logger.error(`No content in replyOrFollowUp`)
   }
+  const plainTextLookupStart = Date.now()
   content = await _maybeConvertToPlainText(interaction, content)
+  const plainTextLookupMs = Date.now() - plainTextLookupStart
   if (interaction) {
     if (interaction.isRepliable()) {
       if (!interaction.replied) {
         content.fetchReply = true
+        const sendStartAgeMs = _ageMs(interaction)
         try {
           return await retryable(
             () => interaction.editReply(content))
         } catch (e) {
           logger.error(nws`Failed to reply to an interaction in \
-            replyOrFollowUp:\n${_serializeForLog(content)}`, e)
+            replyOrFollowUp ${_timings(interaction, plainTextLookupMs, sendStartAgeMs)}:\n${_serializeForLog(content)}`, e)
           return null
         }
       } else {
         content.fetchReply = true
+        const sendStartAgeMs = _ageMs(interaction)
         try {
           return await retryable(
             () => interaction.followUp(content))
         } catch (e) {
           logger.error(nws`Failed to follow up an interaction in \
-            replyOrFollowUp:\n${_serializeForLog(content)}`, e)
+            replyOrFollowUp ${_timings(interaction, plainTextLookupMs, sendStartAgeMs)}:\n${_serializeForLog(content)}`, e)
           return null
         }
       }
