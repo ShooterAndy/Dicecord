@@ -477,8 +477,18 @@ const updateBotDescription = async () => {
 // Startup
 // ---------------------------------------------------------------------------
 const start = async () => {
+  // Start HTTP server first: interactions that arrive while startup tasks run would otherwise
+  // sit in the Heroku router queue and miss Discord's 3s ack window (-> 10015 Unknown Webhook)
+  app.listen(PORT, () => {
+    logger.log(`HTTP interactions server started on port ${PORT}`)
+  })
+
   // Cache deck types
-  await cacheDeckTypes()
+  try {
+    await cacheDeckTypes()
+  } catch (err) {
+    logger.error('Failed to cache deck types', err)
+  }
 
   // Update bot description
   await updateBotDescription()
@@ -498,11 +508,6 @@ const start = async () => {
   // Top.gg stats
   await postBotStats()
   setInterval(postBotStats, transformMinutesToMs(30))
-
-  // Start HTTP server
-  app.listen(PORT, () => {
-    logger.log(`HTTP interactions server started on port ${PORT}`)
-  })
 }
 
 start().catch(err => {
