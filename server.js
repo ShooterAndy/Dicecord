@@ -443,12 +443,21 @@ const postBotStats = async () => {
     const guildCount = appInfo.approximate_guild_count ?? 0
     logger.log(`Approximate guild count from API: ${guildCount}`)
 
-    const { Api } = require('@top-gg/sdk')
-    const topGGApi = new Api(process.env.DBL_TOKEN)
-    await topGGApi.postStats({
-      serverCount: guildCount,
-      shardCount: 1
+    // The legacy /api/bots/stats endpoint (used by @top-gg/sdk v3) now falls through to top.gg's
+    // web frontend and returns HTML 500s, so post directly to the v1 metrics endpoint instead.
+    const response = await fetch('https://top.gg/api/v1/projects/@me/metrics', {
+      method: 'PATCH',
+      headers: {
+        'authorization': `Bearer ${process.env.DBL_TOKEN}`,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ server_count: guildCount, shard_count: 1 }),
+      signal: AbortSignal.timeout(15000)
     })
+    if (!response.ok) {
+      const body = (await response.text().catch(() => '')).slice(0, 500)
+      throw new Error(`top.gg responded ${response.status} ${response.statusText}: ${body}`)
+    }
     logger.log(`Posted stats to top.gg: ${guildCount} total guilds`)
   } catch (err) {
     logger.error('Failed to post bot stats', err)

@@ -224,7 +224,7 @@ manager.spawn().then(() => {
         manager.fetchClientValues('guilds.cache.size').then(results => {
           logger.log('Received stats: ' + JSON.stringify(results))
           const totalGuilds = results.reduce((prev, val) => prev + val, 0)
-          topGGApi.postStats({
+          topGGApi.postMetrics({
             serverCount: totalGuilds,
             shardCount: manager.totalShards
           }).then(() => {
